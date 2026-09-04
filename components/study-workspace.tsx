@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, BookOpen, Brain, CalendarDays, CheckCircle2, FileText, GraduationCap, Sparkles } from "lucide-react";
 import { getFirebaseServices } from "../lib/firebase";
-import { GoldAILogoLoader } from "./gold-ai-ui";
+import { GoldAILogo, GoldAILogoLoader } from "./gold-ai-ui";
 import type { StudyAction, StudyActivity } from "../types/study";
 
 const tools: Array<{ id: StudyAction; label: string; description: string; icon: typeof BookOpen }> = [
