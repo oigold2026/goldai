@@ -58,6 +58,15 @@
         }
       }
     },
+    "researchSessions": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false,
+        "$sessionId": {
+          ".validate": "newData.hasChildren(['id', 'userId', 'title', 'question', 'type', 'status', 'sources', 'createdAt', 'updatedAt']) && newData.child('id').val() === $sessionId && newData.child('userId').val() === $uid && newData.child('question').isString() && newData.child('type').isString() && newData.child('status').isString() && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber()"
+        }
+      }
+    },
     "usage": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
