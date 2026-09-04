@@ -19,7 +19,7 @@ import {
 
 function getTimeGreeting() {
   const hour = new Date().getHours();
-  return hour < 5 ? "Good night" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 }
 
 function getNextGreetingBoundary() {
