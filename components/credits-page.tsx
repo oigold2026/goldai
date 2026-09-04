@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import type { ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, CircleAlert, Sparkles } from "lucide-react";
 import { getFirebaseServices } from "../lib/firebase";
 import { creditPackages } from "../lib/credits/packages";
@@ -14,6 +14,11 @@ function formatAmount(amount: number) { return new Intl.NumberFormat("en-US").fo
 function transactionLabel(transaction: CreditTransaction) { return transaction.type === "ai_usage" ? "AI usage" : transaction.description || transaction.type.replaceAll("_", " "); }
 function paymentLabel(payment: PaymentRecord) { return `${payment.credits} credits purchased`; }
 function formatPrice(payment: { amount: number; currency: string }) { return `${payment.currency} ${new Intl.NumberFormat("en-US").format(payment.amount)}`; }
+
+function Link({ href, children, ...props }: { href: string; children: ReactNode; "aria-label"?: string }) {
+  const router = useRouter();
+  return <a href={href} onClick={(event) => { event.preventDefault(); window.history.length > 1 ? router.back() : router.push(href); }} {...props}>{children}</a>;
+}
 
 export function CreditsPage() {
   const [account, setAccount] = useState<CreditAccount | null>(null);

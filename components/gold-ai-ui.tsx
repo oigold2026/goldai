@@ -85,13 +85,18 @@ export function ThemeToggle() {
 }
 
 export function AppHeader({ onMenu, backToHome = false, backHref = "/" }: { onMenu: () => void; backToHome?: boolean; backHref?: string }) {
+  const router = useRouter();
   const { user } = useAuth();
   const { profile } = useProfile();
   const name = getDisplayName(user, profile, "Guest");
   const initial = name.charAt(0).toUpperCase();
+  function goBack() {
+    if (window.history.length > 1) router.back();
+    else router.push(backHref);
+  }
   return (
     <header className="app-header">
-      {backToHome && <Link className="icon-button header-back" href={backHref} aria-label="Go back" title="Go back"><ArrowLeft size={19} /></Link>}
+      {backToHome && <button className="icon-button header-back" type="button" onClick={goBack} aria-label="Go back" title="Go back"><ArrowLeft size={19} /></button>}
       <button className="icon-button mobile-menu" type="button" onClick={onMenu} aria-label="Open navigation">
         <Menu size={20} />
       </button>
