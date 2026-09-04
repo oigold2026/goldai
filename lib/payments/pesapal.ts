@@ -8,36 +8,52 @@ import type { PaymentRecord, PaymentStatus } from "../../types/payments";
 const sandboxUrl = "https://cybqa.pesapal.com/pesapalv3";
 const productionUrl = "https://pay.pesapal.com/v3";
 
-type PesaPalConfig = { baseUrl: string; key: string; secret: string; ipnUrl: string };
+type PesaPalEnvironment = "sandbox" | "live";
+type PesaPalConfig = { baseUrl: string; environment: PesaPalEnvironment; key: string; secret: string; ipnUrl: string };
 type PesaPalStatus = { payment_status_description?: string; payment_status_code?: number | string; status_code?: number | string };
 export class PaymentServiceError extends Error { constructor(message: string, public readonly status: 400 | 502 | 503 | 500) { super(message); } }
+class PesaPalApiError extends PaymentServiceError { constructor(message: string, status: 502 | 503, public readonly providerStatus: number, public readonly providerMessage?: string) { super(message, status); } }
 
 function config(): PesaPalConfig {
   const key = process.env.PESAPAL_CONSUMER_KEY?.trim();
   const secret = process.env.PESAPAL_CONSUMER_SECRET?.trim();
   const ipnUrl = process.env.PESAPAL_IPN_URL?.trim();
+  const requestedEnvironment = process.env.PESAPAL_ENVIRONMENT?.trim().toLowerCase();
   if (!key || !secret || !ipnUrl) throw new PaymentServiceError("PesaPal is not configured.", 500);
+  if (requestedEnvironment && requestedEnvironment !== "sandbox" && requestedEnvironment !== "live") throw new PaymentServiceError("PESAPAL_ENVIRONMENT must be sandbox or live.", 500);
   let parsedUrl: URL;
   try { parsedUrl = new URL(ipnUrl); } catch { throw new PaymentServiceError("PesaPal IPN URL is invalid.", 500); }
   if (parsedUrl.protocol !== "https:" && process.env.NODE_ENV === "production") throw new PaymentServiceError("PesaPal IPN URL must use HTTPS in production.", 500);
   if (["localhost", "127.0.0.1", "::1"].includes(parsedUrl.hostname)) throw new PaymentServiceError("PesaPal IPN URL must be publicly reachable.", 500);
-  const baseUrl = process.env.PESAPAL_BASE_URL?.trim() || (process.env.NODE_ENV === "production" ? productionUrl : sandboxUrl);
-  return { baseUrl, key, secret, ipnUrl };
+  const baseUrl = process.env.PESAPAL_BASE_URL?.trim() || (requestedEnvironment === "live" ? productionUrl : sandboxUrl);
+  let parsedBaseUrl: URL;
+  try { parsedBaseUrl = new URL(baseUrl); } catch { throw new PaymentServiceError("PESAPAL_BASE_URL is invalid.", 500); }
+  const sandboxHostname = new URL(sandboxUrl).hostname;
+  const productionHostname = new URL(productionUrl).hostname;
+  if (![sandboxHostname, productionHostname].includes(parsedBaseUrl.hostname)) throw new PaymentServiceError("PESAPAL_BASE_URL must use the official PesaPal API host.", 500);
+  const baseEnvironment: PesaPalEnvironment = parsedBaseUrl.hostname === productionHostname ? "live" : "sandbox";
+  if (requestedEnvironment && requestedEnvironment !== baseEnvironment) throw new PaymentServiceError("PESAPAL_ENVIRONMENT and PESAPAL_BASE_URL do not match.", 500);
+  const environment: PesaPalEnvironment = requestedEnvironment === "live" || baseEnvironment === "live" ? "live" : "sandbox";
+  const expectedHostname = environment === "live" ? new URL(productionUrl).hostname : new URL(sandboxUrl).hostname;
+  if (parsedBaseUrl.hostname !== expectedHostname) throw new PaymentServiceError("PESAPAL_ENVIRONMENT and PESAPAL_BASE_URL do not match.", 500);
+  return { baseUrl, environment, key, secret, ipnUrl };
 }
 
 async function pesapalRequest<T>(path: string, init: RequestInit, token?: string) {
   const settings = config();
   let response: Response;
   try {
-    response = await fetch(`${settings.baseUrl.replace(/\/$/, "")}${path}`, { ...init, headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init.headers } });
+    response = await fetch(`${settings.baseUrl.replace(/\/$/, "")}${path}`, { ...init, headers: { Accept: "application/json", "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init.headers } });
   } catch (error) {
-    console.error("Gold AI PesaPal network request failed", { path, error: error instanceof Error ? error.message : "unknown error" });
+    console.error("Gold AI PesaPal network request failed", { path, environment: settings.environment, hostname: new URL(settings.baseUrl).hostname, error: error instanceof Error ? error.message : "unknown error" });
     throw new PaymentServiceError("PesaPal service is unavailable.", 503);
   }
   if (!response.ok) {
     const responseText = await response.text();
-    console.error("Gold AI PesaPal request failed", { path, status: response.status, response: responseText.slice(0, 300) });
-    throw new PaymentServiceError("PesaPal service rejected the request.", response.status >= 500 ? 503 : 502);
+    let providerMessage: string | undefined;
+    try { const payload = JSON.parse(responseText) as { message?: string; error?: string; error_description?: string }; providerMessage = payload.message || payload.error_description || payload.error; } catch { providerMessage = responseText.slice(0, 200); }
+    console.error("Gold AI PesaPal request failed", { path, status: response.status, environment: settings.environment, hostname: new URL(settings.baseUrl).hostname, providerMessage });
+    throw new PesaPalApiError("PesaPal service rejected the request.", response.status >= 500 ? 503 : 502, response.status, providerMessage);
   }
   return await response.json() as T;
 }
@@ -45,7 +61,11 @@ async function pesapalRequest<T>(path: string, init: RequestInit, token?: string
 async function requestToken() {
   const settings = config();
   const data = await pesapalRequest<{ token?: string }>("/api/Auth/RequestToken", { method: "POST", body: JSON.stringify({ consumer_key: settings.key, consumer_secret: settings.secret }) });
-  if (!data.token) throw new PaymentServiceError("PesaPal authentication failed.", 502);
+  if (!data.token) {
+    console.error("Gold AI PesaPal authentication returned no token", { environment: settings.environment, hostname: new URL(settings.baseUrl).hostname, responseKeys: Object.keys(data) });
+    throw new PaymentServiceError("PesaPal authentication failed.", 502);
+  }
+  console.info("Gold AI PesaPal authentication succeeded", { environment: settings.environment, hostname: new URL(settings.baseUrl).hostname });
   return data.token;
 }
 
@@ -72,7 +92,8 @@ export async function createPesapalPayment(uid: string, packageId: string, custo
   console.info("Gold AI pending payment record created", { uid, paymentId });
   try {
     const token = await requestToken();
-    const ipn = process.env.PESAPAL_IPN_ID ? { ipn_id: process.env.PESAPAL_IPN_ID } : await pesapalRequest<{ ipn_id?: string }>("/api/URLSetup/RegisterIPN", { method: "POST", body: JSON.stringify({ url: settings.ipnUrl, ipn_notification_type: "POST" }) }, token);
+    const configuredIpnId = process.env.PESAPAL_IPN_ID?.trim();
+    const ipn = configuredIpnId ? { ipn_id: configuredIpnId } : await pesapalRequest<{ ipn_id?: string }>("/api/URLSetup/RegisterIPN", { method: "POST", body: JSON.stringify({ url: settings.ipnUrl, ipn_notification_type: "POST" }) }, token);
     if (!ipn.ipn_id) throw new PaymentServiceError("PesaPal notification setup failed.", 502);
     const order = await pesapalRequest<{ order_tracking_id?: string; redirect_url?: string }>("/api/Transactions/SubmitOrderRequest", { method: "POST", body: JSON.stringify({ id: merchantReference, currency: creditPackage.currency, amount: creditPackage.amount, description: `${creditPackage.name} credit package`, callback_url: settings.ipnUrl, notification_id: ipn.ipn_id, billing_address: { email_address: customer.email, first_name: customer.firstName || "Gold AI", last_name: customer.lastName || "User", phone_number: customer.phone || undefined } }) }, token);
     if (!order.order_tracking_id || !order.redirect_url) throw new PaymentServiceError("PesaPal did not provide a checkout link.", 502);
