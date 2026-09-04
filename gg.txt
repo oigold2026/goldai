@@ -1,0 +1,34 @@
+**Artificial Intelligence (AI)** refers to computer systems or machines capable of performing tasks that typically require human intelligence. These tasks include learning, reasoning, problem-solving, understanding natural language, and recognizing patterns.
+
+---
+
+### How AI Works
+Instead of following pre-programmed, rigid rules for every scenario, modern AI uses **algorithms** and **data** to learn:
+1. **Data Input:** The system is fed massive amounts of data (text, images, numbers, or code).
+2. **Pattern Recognition:** It analyzes the data to identify underlying patterns and relationships.
+3. **Prediction & Action:** It uses those patterns to make decisions, answer questions, generate content, or automate tasks.
+
+---
+
+### Main Types of AI
+
+1. **Narrow AI (Weak AI):** 
+   * Designed to perform a specific, single task extremely well. 
+   * *Status:* **This is the only type of AI that exists today.**
+   * *Examples:* Web search engines, facial recognition, language translation, self-driving systems.
+
+2. **Artificial General Intelligence (AGI / Strong AI):** 
+   * A theoretical form of AI with human-level intelligence that could understand, learn, and adapt to *any* intellectual task across any domain.
+   * *Status:* **Hypothetical; does not exist yet.**
+
+---
+
+### Everyday Examples of AI
+* **Conversational AI:** Chatbots (like ChatGPT) and voice assistants (Siri, Alexa).
+* **Recommendation Engines:** Systems used by Netflix, Spotify, and Amazon to suggest content.
+* **Navigation:** Route optimization in Google Maps or Waze.
+* **Generative Tools:** Tools that create new images, text, music, or code based on user prompts.
+
+---
+
+Would you like to explore a specific topic within AI, such as **how Machine Learning works**, **how AI is used in a specific industry**, or **the ethics of AI**?
