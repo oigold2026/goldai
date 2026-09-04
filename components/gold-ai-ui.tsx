@@ -33,9 +33,9 @@ import type { StudyActivity } from "../types/study";
 export const quickActions: { label: string; description: string; icon: LucideIcon; href: string }[] = [
   { label: "Learn", description: "Understand a topic", icon: BookOpen, href: "/study" },
   { label: "Research", description: "Explore a question", icon: Search, href: "/research" },
-  { label: "Notes", description: "Organize your ideas", icon: FileText, href: "/create" },
+  { label: "Notes", description: "Organize your ideas", icon: FileText, href: "/create/notes" },
   { label: "Practice", description: "Build your confidence", icon: Brain, href: "/study" },
-  { label: "Write", description: "Shape your thoughts", icon: PenLine, href: "/create" },
+  { label: "Write", description: "Shape your thoughts", icon: PenLine, href: "/create/write" },
   { label: "Create", description: "Bring an idea to life", icon: Sparkles, href: "/create" },
 ];
 
@@ -84,14 +84,14 @@ export function ThemeToggle() {
   );
 }
 
-export function AppHeader({ onMenu, backToHome = false }: { onMenu: () => void; backToHome?: boolean }) {
+export function AppHeader({ onMenu, backToHome = false, backHref = "/" }: { onMenu: () => void; backToHome?: boolean; backHref?: string }) {
   const { user } = useAuth();
   const { profile } = useProfile();
   const name = getDisplayName(user, profile, "Guest");
   const initial = name.charAt(0).toUpperCase();
   return (
     <header className="app-header">
-      {backToHome && <Link className="icon-button header-back" href="/" aria-label="Back to home" title="Back to home"><ArrowLeft size={19} /></Link>}
+      {backToHome && <Link className="icon-button header-back" href={backHref} aria-label="Go back" title="Go back"><ArrowLeft size={19} /></Link>}
       <button className="icon-button mobile-menu" type="button" onClick={onMenu} aria-label="Open navigation">
         <Menu size={20} />
       </button>

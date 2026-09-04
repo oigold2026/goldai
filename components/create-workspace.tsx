@@ -10,11 +10,13 @@ import type { Creation } from "../types/create";
 
 function formatDate(timestamp: number) { return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(timestamp); }
 
-export function CreateWorkspace() {
+export function CreateWorkspace({ initialType = "writing", mode = "create" }: { initialType?: string; mode?: "create" | "write" }) {
   const router = useRouter();
-  const [type, setType] = useState("writing");
+  const [type, setType] = useState(initialType);
   const [prompt, setPrompt] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [tone, setTone] = useState("Clear");
+  const [length, setLength] = useState("Medium");
   const [creation, setCreation] = useState<Creation | null>(null);
   const [recent, setRecent] = useState<Creation[]>([]);
   const [loading, setLoading] = useState(false);
@@ -51,7 +53,7 @@ export function CreateWorkspace() {
   async function generate(action: "generate" | "improve" | "regenerate" = "generate") {
     if (!prompt.trim()) { setError("Tell Gold AI what you would like to create."); return; }
     setLoading(true); setError(null); setNotice(null);
-    try { const response = await fetch("/api/create", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ requestId: crypto.randomUUID(), action, type, prompt, instructions: instructions || undefined, creationId: creation?.id, content: creation?.content }) }); const data = await response.json() as { creation?: Creation; error?: string }; if (!response.ok || !data.creation) throw new Error(data.error || "Unable to create content."); setCreation(data.creation); setRecent((items) => [data.creation!, ...items.filter((item) => item.id !== data.creation?.id)]); setEditing(false); } catch (generationError) { setError(generationError instanceof Error ? generationError.message : "Unable to create content."); } finally { setLoading(false); }
+    try { const response = await fetch("/api/create", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ requestId: crypto.randomUUID(), action, type, prompt, instructions: [instructions, mode === "write" ? `Tone: ${tone}\nLength: ${length}` : ""].filter(Boolean).join("\n") || undefined, creationId: creation?.id, content: creation?.content }) }); const data = await response.json() as { creation?: Creation; error?: string }; if (!response.ok || !data.creation) throw new Error(data.error || "Unable to create content."); setCreation(data.creation); setRecent((items) => [data.creation!, ...items.filter((item) => item.id !== data.creation?.id)]); setEditing(false); } catch (generationError) { setError(generationError instanceof Error ? generationError.message : "Unable to create content."); } finally { setLoading(false); }
   }
 
   async function saveEditedContent() { if (!creation) return; setLoading(true); try { const response = await fetch("/api/create", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ id: creation.id, content: creation.content }) }); if (!response.ok) throw new Error("Unable to save changes."); setNotice("Changes saved."); setEditing(false); } catch (saveError) { setError(saveError instanceof Error ? saveError.message : "Unable to save changes."); } finally { setLoading(false); } }

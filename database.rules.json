@@ -76,6 +76,15 @@
         }
       }
     },
+    "notes": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false,
+        "$noteId": {
+          ".validate": "newData.hasChildren(['id', 'userId', 'title', 'content', 'createdAt', 'updatedAt']) && newData.child('id').val() === $noteId && newData.child('userId').val() === $uid && newData.child('title').isString() && newData.child('content').isString() && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber()"
+        }
+      }
+    },
     "usage": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",

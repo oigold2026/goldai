@@ -1,7 +1,7 @@
 import { ProtectedRoute } from "../../components/auth-provider";
 import { ProfileRequiredRoute } from "../../components/profile-provider";
-import { CreateWorkspace } from "../../components/create-workspace";
+import { CreateHome } from "../../components/create-home";
 
 export default function CreatePage() {
-  return <ProtectedRoute><ProfileRequiredRoute><CreateWorkspace /></ProfileRequiredRoute></ProtectedRoute>;
+  return <ProtectedRoute><ProfileRequiredRoute><CreateHome /></ProfileRequiredRoute></ProtectedRoute>;
 }
