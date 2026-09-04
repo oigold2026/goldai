@@ -30,6 +30,7 @@ export function StudyWorkspace() {
   const [goal, setGoal] = useState("");
   const [availableTime, setAvailableTime] = useState("");
   const [targetDate, setTargetDate] = useState("");
+  const [result, setResult] = useState("");
   const [activities, setActivities] = useState<StudyActivity[]>([]);
   const [launching, setLaunching] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
@@ -63,8 +64,9 @@ export function StudyWorkspace() {
     try {
       const context = [`Study tool: ${action}`, subject && `Subject: ${subject}`, topic && `Topic: ${topic}`, level && `Learning level: ${level}`, difficulty && `Difficulty: ${difficulty}`, questionCount && `Questions: ${questionCount}`, content && `Learning material or reference:\n${content}`, answer && `Learner answer:\n${answer}`, goal && `Learning goal: ${goal}`, availableTime && `Available time: ${availableTime}`, targetDate && `Target date: ${targetDate}`].filter(Boolean).join("\n");
       const response = await fetch("/api/study/activity", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ action, subject: subject || undefined, topic: topic || undefined }) });
-      const data = await response.json() as { activity?: StudyActivity; error?: string };
-      if (!response.ok) throw new Error(data.error || "Study task could not be started.");
+      const data = await response.json() as { text?: string; activity?: StudyActivity; error?: string };
+      if (!response.ok || !data.text) throw new Error(data.error || "Study task could not be started.");
+      setResult(data.text);
       if (data.activity) setActivities((items) => [data.activity!, ...items]);
       router.push(`/chat?new=true&prompt=${encodeURIComponent(`I want to study using this Gold AI study context:\n${context}\n\nPlease guide me through this task in a clear, educational way.`)}`);
     } catch (submitError) { setError(submitError instanceof Error ? submitError.message : "Study request could not be completed."); }
