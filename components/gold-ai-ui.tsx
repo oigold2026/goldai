@@ -96,7 +96,6 @@ export function AppHeader({ onMenu, backToHome = false }: { onMenu: () => void; 
       </button>
       <GoldAILogo compact />
       <div className="header-actions">
-        <div className="header-credits"><Sparkles size={15} /> <span>10 credits</span></div>
         <ThemeToggle />
         {user ? <a className="avatar" href="/profile" aria-label="Open profile">{initial}</a> : <Link className="login-link" href="/login">Log in</Link>}
       </div>
