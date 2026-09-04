@@ -12,7 +12,23 @@ type PesaPalEnvironment = "sandbox" | "live";
 type PesaPalConfig = { baseUrl: string; environment: PesaPalEnvironment; key: string; secret: string; ipnUrl: string };
 type PesaPalStatus = { payment_status_description?: string; payment_status_code?: number | string; status_code?: number | string };
 export class PaymentServiceError extends Error { constructor(message: string, public readonly status: 400 | 502 | 503 | 500) { super(message); } }
-class PesaPalApiError extends PaymentServiceError { constructor(message: string, status: 502 | 503, public readonly providerStatus: number, public readonly providerMessage?: string) { super(message, status); } }
+class PesaPalApiError extends PaymentServiceError { constructor(message: string, status: 502 | 503, public readonly providerStatus: number, public readonly providerMessage?: unknown) { super(message, status); } }
+
+const sensitiveResponseKeys = /token|secret|password|authorization|consumer[_-]?key|access[_-]?key|api[_-]?key/i;
+
+function redactSensitiveResponse(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactSensitiveResponse);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, sensitiveResponseKeys.test(key) ? "[REDACTED]" : redactSensitiveResponse(entry)]));
+  }
+  if (typeof value === "string") return value.length > 500 ? `${value.slice(0, 500)}...[truncated]` : value;
+  return value;
+}
+
+function safeResponseBody(responseText: string) {
+  try { return redactSensitiveResponse(JSON.parse(responseText)); }
+  catch { return responseText.replace(/(token|secret|password|authorization|consumer[_-]?key|access[_-]?key|api[_-]?key)\s*[:=]\s*[^,\s}]+/gi, "$1=[REDACTED]").slice(0, 500); }
+}
 
 function config(): PesaPalConfig {
   const key = process.env.PESAPAL_CONSUMER_KEY?.trim();
@@ -50,9 +66,9 @@ async function pesapalRequest<T>(path: string, init: RequestInit, token?: string
   }
   if (!response.ok) {
     const responseText = await response.text();
-    let providerMessage: string | undefined;
-    try { const payload = JSON.parse(responseText) as { message?: string; error?: string; error_description?: string }; providerMessage = payload.message || payload.error_description || payload.error; } catch { providerMessage = responseText.slice(0, 200); }
-    console.error("Gold AI PesaPal request failed", { path, status: response.status, environment: settings.environment, hostname: new URL(settings.baseUrl).hostname, providerMessage });
+    const safeBody = safeResponseBody(responseText);
+    const providerMessage = typeof safeBody === "object" && safeBody !== null ? Object.entries(safeBody as Record<string, unknown>).filter(([key]) => /message|error|status|description|detail|code/i.test(key)).slice(0, 8) : safeBody;
+    console.error("Gold AI PesaPal request failed", { path, status: response.status, statusText: response.statusText || undefined, environment: settings.environment, hostname: new URL(settings.baseUrl).hostname, providerMessage, responseBody: safeBody });
     throw new PesaPalApiError("PesaPal service rejected the request.", response.status >= 500 ? 503 : 502, response.status, providerMessage);
   }
   return await response.json() as T;
@@ -60,9 +76,10 @@ async function pesapalRequest<T>(path: string, init: RequestInit, token?: string
 
 async function requestToken() {
   const settings = config();
-  const data = await pesapalRequest<{ token?: string }>("/api/Auth/RequestToken", { method: "POST", body: JSON.stringify({ consumer_key: settings.key, consumer_secret: settings.secret }) });
+  const endpointPath = "/api/Auth/RequestToken";
+  const data = await pesapalRequest<{ token?: string; error?: string; status?: string | number; message?: string }>(endpointPath, { method: "POST", body: JSON.stringify({ consumer_key: settings.key, consumer_secret: settings.secret }) });
   if (!data.token) {
-    console.error("Gold AI PesaPal authentication returned no token", { environment: settings.environment, hostname: new URL(settings.baseUrl).hostname, responseKeys: Object.keys(data) });
+    console.error("Gold AI PesaPal authentication returned no token", { httpStatus: 200, statusText: "OK", environment: settings.environment, hostname: new URL(settings.baseUrl).hostname, endpointPath, consumerKeyConfigured: Boolean(settings.key), consumerSecretConfigured: Boolean(settings.secret), providerStatus: data.status, providerMessage: data.message || data.error, responseKeys: Object.keys(data), response: redactSensitiveResponse(data) });
     throw new PaymentServiceError("PesaPal authentication failed.", 502);
   }
   console.info("Gold AI PesaPal authentication succeeded", { environment: settings.environment, hostname: new URL(settings.baseUrl).hostname });
