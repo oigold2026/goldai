@@ -208,6 +208,13 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .research-delete:hover { color: #9a5b45; }
 @media (max-width: 767px) { .research-main { padding-top: 18px; } .research-form-row { grid-template-columns: 1fr; } .research-submit { width: 100%; justify-content: center; } .research-result-heading { flex-direction: column; } .research-result-text { font-size: 13px; } .research-source { grid-template-columns: 28px minmax(0, 1fr); } }
 
+.mobile-back-button { display: none; }
+@media (max-width: 760px) {
+	.chat-home-button { display: none; }
+	.mobile-back-button { display: grid; }
+	.chat-header-actions .new-chat-button { display: none; }
+}
+
 .learning-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .learning-view-all { flex: 0 0 auto; color: var(--primary); font-size: 11px; font-weight: 700; }
 .learning-list { display: grid; gap: 10px; margin-top: 17px; }
