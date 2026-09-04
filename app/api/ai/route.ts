@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { generateAIResponse } from "../../../lib/ai";
+import { getCurrentFactsContext } from "../../../lib/ai/current-facts";
 import { loadAIProfile, verifyFirebaseToken } from "../../../lib/ai/auth-server";
 import { creditConfig } from "../../../lib/credits/config";
 import { finalizeCredits, refundReservedCredits, reserveCredits } from "../../../lib/credits/service";
@@ -20,7 +21,8 @@ export async function POST(request: Request) {
     const profile = await loadAIProfile(uid, idToken);
     const historyContext = parsed.data.history.length > 0 ? `\n\nRecent conversation context:\n${parsed.data.history.map(({ role, content }) => `${role}: ${content}`).join("\n")}` : "";
     try {
-      const response = await generateAIResponse({ message: `${parsed.data.message}${historyContext}`, language: parsed.data.language, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
+      const currentFactsContext = await getCurrentFactsContext(parsed.data.message, parsed.data.requestId);
+      const response = await generateAIResponse({ message: `${parsed.data.message}${historyContext}${currentFactsContext}`, language: parsed.data.language, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
       await finalizeCredits(uid, parsed.data.requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditConfig.featureCosts.basicChat);
       return Response.json({ ...response, creditsConsumed: creditConfig.featureCosts.basicChat, balance: reservation.account?.balance });
     } catch (providerError) {
