@@ -207,3 +207,21 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .research-delete { display: grid; place-items: center; width: 40px; height: 40px; border: 0; color: var(--muted-foreground); background: transparent; cursor: pointer; }
 .research-delete:hover { color: #9a5b45; }
 @media (max-width: 767px) { .research-main { padding-top: 18px; } .research-form-row { grid-template-columns: 1fr; } .research-submit { width: 100%; justify-content: center; } .research-result-heading { flex-direction: column; } .research-result-text { font-size: 13px; } .research-source { grid-template-columns: 28px minmax(0, 1fr); } }
+
+.learning-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.learning-view-all { flex: 0 0 auto; color: var(--primary); font-size: 11px; font-weight: 700; }
+.learning-list { display: grid; gap: 10px; margin-top: 17px; }
+.learning-item { min-width: 0; padding-top: 14px; border-top: 1px solid var(--border); }
+.learning-item:first-child { padding-top: 0; border-top: 0; }
+.learning-item-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.learning-item-heading h2 { margin: 0 0 4px; font-size: 16px; overflow-wrap: anywhere; }
+.learning-item-heading p { margin: 0; color: var(--muted-foreground); font-size: 11px; overflow-wrap: anywhere; }
+.learning-status { flex: 0 0 auto; color: var(--primary); font-size: 10px; font-weight: 700; }
+.learning-item .progress-track { height: 5px; margin: 12px 0 5px; }
+.learning-item .progress-track span { background: var(--primary); }
+.learning-progress { color: var(--muted-foreground); font-size: 10px; }
+.learning-item .learning-footer { margin-top: 10px; }
+.learning-empty { display: grid; gap: 7px; margin: 24px 0 0; color: var(--muted-foreground); font-size: 11px; line-height: 1.5; }
+.learning-empty strong { color: var(--foreground); font-size: 15px; }
+.learning-empty .text-link { margin-top: 4px; }
+@media (max-width: 760px) { .learning-card { padding: 18px; } .learning-list { gap: 14px; } .learning-item { padding-top: 14px; } }
