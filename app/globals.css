@@ -63,6 +63,8 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .credits-header .brand-name { display: inline-flex; align-items: center; line-height: 1; }
 
 .study-sidebar { width: 220px; flex: 0 0 220px; min-height: 100vh; padding: 30px 16px; border-right: 1px solid var(--border); background: var(--surface); }
+.study-page-wrap { position: relative; }
+.study-page-home { position: fixed; top: 20px; left: 20px; z-index: 40; }
 .study-sidebar-brand { display: flex; align-items: center; gap: 9px; color: var(--foreground); font-size: 14px; font-weight: 750; }
 .study-sidebar-brand svg { color: var(--primary); }
 .study-tools { display: grid; gap: 5px; margin-top: 42px; }
