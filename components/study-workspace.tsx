@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, BookOpen, Brain, CalendarDays, CheckCircle2, FileText, GraduationCap, Sparkles } from "lucide-react";
 import { getFirebaseServices } from "../lib/firebase";
-import { GoldAILogo, GoldAILogoLoader, ThemeToggle } from "./gold-ai-ui";
+import { AppHeader, GoldAILogoLoader, MobileBottomNav } from "./gold-ai-ui";
 import type { StudyAction, StudyActivity } from "../types/study";
 
 const tools: Array<{ id: StudyAction; label: string; description: string; icon: typeof BookOpen }> = [
@@ -39,6 +39,7 @@ export function StudyWorkspace() {
   const loading = launching;
   const setResult = (_value: string) => undefined;
   const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => { void loadHistory(); }, 0);

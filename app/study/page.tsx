@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+"use client";
+
 import { ProtectedRoute } from "../../components/auth-provider";
 import { ProfileRequiredRoute } from "../../components/profile-provider";
-import { GoldAILogo, ThemeToggle } from "../../components/gold-ai-ui";
+import { AppHeader, MobileBottomNav } from "../../components/gold-ai-ui";
 import { StudyWorkspace } from "../../components/study-workspace";
 
 export default function StudyPage() {
-   return <ProtectedRoute><ProfileRequiredRoute><div className="study-page-wrap"><div className="study-theme-toggle"><ThemeToggle /></div><div className="study-brand-row"><Link className="icon-button study-home-link" href="/" aria-label="Back to home" title="Back to home"><ArrowLeft size={18} /></Link><GoldAILogo compact /></div><StudyWorkspace /></div></ProfileRequiredRoute></ProtectedRoute>;
+   return <ProtectedRoute><ProfileRequiredRoute><div className="study-route-shell"><AppHeader onMenu={() => undefined} /><StudyWorkspace /><MobileBottomNav /></div></ProfileRequiredRoute></ProtectedRoute>;
 }
