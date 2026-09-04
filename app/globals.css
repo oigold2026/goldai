@@ -126,4 +126,5 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .package-price { color: var(--muted-foreground); font-size: 12px; }
 .package-card .auth-submit { width: 100%; margin-top: 8px; font-size: 11px; }
 .transaction-pending { min-width: 66px; color: var(--muted-foreground); font-size: 10px; text-transform: capitalize; }
+.mobile-menu { display: none !important; }
 @media (max-width:760px) { .package-grid { grid-template-columns: 1fr; } .credit-packages { margin-bottom: 40px; } }
