@@ -19,6 +19,7 @@ export async function registerUser(name: string, email: string, password: string
     email: credential.user.email,
     onboardingCompleted: false,
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   });
   return credential.user;
 }

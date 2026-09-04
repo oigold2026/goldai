@@ -12,7 +12,6 @@ export async function updateUserProfile(uid: string, profile: Partial<UserProfil
   const { database } = getFirebaseServices();
   const safeProfile: Partial<UserProfile> = {
     name: profile.name,
-    email: profile.email,
     photoURL: profile.photoURL,
     country: profile.country,
     userGroup: profile.userGroup,
