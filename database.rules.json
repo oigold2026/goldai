@@ -49,6 +49,15 @@
         ".write": false
       }
     },
+    "studyHistory": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false,
+        "$activityId": {
+          ".validate": "newData.hasChildren(['id', 'userId', 'action', 'createdAt']) && newData.child('id').val() === $activityId && newData.child('userId').val() === $uid && newData.child('action').isString() && newData.child('createdAt').isNumber()"
+        }
+      }
+    },
     "usage": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",

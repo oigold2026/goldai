@@ -1,7 +1,7 @@
-import { PlaceholderPage } from "../../components/placeholder-page";
 import { ProtectedRoute } from "../../components/auth-provider";
 import { ProfileRequiredRoute } from "../../components/profile-provider";
+import { StudyWorkspace } from "../../components/study-workspace";
 
 export default function StudyPage() {
-  return <ProtectedRoute><ProfileRequiredRoute><PlaceholderPage title="Study" message="Your learning space will grow with you." /></ProfileRequiredRoute></ProtectedRoute>;
+  return <ProtectedRoute><ProfileRequiredRoute><StudyWorkspace /></ProfileRequiredRoute></ProtectedRoute>;
 }
