@@ -29,13 +29,13 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "./auth-provider";
 import { useProfile } from "./profile-provider";
 
-export const quickActions: { label: string; description: string; icon: LucideIcon }[] = [
-  { label: "Learn", description: "Understand a topic", icon: BookOpen },
-  { label: "Research", description: "Explore a question", icon: Search },
-  { label: "Notes", description: "Organize your ideas", icon: FileText },
-  { label: "Practice", description: "Build your confidence", icon: Brain },
-  { label: "Write", description: "Shape your thoughts", icon: PenLine },
-  { label: "Create", description: "Bring an idea to life", icon: Sparkles },
+export const quickActions: { label: string; description: string; icon: LucideIcon; href: string }[] = [
+  { label: "Learn", description: "Understand a topic", icon: BookOpen, href: "/study" },
+  { label: "Research", description: "Explore a question", icon: Search, href: "/research" },
+  { label: "Notes", description: "Organize your ideas", icon: FileText, href: "/create" },
+  { label: "Practice", description: "Build your confidence", icon: Brain, href: "/study" },
+  { label: "Write", description: "Shape your thoughts", icon: PenLine, href: "/create" },
+  { label: "Create", description: "Bring an idea to life", icon: Sparkles, href: "/create" },
 ];
 
 const navigation = [
@@ -175,8 +175,8 @@ export function AskGoldAI() {
   );
 }
 
-export function QuickActionCard({ label, description, icon: Icon }: (typeof quickActions)[number]) {
-  return <a className="quick-action" href={label === "Create" ? "/create" : "/chat"}><span className="quick-icon"><Icon size={20} /></span><span><strong>{label}</strong><small>{description}</small></span><span className="quick-arrow">↗</span></a>;
+export function QuickActionCard({ label, description, icon: Icon, href }: (typeof quickActions)[number]) {
+  return <Link className="quick-action" href={href}><span className="quick-icon"><Icon size={20} /></span><span><strong>{label}</strong><small>{description}</small></span><span className="quick-arrow">↗</span></Link>;
 }
 
 export function CreditCard() {
