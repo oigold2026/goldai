@@ -1,6 +1,8 @@
 import { listCreditData, getOrCreateCreditAccount } from "../../../lib/credits/service";
 import { verifyFirebaseToken } from "../../../lib/ai/auth-server";
 
+export const runtime = "nodejs";
+
 export async function GET(request: Request) {
   try {
     const authorization = request.headers.get("authorization");

@@ -1,5 +1,7 @@
 import { findPaymentByReference, findPaymentByTrackingId, verifyAndCompletePayment } from "../../../../../lib/payments/pesapal";
 
+export const runtime = "nodejs";
+
 type Notification = { OrderTrackingId?: string; OrderMerchantReference?: string };
 
 async function readNotification(request: Request): Promise<Notification> {

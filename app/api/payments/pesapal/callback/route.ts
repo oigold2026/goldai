@@ -1,5 +1,7 @@
 import { findPaymentByReference, verifyAndCompletePayment } from "../../../../../lib/payments/pesapal";
 
+export const runtime = "nodejs";
+
 async function handleCallback(request: Request) {
   const url = new URL(request.url);
   let body: { OrderTrackingId?: string; OrderMerchantReference?: string } = {};

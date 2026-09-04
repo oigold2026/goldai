@@ -2,6 +2,8 @@ import { getFirebaseAdmin } from "../../../../lib/firebase-admin";
 import { createPesapalPayment, listPayments, PaymentServiceError, verifyAndCompletePayment } from "../../../../lib/payments/pesapal";
 import { verifyFirebaseToken } from "../../../../lib/ai/auth-server";
 
+export const runtime = "nodejs";
+
 async function authenticatedUid(request: Request) {
   const authorization = request.headers.get("authorization");
   if (!authorization?.startsWith("Bearer ")) throw new Error("UNAUTHORIZED");
