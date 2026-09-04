@@ -134,7 +134,7 @@ function ChevronRight() {
 export function MobileBottomNav() {
   return (
     <nav className="mobile-nav" aria-label="Mobile navigation">
-      {navigation.map(({ label, href, icon: Icon }, index) => (
+      {navigation.filter(({ label }) => label !== "Profile").map(({ label, href, icon: Icon }, index) => (
         <a className={`mobile-nav-link ${index === 0 ? "active" : ""}`} href={href} key={label}>
           <Icon size={19} /><span>{label}</span>
         </a>
