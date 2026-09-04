@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowLeft,
   ArrowUp,
   BookOpen,
   Brain,
@@ -81,13 +82,14 @@ export function ThemeToggle() {
   );
 }
 
-export function AppHeader({ onMenu }: { onMenu: () => void }) {
+export function AppHeader({ onMenu, backToHome = false }: { onMenu: () => void; backToHome?: boolean }) {
   const { user } = useAuth();
   const { profile } = useProfile();
   const name = getDisplayName(user, profile, "Guest");
   const initial = name.charAt(0).toUpperCase();
   return (
     <header className="app-header">
+      {backToHome && <Link className="icon-button header-back" href="/" aria-label="Back to home" title="Back to home"><ArrowLeft size={19} /></Link>}
       <button className="icon-button mobile-menu" type="button" onClick={onMenu} aria-label="Open navigation">
         <Menu size={20} />
       </button>
