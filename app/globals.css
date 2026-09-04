@@ -65,9 +65,10 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .study-sidebar { width: 220px; flex: 0 0 220px; min-height: 100vh; padding: 30px 16px; border-right: 1px solid var(--border); background: var(--surface); }
 .study-sidebar { position: fixed; top: 0; bottom: 0; left: 0; z-index: 20; overflow-y: auto; }
 .study-page-wrap { position: relative; }
-.study-brand-row { display: flex; align-items: center; gap: 10px; padding: 18px 20px 0; }
+.study-brand-row { display: flex; align-items: center; gap: 10px; margin-left: 220px; padding: 18px 20px 0; }
 .study-home-link { display: inline-flex; align-items: center; justify-content: center; }
 .chat-header-leading { display: flex; align-items: center; gap: 10px; }
+@media (max-width:760px) { .study-brand-row { margin-left: 0; } }
 @media (max-width:760px) { .study-main { width: 100%; margin-left: 0; } }
 .study-sidebar-brand { display: flex; align-items: center; gap: 9px; color: var(--foreground); font-size: 14px; font-weight: 750; }
 .study-sidebar-brand svg { color: var(--primary); }
