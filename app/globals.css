@@ -91,6 +91,7 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .study-tool-icon { display: grid; flex: 0 0 auto; place-items: center; width: 36px; height: 36px; border-radius: 10px; color: var(--primary); background: color-mix(in srgb, var(--primary) 13%, var(--surface)); }
 .study-workspace { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 12px; margin-top: 42px; }
 .study-form-panel, .study-result-panel { min-width: 0; padding: 22px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); }
+.study-result-panel { display: none; }
 .study-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
 .study-form-grid label { display: grid; gap: 7px; color: var(--foreground); font-size: 11px; font-weight: 650; }
 .study-form-grid input, .study-form-grid select, .study-form-grid textarea { width: 100%; min-width: 0; padding: 11px 12px; border: 1px solid var(--border); border-radius: 9px; outline: 0; color: var(--foreground); background: var(--input); font-size: 13px; font-weight: 400; }

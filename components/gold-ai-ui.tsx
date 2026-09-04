@@ -190,7 +190,16 @@ export function CreditCard() {
 }
 
 export function ContinueLearningCard() {
-  return <section className="learning-card"><div className="learning-heading"><div><span className="section-kicker">Continue learning</span><h2>Photosynthesis</h2><p>Biology <span>•</span> S.3</p></div><span className="progress-value">60%</span></div><div className="progress-track"><span /></div><div className="learning-footer"><span>Last studied yesterday</span><a href="/study">Keep going <span>→</span></a></div></section>;
+  const { user } = useAuth();
+  const [activity, setActivity] = useState<{ subject?: string; topic?: string; createdAt?: number } | null>(null);
+  useEffect(() => {
+    if (!user) return undefined;
+    const timeoutId = window.setTimeout(() => { void user.getIdToken().then((token) => fetch("/api/study", { headers: { Authorization: `Bearer ${token}` } })).then((response) => response.ok ? response.json() as Promise<{ activities?: Array<{ subject?: string; topic?: string; createdAt?: number }> }> : null).then((data) => setActivity(data?.activities?.[0] || null)).catch(() => undefined); }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [user]);
+  const subject = activity?.subject || "Start a new subject";
+  const topic = activity?.topic || "Choose a Study tool to begin";
+  return <section className="learning-card"><div className="learning-heading"><div><span className="section-kicker">Continue learning</span><h2>{subject}</h2><p>{topic}</p></div><span className="progress-value">{activity ? "Active" : "Start"}</span></div><div className="progress-track"><span style={{ width: activity ? "60%" : "8%" }} /></div><div className="learning-footer"><span>{activity?.createdAt ? `Last activity ${new Date(activity.createdAt).toLocaleDateString()}` : "Your next lesson starts here"}</span><a href="/study">Keep going <span>→</span></a></div></section>;
 }
 
 export function EmptyState({ title = "Nothing here yet.", message = "Your learning activity will appear here." }: { title?: string; message?: string }) {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, BookOpen, Brain, CalendarDays, CheckCircle2, FileText, GraduationCap, Sparkles } from "lucide-react";
 import { getFirebaseServices } from "../lib/firebase";
 import { GoldAILogo, GoldAILogoLoader } from "./gold-ai-ui";
@@ -30,11 +31,14 @@ export function StudyWorkspace() {
   const [goal, setGoal] = useState("");
   const [availableTime, setAvailableTime] = useState("");
   const [targetDate, setTargetDate] = useState("");
-  const [result, setResult] = useState("");
   const [activities, setActivities] = useState<StudyActivity[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [launching, setLaunching] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const result = "";
+  const loading = launching;
+  const setResult = (_value: string) => undefined;
+  const router = useRouter();
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => { void loadHistory(); }, 0);
@@ -58,15 +62,16 @@ export function StudyWorkspace() {
   }
 
   async function submit() {
-    setLoading(true); setError(null); setResult("");
+    setLaunching(true); setError(null);
     try {
-      const response = await fetch("/api/study", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ requestId: crypto.randomUUID(), action, subject: subject || undefined, topic: topic || undefined, level, difficulty, questionCount: Number(questionCount), content: content || undefined, answer: answer || undefined, goal: goal || undefined, availableTime: availableTime || undefined, targetDate: targetDate || undefined }) });
-      const data = await response.json() as { text?: string; error?: string; activity?: StudyActivity };
-      if (!response.ok || !data.text) throw new Error(data.error || "Study request could not be completed.");
-      setResult(data.text);
+      const context = [`Study tool: ${action}`, subject && `Subject: ${subject}`, topic && `Topic: ${topic}`, level && `Learning level: ${level}`, difficulty && `Difficulty: ${difficulty}`, questionCount && `Questions: ${questionCount}`, content && `Learning material or reference:\n${content}`, answer && `Learner answer:\n${answer}`, goal && `Learning goal: ${goal}`, availableTime && `Available time: ${availableTime}`, targetDate && `Target date: ${targetDate}`].filter(Boolean).join("\n");
+      const response = await fetch("/api/study/activity", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ action, subject: subject || undefined, topic: topic || undefined }) });
+      const data = await response.json() as { activity?: StudyActivity; error?: string };
+      if (!response.ok) throw new Error(data.error || "Study task could not be started.");
       if (data.activity) setActivities((items) => [data.activity!, ...items]);
+      router.push(`/chat?new=true&prompt=${encodeURIComponent(`I want to study using this Gold AI study context:\n${context}\n\nPlease guide me through this task in a clear, educational way.`)}`);
     } catch (submitError) { setError(submitError instanceof Error ? submitError.message : "Study request could not be completed."); }
-    finally { setLoading(false); }
+    finally { setLaunching(false); }
   }
 
   const needsMaterial = action === "summarize";
