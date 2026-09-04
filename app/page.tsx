@@ -19,10 +19,17 @@ import {
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [timeGreeting, setTimeGreeting] = useState("Good morning");
   const { user } = useAuth();
   const { profile } = useProfile();
   const name = getDisplayName(user, profile);
   const greeting = profile?.userGroup === "teacher" ? "What would you like to prepare today?" : profile?.userGroup === "researcher" ? "What would you like to research today?" : profile?.userGroup === "university_student" ? "What are you working on today?" : profile?.userGroup === "general" ? "What can Gold AI help you with?" : "What would you like to learn today?";
+
+  useEffect(() => {
+    const hour = new Intl.DateTimeFormat("en", { hour: "numeric", hour12: false }).formatToParts(new Date()).find((part) => part.type === "hour")?.value;
+    const localHour = Number(hour);
+    setTimeGreeting(localHour >= 5 && localHour < 12 ? "Good morning" : localHour >= 12 && localHour < 17 ? "Good afternoon" : localHour >= 17 && localHour < 22 ? "Good evening" : "Good night");
+  }, []);
 
   return (
     <div className="app-shell">
@@ -33,7 +40,7 @@ export default function Home() {
         <main className="main-content">
           <section className="welcome-block">
             <span className="eyebrow">Your intelligent companion</span>
-            <h1>Good morning, <em>{name}</em>.</h1>
+            <h1>{timeGreeting}, <em>{name}</em>.</h1>
             <p>{greeting}</p>
             {profile?.userGroup && <span className="role-badge">{userGroupLabels[profile.userGroup]}</span>}
             {!user && <p className="auth-cta"><a className="text-link" href="/login">Log in</a> to keep your learning space close.</p>}
