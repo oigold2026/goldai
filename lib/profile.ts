@@ -10,9 +10,24 @@ export async function getUserProfile(uid: string) {
 
 export async function updateUserProfile(uid: string, profile: Partial<UserProfile>) {
   const { database } = getFirebaseServices();
-  const safeProfile = { ...profile };
-  delete safeProfile.uid;
-  delete safeProfile.createdAt;
+  const safeProfile: Partial<UserProfile> = {
+    name: profile.name,
+    email: profile.email,
+    photoURL: profile.photoURL,
+    country: profile.country,
+    userGroup: profile.userGroup,
+    preferredLanguage: profile.preferredLanguage,
+    educationLevel: profile.educationLevel,
+    classOrYear: profile.classOrYear,
+    institution: profile.institution,
+    programme: profile.programme,
+    subjects: profile.subjects,
+    interests: profile.interests,
+    researchType: profile.researchType,
+    bio: profile.bio,
+    onboardingCompleted: profile.onboardingCompleted,
+  };
+  Object.keys(safeProfile).forEach((key) => safeProfile[key as keyof UserProfile] === undefined && delete safeProfile[key as keyof UserProfile]);
   await update(ref(database, `users/${uid}`), { ...safeProfile, uid, updatedAt: serverTimestamp() });
 }
 
@@ -20,7 +35,7 @@ export async function createProfileIfMissing(uid: string, profile: Pick<UserProf
   const existing = await getUserProfile(uid);
   if (existing) return existing;
   const { database } = getFirebaseServices();
-  const newProfile: UserProfile = { uid, name: profile.name, email: profile.email, onboardingCompleted: false, createdAt: serverTimestamp() };
+  const newProfile: UserProfile = { uid, name: profile.name, email: profile.email, onboardingCompleted: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
   await set(ref(database, `users/${uid}`), newProfile);
   return newProfile;
 }
