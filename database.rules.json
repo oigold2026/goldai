@@ -1,0 +1,62 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && (!data.exists() || data.child('uid').val() === auth.uid) && (!newData.exists() || newData.child('uid').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['uid', 'email', 'createdAt', 'updatedAt']) && newData.child('uid').val() === $uid && newData.child('email').isString() && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber()"
+      }
+    },
+    "conversations": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "$conversationId": {
+          ".validate": "newData.hasChildren(['id', 'title', 'createdAt', 'updatedAt']) && newData.child('id').val() === $conversationId && newData.child('title').isString() && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber()"
+        }
+      }
+    },
+    "messages": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "$conversationId": {
+          "$messageId": {
+            ".validate": "newData.hasChildren(['id', 'role', 'content', 'createdAt']) && newData.child('id').val() === $messageId && (newData.child('role').val() === 'user' || newData.child('role').val() === 'assistant') && newData.child('content').isString() && newData.child('createdAt').isNumber()"
+          }
+        }
+      }
+    },
+    "credits": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false,
+        ".validate": "newData.hasChildren(['balance', 'monthlyFreeCredits', 'monthlyFreeUsed', 'purchasedCredits', 'totalUsed', 'periodKey', 'lastResetAt', 'createdAt', 'updatedAt']) && newData.child('balance').isNumber() && newData.child('monthlyFreeCredits').isNumber() && newData.child('monthlyFreeUsed').isNumber() && newData.child('purchasedCredits').isNumber() && newData.child('totalUsed').isNumber() && newData.child('periodKey').isString() && newData.child('lastResetAt').isNumber() && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber()"
+      }
+    },
+    "creditTransactions": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false,
+        "$transactionId": {
+          ".validate": "newData.hasChildren(['id', 'type', 'amount', 'balanceAfter', 'source', 'description', 'createdAt']) && newData.child('id').val() === $transactionId && newData.child('type').isString() && newData.child('amount').isNumber() && newData.child('balanceAfter').isNumber() && newData.child('source').isString() && newData.child('description').isString() && newData.child('createdAt').isNumber()"
+        }
+      }
+    },
+    "payments": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "usage": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false,
+        "$usageId": {
+          ".validate": "newData.hasChildren(['usageId', 'userId', 'requestId', 'provider', 'model', 'creditsConsumed', 'createdAt']) && newData.child('usageId').val() === $usageId && newData.child('userId').val() === $uid && newData.child('requestId').isString() && (newData.child('provider').val() === 'openai' || newData.child('provider').val() === 'gemini') && newData.child('model').isString() && newData.child('creditsConsumed').isNumber() && newData.child('createdAt').isNumber()"
+        }
+      }
+    }
+  }
+}
