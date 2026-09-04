@@ -4,7 +4,7 @@ import { loadAIProfile, verifyFirebaseToken } from "../../../lib/ai/auth-server"
 import { creditConfig } from "../../../lib/credits/config";
 import { finalizeCredits, refundReservedCredits, reserveCredits } from "../../../lib/credits/service";
 import { createResearchSession, deleteResearchSession, getResearchSession, listResearchSessions, updateResearchSession } from "../../../lib/research/service";
-import { searchResearchSources } from "../../../lib/research/provider";
+import { ResearchSourceProviderError, searchResearchSources } from "../../../lib/research/provider";
 import type { ResearchType } from "../../../types/research";
 
 export const runtime = "nodejs";
@@ -69,8 +69,7 @@ export async function POST(request: Request) {
     if (reservation.status === "duplicate") return Response.json({ error: "This research request has already been processed." }, { status: 409 });
     if (reservation.status === "insufficient") return Response.json({ error: "You don't have enough credits for research." }, { status: 402 });
     try {
-      const sources = await searchResearchSources(`${parsed.data.question}${parsed.data.region ? ` ${parsed.data.region}` : ""}`, 6);
-      if (sources.length === 0) throw new Error("No useful research sources were found.");
+      const sources = await searchResearchSources(`${parsed.data.question}${parsed.data.region ? ` ${parsed.data.region}` : ""}`, 6, requestId);
       const profile = await loadAIProfile(uid, idToken);
       const prompt = `Research question: ${parsed.data.question}\nResearch type: ${parsed.data.type}\n${parsed.data.dateRange ? `Date range: ${parsed.data.dateRange}\n` : ""}Use only the retrieved sources below. Produce a structured synthesis with Overview, Key findings, Evidence, Different perspectives or uncertainty, Conclusion, and Sources. Cite claims with [1], [2], etc. Every citation must match a source URL below. Do not invent facts, sources, dates, or URLs. Distinguish source-supported information from interpretation.\n\n${sourceContext(sources)}`;
       const response = await generateAIResponse({ message: prompt, language: profile?.preferredLanguage, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
@@ -84,6 +83,11 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to use Research." }, { status: 401 });
+    if (error instanceof ResearchSourceProviderError) {
+      const status = error.kind === "NO_RESULTS" || error.kind === "ALL_RESULTS_REJECTED" ? 404 : error.status && error.status < 500 ? 502 : 503;
+      console.error("Gold AI research source failure", { uid: uid || "anonymous", requestId: requestId || "unknown", sessionId: sessionId || "unknown", category: error.kind, providerStatus: error.status });
+      return Response.json({ error: error.message, category: error.kind }, { status });
+    }
     console.error("Gold AI research request failed", { uid: uid || "anonymous", requestId: requestId || "unknown", sessionId: sessionId || "unknown", error: error instanceof Error ? error.message : "unknown error" });
     return Response.json({ error: "We couldn't complete the research right now. Please try again." }, { status: 503 });
   }
