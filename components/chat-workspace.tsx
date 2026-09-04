@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { ArrowLeft, ArrowUp, Copy, Menu, MessageSquare, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { useAuth } from "./auth-provider";
 import { useProfile } from "./profile-provider";
@@ -76,7 +76,7 @@ export function ChatWorkspace() {
 
   function startNewChat() { router.push("/chat?new=true"); setConversation(null); setMessages([]); setRetryContent(null); setError(null); setDrawerOpen(false); }
 
-  async function sendMessage(content = draft, forceNewConversation = false) {
+  const sendMessage = useCallback(async (content = draft, forceNewConversation = false) => {
     if (!user || generating || !content.trim()) return;
     const text = content.trim(); setDraft(""); setRetryContent(null); setError(null); setGenerating(true); abortRef.current = new AbortController();
     try {
@@ -97,14 +97,14 @@ export function ChatWorkspace() {
     } catch (sendError) {
       if ((sendError as Error).name !== "AbortError") { setError(sendError instanceof Error ? sendError.message : "Gold AI couldn't complete that response. Please try again."); setRetryContent(text); }
     } finally { setGenerating(false); abortRef.current = null; }
-  }
+  }, [conversation, draft, generating, messages, profile, router, user]);
 
   useEffect(() => {
     const prompt = searchParams.get("prompt")?.trim();
     if (!prompt || loading || promptHandledRef.current) return;
     promptHandledRef.current = true;
     void sendMessage(prompt, true);
-  }, [loading, searchParams]);
+  }, [loading, searchParams, sendMessage]);
 
   function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }
   async function copyMessage(message: ChatMessage) { await navigator.clipboard.writeText(message.content); setCopiedId(message.id); window.setTimeout(() => setCopiedId(null), 1400); }

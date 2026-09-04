@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, ExternalLink, Search, Trash2 } from "lucide-react";
 import { ProtectedRoute } from "../../components/auth-provider";
 import { ProfileRequiredRoute } from "../../components/profile-provider";
@@ -20,6 +21,7 @@ const types: Array<{ value: ResearchType; label: string }> = [
 function formatDate(timestamp: number) { return Number.isFinite(timestamp) ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(timestamp) : "Date unavailable"; }
 
 function ResearchWorkspace() {
+  const router = useRouter();
   const [question, setQuestion] = useState("");
   const [type, setType] = useState<ResearchType>("general");
   const [region, setRegion] = useState("");
@@ -30,15 +32,13 @@ function ResearchWorkspace() {
   const [researching, setResearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { void loadSessions(); }, []);
-
-  async function getToken() {
+  const getToken = useCallback(async () => {
     const token = await getFirebaseServices().auth.currentUser?.getIdToken();
     if (!token) throw new Error("Please log in again.");
     return token;
-  }
+  }, []);
 
-  async function loadSessions() {
+  const loadSessions = useCallback(async () => {
     try {
       const response = await fetch("/api/research", { headers: { Authorization: `Bearer ${await getToken()}` } });
       const data = await response.json() as { sessions?: ResearchSession[]; error?: string };
@@ -46,7 +46,12 @@ function ResearchWorkspace() {
       setSessions(data.sessions || []);
     } catch (loadError) { setError(loadError instanceof Error ? loadError.message : "Unable to load research."); }
     finally { setLoading(false); }
-  }
+  }, [getToken]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => { void loadSessions(); }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [loadSessions]);
 
   async function startResearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,7 +77,7 @@ function ResearchWorkspace() {
 
   function continueInChat(session: ResearchSession) {
     const prompt = `Continue this research session. Question: ${session.question}\nResearch type: ${session.type}\nExisting synthesis:\n${session.result || "No synthesis yet."}\n\nPlease help me investigate further and clearly distinguish source-supported information from interpretation.`;
-    window.location.assign(`/chat?new=true&prompt=${encodeURIComponent(prompt)}`);
+    router.push(`/chat?new=true&prompt=${encodeURIComponent(prompt)}`);
   }
 
   return <div className="research-route"><AppHeader onMenu={() => undefined} backToHome /><main className="research-main"><header className="research-heading"><Link className="research-back" href="/"><ArrowLeft size={17} /> Home</Link><span className="eyebrow">Evidence-led exploration</span><h1>Research</h1><p>Explore questions, compare information, and understand the evidence.</p></header><section className="research-start"><div className="section-title"><div><span className="eyebrow">Start a session</span><h2>What would you like to research?</h2></div><span className="section-rule" /></div><form className="research-form" onSubmit={startResearch}><textarea value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="What would you like to research?" aria-label="Research question" rows={4} /><div className="research-form-row"><label>Research type<select value={type} onChange={(event) => setType(event.target.value as ResearchType)}>{types.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label><label>Region or context<input value={region} onChange={(event) => setRegion(event.target.value)} placeholder="Optional" /></label><label>Date range<input value={dateRange} onChange={(event) => setDateRange(event.target.value)} placeholder="Optional" /></label></div><button className="auth-submit research-submit" type="submit" disabled={researching || !question.trim()}>{researching ? "Researching..." : "Start research"}<Search size={17} /></button></form>{error && <p className="form-error" role="alert">{error}</p>}</section>{researching && <div className="research-loading"><GoldAILogoLoader size="md" label="Finding sources and preparing your research..." /></div>}{selected && <ResearchResult session={selected} onContinue={() => continueInChat(selected)} /> }<section className="research-history"><div className="section-title"><div><span className="eyebrow">Your workspace</span><h2>Recent research</h2></div><span className="section-rule" /></div>{loading ? <p className="transactions-empty">Loading research sessions...</p> : sessions.length === 0 ? <p className="transactions-empty">Your saved research sessions will appear here.</p> : <div className="research-session-list">{sessions.map((session) => <article className="research-session" key={session.id}><button type="button" onClick={() => setSelected(session)}><strong>{session.title}</strong><small>{session.type} <span>•</span> {formatDate(session.updatedAt)}</small><p>{session.question}</p></button><button className="research-delete" type="button" onClick={() => void removeSession(session.id)} aria-label={`Delete ${session.title}`}><Trash2 size={15} /></button></article>)}</div>}</section></main><MobileBottomNav /></div>;
