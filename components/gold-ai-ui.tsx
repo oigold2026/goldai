@@ -8,6 +8,7 @@ import {
   CircleUserRound,
   FileText,
   FlaskConical,
+  GraduationCap,
   Home,
   Lightbulb,
   Menu,
@@ -45,6 +46,7 @@ const navigation = [
   { label: "Study", href: "/study", icon: BookOpen },
   { label: "Research", href: "/research", icon: Search },
   { label: "Create", href: "/create", icon: Lightbulb },
+  { label: "Teacher Tools", href: "/teacher", icon: GraduationCap },
   { label: "Profile", href: "/profile", icon: UserRound },
 ];
 

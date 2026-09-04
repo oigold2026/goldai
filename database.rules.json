@@ -85,6 +85,15 @@
         }
       }
     },
+    "teacherTools": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false,
+        "$materialId": {
+          ".validate": "newData.hasChildren(['id', 'userId', 'type', 'title', 'subject', 'topic', 'content', 'createdAt', 'updatedAt']) && newData.child('id').val() === $materialId && newData.child('userId').val() === $uid && newData.child('type').isString() && newData.child('title').isString() && newData.child('subject').isString() && newData.child('topic').isString() && newData.child('content').isString() && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber()"
+        }
+      }
+    },
     "usage": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",

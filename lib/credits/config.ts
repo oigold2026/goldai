@@ -10,6 +10,7 @@ export const creditConfig = {
     studyCheck: Math.max(1, Number.parseInt(process.env.CREDIT_COST_STUDY_CHECK || "1", 10) || 1),
     research: Math.max(1, Number.parseInt(process.env.CREDIT_COST_RESEARCH || "3", 10) || 3),
     create: Math.max(1, Number.parseInt(process.env.CREDIT_COST_CREATE || "2", 10) || 2),
+    teacherTools: Math.max(1, Number.parseInt(process.env.CREDIT_COST_TEACHER_TOOLS || "2", 10) || 2),
   },
   consumeMonthlyFirst: true,
 };
