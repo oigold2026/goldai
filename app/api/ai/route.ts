@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { generateAIResponse } from "../../../lib/ai";
-import { getCurrentFactsContext } from "../../../lib/ai/current-facts";
+import { planSourceQuery, retrieveSourceIntelligence, sourceContext } from "../../../lib/source-intelligence";
 import { loadAIProfile, verifyFirebaseToken } from "../../../lib/ai/auth-server";
 import { creditConfig } from "../../../lib/credits/config";
 import { finalizeCredits, refundReservedCredits, reserveCredits } from "../../../lib/credits/service";
@@ -31,10 +31,13 @@ export async function POST(request: Request) {
     const profile = await loadAIProfile(uid, idToken);
     const historyContext = parsed.data.history.length > 0 ? `\n\nRecent conversation context:\n${parsed.data.history.map(({ role, content }) => `${role}: ${content}`).join("\n")}` : "";
     try {
-      const currentFactsContext = await getCurrentFactsContext(parsed.data.message, parsed.data.requestId);
-      const response = await generateAIResponse({ message: `${parsed.data.message}${historyContext}${currentFactsContext}${documentContext}`, language: parsed.data.language, attachments, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
+      const plan = planSourceQuery(parsed.data.message);
+      const shouldRetrieve = plan.requiresFreshness || plan.imageSearchUseful || ["academic", "technical", "health", "finance", "news"].includes(plan.queryType);
+      const intelligence = shouldRetrieve ? await retrieveSourceIntelligence(parsed.data.message, parsed.data.requestId) : { plan, sources: [], images: [] };
+      const retrievalContext = intelligence.sources.length > 0 ? `\n\nRetrieved source context. Use it for supported claims, cite claims as [1], [2], and distinguish facts from interpretation. Image results are visual context only, not factual evidence.\n\n${sourceContext(intelligence.sources)}` : intelligence.plan.requiresFreshness ? `\n\nCurrent information could not be retrieved reliably. Be transparent about uncertainty and do not present remembered information as verified current fact. The current date is ${new Date().toISOString().slice(0, 10)}.` : "";
+      const response = await generateAIResponse({ message: `${parsed.data.message}${historyContext}${retrievalContext}${documentContext}`, language: parsed.data.language, attachments, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
       await finalizeCredits(uid, parsed.data.requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditCost);
-      return Response.json({ ...response, creditsConsumed: creditCost, balance: reservation.account?.balance });
+      return Response.json({ ...response, sources: intelligence.sources, images: intelligence.images, creditsConsumed: creditCost, balance: reservation.account?.balance });
     } catch (providerError) {
       await refundReservedCredits(uid, parsed.data.requestId);
       throw providerError;

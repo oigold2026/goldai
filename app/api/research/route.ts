@@ -4,7 +4,8 @@ import { loadAIProfile, verifyFirebaseToken } from "../../../lib/ai/auth-server"
 import { creditConfig } from "../../../lib/credits/config";
 import { finalizeCredits, refundReservedCredits, reserveCredits } from "../../../lib/credits/service";
 import { createResearchSession, deleteResearchSession, getResearchSession, listResearchSessions, updateResearchSession } from "../../../lib/research/service";
-import { ResearchSourceProviderError, searchResearchSources } from "../../../lib/research/provider";
+import { ResearchSourceProviderError } from "../../../lib/research/provider";
+import { retrieveSourceIntelligence, sourceContext } from "../../../lib/source-intelligence";
 import type { ResearchType } from "../../../types/research";
 
 export const runtime = "nodejs";
@@ -16,10 +17,6 @@ function authToken(request: Request) {
   const authorization = request.headers.get("authorization");
   if (!authorization?.startsWith("Bearer ")) throw new Error("UNAUTHORIZED");
   return authorization.slice(7).trim();
-}
-
-function sourceContext(sources: Awaited<ReturnType<typeof searchResearchSources>>) {
-  return sources.map((source, index) => `[${index + 1}] ${source.title}\nURL: ${source.url}\nSource: ${source.domain}\n${source.snippet}`).join("\n\n");
 }
 
 export async function GET(request: Request) {
@@ -69,13 +66,15 @@ export async function POST(request: Request) {
     if (reservation.status === "duplicate") return Response.json({ error: "This research request has already been processed." }, { status: 409 });
     if (reservation.status === "insufficient") return Response.json({ error: "You don't have enough credits for research." }, { status: 402 });
     try {
-      const sources = await searchResearchSources(`${parsed.data.question}${parsed.data.region ? ` ${parsed.data.region}` : ""}`, 6, requestId);
+      const intelligence = await retrieveSourceIntelligence(`${parsed.data.question}${parsed.data.region ? ` ${parsed.data.region}` : ""}`, requestId);
+      const sources = intelligence.sources;
+      if (sources.length === 0) throw new ResearchSourceProviderError("NO_RESULTS", "No reliable research sources were found.");
       const profile = await loadAIProfile(uid, idToken);
       const prompt = `Research question: ${parsed.data.question}\nResearch type: ${parsed.data.type}\n${parsed.data.dateRange ? `Date range: ${parsed.data.dateRange}\n` : ""}Use only the retrieved sources below. Produce a structured synthesis with Overview, Key findings, Evidence, Different perspectives or uncertainty, Conclusion, and Sources. Cite claims with [1], [2], etc. Every citation must match a source URL below. Do not invent facts, sources, dates, or URLs. Distinguish source-supported information from interpretation.\n\n${sourceContext(sources)}`;
       const response = await generateAIResponse({ message: prompt, language: profile?.preferredLanguage, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
       await finalizeCredits(uid, requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditConfig.featureCosts.research);
-      await updateResearchSession(uid, sessionId, { status: "completed", result: response.text, sources });
-      return Response.json({ session: { ...session, status: "completed", result: response.text, sources }, creditsConsumed: creditConfig.featureCosts.research });
+      await updateResearchSession(uid, sessionId, { status: "completed", result: response.text, sources, images: intelligence.images });
+      return Response.json({ session: { ...session, status: "completed", result: response.text, sources, images: intelligence.images }, creditsConsumed: creditConfig.featureCosts.research });
     } catch (researchError) {
       await refundReservedCredits(uid, requestId);
       await updateResearchSession(uid, sessionId, { status: "failed" });

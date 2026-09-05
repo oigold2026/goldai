@@ -53,6 +53,13 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .chat-message.assistant .message-body { max-width: 100%; }
 .message-body { width: 100%; }
 .message-content { width: 100%; }
+.message-content img { display: block; width: min(100%, 420px); max-height: 280px; margin: 12px 0; border: 1px solid var(--border); border-radius: 10px; object-fit: cover; }
+.message-content h3 { margin: 18px 0 8px; color: var(--foreground); font-size: 13px; }
+.message-content h3 + p a { color: var(--primary); }
+.research-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 20px 0; }
+.research-image-card { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; color: var(--foreground); background: var(--surface-secondary); }
+.research-image-card img { display: block; width: 100%; height: 130px; object-fit: cover; }
+.research-image-card span { display: block; padding: 8px; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .chat-composer { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 25; width: min(100% - 24px, 880px); padding: 12px 12px 12px 18px; border: 1px solid var(--border); border-radius: 18px; background: color-mix(in srgb,var(--surface) 94%,transparent); backdrop-filter: blur(12px); box-shadow: var(--shadow); }
 .chat-composer textarea { min-width: 0; }
 .attach-button { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 10px; color: var(--foreground); background: var(--surface); cursor: pointer; transition: border-color .2s, transform .2s; }

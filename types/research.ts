@@ -12,6 +12,15 @@ export type ResearchSource = {
   retrievedAt: number;
 };
 
+export type WebImage = {
+  id: string;
+  title: string;
+  url: string;
+  sourceUrl: string;
+  alt: string;
+  attribution?: string;
+};
+
 export type ResearchSession = {
   id: string;
   userId: string;
@@ -21,6 +30,7 @@ export type ResearchSession = {
   status: ResearchStatus;
   result?: string;
   sources: ResearchSource[];
+  images: WebImage[];
   createdAt: number;
   updatedAt: number;
 };

@@ -33,6 +33,12 @@ function formatDate(timestamp: number) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(timestamp);
 }
 
+function withRetrievedContext(text: string, images: ChatMessage["images"] = [], sources: ChatMessage["sources"] = []) {
+  const imageSection = images.length > 0 ? `\n\n### Related images\n${images.map((image) => `![${image.alt}](${image.url})`).join("\n")}` : "";
+  const sourceSection = sources.length > 0 ? `\n\n### Sources\n${sources.map((source, index) => `[${index + 1}] [${source.title}](${source.url})`).join("\n")}` : "";
+  return `${text}${imageSection}${sourceSection}`;
+}
+
 export function ChatWorkspace() {
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -105,9 +111,9 @@ export function ChatWorkspace() {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error("Please log in again.");
       const response = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ requestId: crypto.randomUUID(), message: text, language: profile?.preferredLanguage, attachmentIds: messageAttachments.map((attachment) => attachment.id), history: (forceNewConversation ? [] : messages.slice(-12)).map(({ role, content: messageContent }) => ({ role, content: messageContent })) }), signal: abortRef.current.signal });
-      const data = await response.json() as { text?: string; provider?: "openai" | "gemini"; model?: string; usage?: ChatMessage["usage"]; error?: string };
+      const data = await response.json() as { text?: string; provider?: "openai" | "gemini"; model?: string; usage?: ChatMessage["usage"]; sources?: ChatMessage["sources"]; images?: ChatMessage["images"]; error?: string };
       if (!response.ok || !data.text) throw new Error(data.error || "Gold AI could not complete that response.");
-      const assistantMessage = await saveMessage(user.uid, activeConversation.id, { role: "assistant", content: data.text, provider: data.provider, model: data.model, usage: data.usage });
+      const assistantMessage = await saveMessage(user.uid, activeConversation.id, { role: "assistant", content: withRetrievedContext(data.text, data.images, data.sources), provider: data.provider, model: data.model, usage: data.usage, sources: data.sources, images: data.images });
       setMessages((items) => [...items, assistantMessage]); setAttachments([]);
       setConversations((items) => items.map((item) => item.id === activeConversation.id ? { ...item, title: item.title === "New conversation" ? titleFromMessage(text) : item.title, updatedAt: Date.now() } : item));
     } catch (sendError) {

@@ -2,6 +2,7 @@ import { get, push, ref, serverTimestamp, update } from "firebase/database";
 import { getFirebaseServices } from "../firebase";
 import type { ChatMessage, MessageRole } from "../../types/chat";
 import type { MessageAttachment } from "../../types/multimodal";
+import type { ResearchSource, WebImage } from "../../types/research";
 
 function sanitizeAttachment(attachment: MessageAttachment): MessageAttachment {
   const sanitized: MessageAttachment = {
@@ -36,6 +37,18 @@ function findUndefinedPath(value: unknown, path: string): string | null {
   return null;
 }
 
+function sanitizeSource(source: ResearchSource): ResearchSource {
+  const sanitized: ResearchSource = { id: source.id, title: source.title, url: source.url, domain: source.domain, snippet: source.snippet, retrievedAt: source.retrievedAt };
+  if (source.publishedAt !== undefined) sanitized.publishedAt = source.publishedAt;
+  return sanitized;
+}
+
+function sanitizeImage(image: WebImage): WebImage {
+  const sanitized: WebImage = { id: image.id, title: image.title, url: image.url, sourceUrl: image.sourceUrl, alt: image.alt };
+  if (image.attribution !== undefined) sanitized.attribution = image.attribution;
+  return sanitized;
+}
+
 export async function listMessages(uid: string, conversationId: string) {
   const { database } = getFirebaseServices();
   const snapshot = await get(ref(database, `messages/${uid}/${conversationId}`));
@@ -43,10 +56,12 @@ export async function listMessages(uid: string, conversationId: string) {
   return Object.entries(snapshot.val() as Record<string, Omit<ChatMessage, "id">>).map(([id, value]) => ({ id, ...value })).sort((a, b) => a.createdAt - b.createdAt);
 }
 
-export async function saveMessage(uid: string, conversationId: string, message: Pick<ChatMessage, "role" | "content"> & Partial<Pick<ChatMessage, "provider" | "model" | "usage" | "attachments">>) {
+export async function saveMessage(uid: string, conversationId: string, message: Pick<ChatMessage, "role" | "content"> & Partial<Pick<ChatMessage, "provider" | "model" | "usage" | "attachments" | "sources" | "images">>) {
   const { database } = getFirebaseServices();
   const messageRef = push(ref(database, `messages/${uid}/${conversationId}`));
   const savedMessage: ChatMessage = { id: messageRef.key || "", role: message.role as MessageRole, content: message.content, attachments: (message.attachments || []).map(sanitizeAttachment), createdAt: Date.now() };
+  if (message.sources !== undefined) savedMessage.sources = message.sources.map(sanitizeSource);
+  if (message.images !== undefined) savedMessage.images = message.images.map(sanitizeImage);
   if (message.provider) savedMessage.provider = message.provider;
   if (message.model) savedMessage.model = message.model;
   const usage = sanitizeUsage(message.usage);
