@@ -89,8 +89,7 @@ export function ChatWorkspace() {
   function startNewChat() { router.push("/chat?new=true"); setConversation(null); setMessages([]); setRetryContent(null); setError(null); setDrawerOpen(false); }
 
   function leaveChat() {
-    if (window.history.length > 1) router.back();
-    else router.push("/");
+    router.push("/");
   }
 
   const sendMessage = useCallback(async (content = draft, forceNewConversation = false, messageAttachments = attachments) => {
