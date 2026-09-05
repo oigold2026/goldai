@@ -26,6 +26,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { getDisplayName } from "../lib/display-name";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "./auth-provider";
@@ -42,6 +43,8 @@ export const quickActions: { label: string; description: string; icon: LucideIco
 ];
 
 const navigation = [
+  const mobileBottomNavigation = navigation.filter(({ label }) => ["Home", "Chat", "Create", "Profile"].includes(label));
+  const mobileDrawerNavigation = navigation.filter(({ label }) => ["Study", "Research", "Teacher Tools", "Organizations", "Files"].includes(label));
   { label: "Home", href: "/", icon: Home },
   { label: "Chat", href: "/chat", icon: Sparkles },
   { label: "Study", href: "/study", icon: BookOpen },
@@ -144,13 +147,24 @@ function ChevronRight() {
 export function MobileBottomNav() {
   return (
     <nav className="mobile-nav" aria-label="Mobile navigation">
-      {navigation.filter(({ label }) => label !== "Profile").map(({ label, href, icon: Icon }, index) => (
-        <a className={`mobile-nav-link ${index === 0 ? "active" : ""}`} href={href} key={label}>
+      {mobileBottomNavigation.map(({ label, href, icon: Icon }) => (
+        <a className={`mobile-nav-link ${pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)) ? "active" : ""}`} href={href} key={label}>
           <Icon size={19} /><span>{label}</span>
         </a>
       ))}
     </nav>
   );
+}
+
+export function MobileSideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const pathname = usePathname();
+  useEffect(() => {
+    if (!open) return undefined;
+    function handleKeyDown(event: KeyboardEvent) { if (event.key === "Escape") onClose(); }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose, open]);
+  return <div className={`mobile-drawer-layer ${open ? "open" : ""}`} aria-hidden={!open}>{open && <button className="mobile-drawer-overlay" type="button" onClick={onClose} aria-label="Close navigation" />}{open && <aside className="mobile-drawer" aria-label="More navigation" aria-modal="true" role="dialog"><div className="mobile-drawer-header"><GoldAILogo /><button className="icon-button" type="button" onClick={onClose} aria-label="Close navigation"><X size={19} /></button></div><nav className="mobile-drawer-nav">{mobileDrawerNavigation.map(({ label, href, icon: Icon }) => <Link className={pathname === href || pathname.startsWith(`${href}/`) ? "active" : ""} href={href} key={label} onClick={onClose}><Icon size={19} /><span>{label}</span></Link>)}</nav></aside>}</div>;
 }
 
 export function GoldAILogoLoader({ size = "md", label = "Gold AI is thinking..." }: { size?: "sm" | "md" | "lg"; label?: string }) {

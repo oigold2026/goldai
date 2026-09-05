@@ -13,6 +13,7 @@ import {
   DesktopSidebar,
   GoldAILogo,
   MobileBottomNav,
+    MobileSideDrawer,
   QuickActionCard,
   quickActions,
 } from "../components/gold-ai-ui";
@@ -50,7 +51,7 @@ export default function Home() {
       <DesktopSidebar />
       <div className="app-column">
         <AppHeader onMenu={() => setMenuOpen(!menuOpen)} />
-        {menuOpen && <div className="mobile-menu-panel"><GoldAILogo /><a href="/chat">Open chat</a><a href="/profile">Profile</a></div>}
+        <MobileSideDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
         <main className="main-content">
           <section className="welcome-block">
             <span className="eyebrow">Your intelligent companion</span>
