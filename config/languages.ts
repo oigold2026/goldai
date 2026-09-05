@@ -1,4 +1,4 @@
-export const languages = ["English", "Luganda", "Kiswahili", "French", "Arabic", "Other"] as const;
+export const languages = ["English", "Luganda", "Kiswahili", "Runyankole", "Rukiga", "Luo", "Acholi", "Ateso", "Runyoro", "Rutoro", "French", "Arabic", "Other"] as const;
 
 export const researchTypes = ["Academic", "Scientific", "Business", "Market", "Technology", "Social", "General", "Other"] as const;
 

@@ -14,10 +14,15 @@ import { listMessages, saveMessage } from "../lib/chat/messages";
 import type { ChatMessage, Conversation } from "../types/chat";
 import type { MessageAttachment } from "../types/multimodal";
 import { GoldAILogo, GoldAILogoLoader, ThemeToggle } from "./gold-ai-ui";
+import { voiceLanguageFor } from "../config/voice-languages";
 
 const Send = ArrowUp;
 
 const suggestions = ["Explain a difficult topic", "Help me research something", "Write something for me", "Help me study", "Create something"];
+
+type SpeechRecognitionEventLike = Event & { results: { [index: number]: { [index: number]: { transcript: string } } } };
+type SpeechRecognitionLike = { lang: string; continuous: boolean; interimResults: boolean; onresult: ((event: SpeechRecognitionEventLike) => void) | null; onerror: (() => void) | null; onend: (() => void) | null; start: () => void; stop: () => void };
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
 function titleFromMessage(message: string) {
   const words = message.trim().replace(/[.!?]+$/, "").split(/\s+/).slice(0, 6).join(" ");
@@ -43,6 +48,10 @@ export function ChatWorkspace() {
   const [retryContent, setRetryContent] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [voiceState, setVoiceState] = useState<"idle" | "listening" | "error">("idle");
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const speechSynthesisRef = useRef<SpeechSynthesis | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const promptHandledRef = useRef(false);
@@ -112,6 +121,29 @@ export function ChatWorkspace() {
     try { const form = new FormData(); form.append("file", file); const token = await getFirebaseServices().auth.currentUser?.getIdToken(); if (!token) throw new Error("Please log in again."); const response = await fetch("/api/files", { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: form }); const data = await response.json() as { file?: MessageAttachment; error?: string }; if (!response.ok || !data.file) throw new Error(data.error || "Unable to upload this file."); setAttachments((items) => [...items, data.file!]); } catch (uploadError) { setError(uploadError instanceof Error ? uploadError.message : "Unable to upload this file."); } finally { setUploading(false); }
   }
 
+  function toggleVoiceInput() {
+    if (voiceState === "listening") { recognitionRef.current?.stop(); return; }
+    const Recognition = (window as Window & { SpeechRecognition?: SpeechRecognitionConstructor; webkitSpeechRecognition?: SpeechRecognitionConstructor }).SpeechRecognition || (window as Window & { webkitSpeechRecognition?: SpeechRecognitionConstructor }).webkitSpeechRecognition;
+    if (!Recognition) { setError("Voice input isn't supported on this browser. You can still type your message."); return; }
+    const recognition = new Recognition(); const language = voiceLanguageFor(profile?.preferredLanguage);
+    if (language.speechInput === "unavailable") { setError(`Voice input for ${language.name} isn't currently supported here.`); return; }
+    recognition.lang = language.locale; recognition.continuous = false; recognition.interimResults = false;
+    recognition.onresult = (event) => { const transcript = event.results[0]?.[0]?.transcript?.trim(); if (transcript) setDraft((value) => value ? `${value} ${transcript}` : transcript); };
+    recognition.onerror = () => { setVoiceState("error"); setError("I didn't catch that. Please try again."); };
+    recognition.onend = () => { setVoiceState("idle"); recognitionRef.current = null; };
+    recognitionRef.current = recognition; setError(null); setVoiceState("listening"); recognition.start();
+  }
+
+  function toggleSpeech(message: ChatMessage) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) { setError("Voice output isn't supported on this browser."); return; }
+    if (speakingId === message.id) { window.speechSynthesis.cancel(); setSpeakingId(null); return; }
+    window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(message.content); utterance.lang = voiceLanguageFor(profile?.preferredLanguage).locale; utterance.onend = () => setSpeakingId(null); utterance.onerror = () => { setSpeakingId(null); setError("Unable to read this response aloud."); }; setSpeakingId(message.id); speechSynthesisRef.current = window.speechSynthesis; window.speechSynthesis.speak(utterance);
+  }
+
+  const latestAssistant = [...messages].reverse().find((message) => message.role === "assistant");
+
+  useEffect(() => () => { recognitionRef.current?.stop(); speechSynthesisRef.current?.cancel(); }, []);
+
   useEffect(() => {
     const prompt = searchParams.get("prompt")?.trim();
     if (!prompt || loading || promptHandledRef.current) return;
@@ -123,7 +155,7 @@ export function ChatWorkspace() {
   async function copyMessage(message: ChatMessage) { await navigator.clipboard.writeText(message.content); setCopiedId(message.id); window.setTimeout(() => setCopiedId(null), 1400); }
   async function removeConversation() { if (!user || !conversation || !window.confirm("Delete this conversation?")) return; await deleteConversation(user.uid, conversation.id); setConversations((items) => items.filter((item) => item.id !== conversation.id)); startNewChat(); }
 
-  return <div className="chat-shell">
+  return <div className="chat-shell"><div className="voice-shortcuts"><button type="button" className={`voice-button ${voiceState === "listening" ? "listening" : ""}`} onClick={toggleVoiceInput} aria-label={voiceState === "listening" ? "Stop voice input" : "Start voice input"} title={voiceState === "listening" ? "Stop listening" : "Start voice input"}>🎤</button>{latestAssistant && <button type="button" className="voice-read-button" onClick={() => toggleSpeech(latestAssistant)} aria-label={speakingId === latestAssistant.id ? "Stop reading" : "Read latest response aloud"}>{speakingId === latestAssistant.id ? "Stop" : "Read aloud"}</button>}</div>
     <header className="chat-header"><div className="chat-header-leading"><Link className="icon-button chat-home-button" href="/" aria-label="Back to home" title="Back to home"><ArrowLeft size={19} /></Link><button className="icon-button chat-menu-button" type="button" onClick={() => setDrawerOpen(true)} aria-label="Open chat history"><Menu size={20} /></button><GoldAILogo compact /></div><div className="chat-header-actions"><ThemeToggle /><button className="icon-button mobile-back-button" type="button" onClick={leaveChat} aria-label="Go back" title="Go back"><ArrowLeft size={19} /></button><button className="new-chat-button" type="button" onClick={startNewChat}><Plus size={16} /> <span>New Chat</span></button></div></header>
     <div className="chat-layout">
       <aside className={`chat-history ${drawerOpen ? "open" : ""}`}><div className="chat-history-heading"><span>Recent chats</span><button className="icon-button chat-close" type="button" onClick={() => setDrawerOpen(false)} aria-label="Close chat history"><X size={18} /></button></div><button className="new-chat-button history-new" type="button" onClick={startNewChat}><Plus size={16} /> New conversation</button><div className="history-list">{conversations.map((item) => <button className={`history-item ${item.id === conversation?.id ? "active" : ""}`} type="button" key={item.id} onClick={() => void selectConversation(item)}><MessageSquare size={15} /><span><strong>{item.title}</strong><small>{formatDate(item.updatedAt)}</small></span></button>)}{conversations.length === 0 && <p className="history-empty">Your conversations will appear here.</p>}</div></aside>
