@@ -144,7 +144,21 @@ export function ChatWorkspace() {
   function toggleSpeech(message: ChatMessage) {
     if (!message.content.trim() || typeof window === "undefined" || !("speechSynthesis" in window)) return;
     if (speakingId === message.id) { window.speechSynthesis.cancel(); setSpeakingId(null); return; }
-    const speechText = message.content.replace(/```[\s\S]*?```/g, " code block omitted ").replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/https?:\/\/\S+/g, "").replace(/^#{1,6}\s*/gm, "").replace(/[*_~`]/g, "").replace(/^\s*[-*+]\s+/gm, "").replace(/^\s*\d+[.)]\s+/gm, "").replace(/\[\d+\]/g, "").replace(/\|/g, " ").replace(/\s+/g, " ").trim();
+    const speechText = message.content
+      .replace(/\n#{1,6}\s*(related images|sources)\b[\s\S]*$/i, "")
+      .replace(/```[\s\S]*?```/g, " code block omitted ")
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+      .replace(/https?:\/\/\S+/g, "")
+      .replace(/^#{1,6}\s*/gm, "")
+      .replace(/[*_~`]/g, "")
+      .replace(/^\s*[-*+]\s+/gm, "")
+      .replace(/^\s*\d+[.)]\s+/gm, "")
+      .replace(/\[\d+\]/g, "")
+      .replace(/[()[\]{}<>|]/g, " ")
+      .replace(/[#:;*_+=\\/]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
     if (!speechText) return;
     window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(speechText); utterance.lang = voiceLanguageFor(profile?.preferredLanguage).locale; utterance.onend = () => setSpeakingId(null); utterance.onerror = () => { setSpeakingId(null); }; setSpeakingId(message.id); speechSynthesisRef.current = window.speechSynthesis; window.speechSynthesis.speak(utterance);
   }
