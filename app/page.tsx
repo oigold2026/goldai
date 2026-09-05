@@ -50,7 +50,7 @@ export default function Home() {
     <div className="app-shell">
       <DesktopSidebar />
       <div className="app-column">
-        <AppHeader onMenu={() => setMenuOpen(!menuOpen)} />
+        <AppHeader onMenu={() => setMenuOpen(!menuOpen)} showMenu />
         <MobileSideDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
         <main className="main-content">
           <section className="welcome-block">

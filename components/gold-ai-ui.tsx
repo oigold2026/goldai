@@ -93,7 +93,7 @@ export function ThemeToggle() {
   );
 }
 
-export function AppHeader({ onMenu, backToHome = false, backHref = "/" }: { onMenu: () => void; backToHome?: boolean; backHref?: string }) {
+export function AppHeader({ onMenu, showMenu = false, backToHome = false, backHref = "/" }: { onMenu: () => void; showMenu?: boolean; backToHome?: boolean; backHref?: string }) {
   const router = useRouter();
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -106,9 +106,9 @@ export function AppHeader({ onMenu, backToHome = false, backHref = "/" }: { onMe
   return (
     <header className="app-header">
       {backToHome && <button className="icon-button header-back" type="button" onClick={goBack} aria-label="Go back" title="Go back"><ArrowLeft size={19} /></button>}
-      <button className="icon-button mobile-menu" type="button" onClick={onMenu} aria-label="Open more navigation" title="More">
+      {showMenu && <button className="icon-button mobile-menu" type="button" onClick={onMenu} aria-label="Open more navigation" title="More">
         <Menu size={20} />
-      </button>
+      </button>}
       <GoldAILogo compact />
       <div className="header-actions">
         <ThemeToggle />
