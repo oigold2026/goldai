@@ -6,21 +6,15 @@ import {
   updateProfile,
   type User,
 } from "firebase/auth";
-import { ref, serverTimestamp, set } from "firebase/database";
 import { getFirebaseServices } from "./firebase";
 
 export async function registerUser(name: string, email: string, password: string) {
-  const { auth, database } = getFirebaseServices();
+  const { auth } = getFirebaseServices();
   const credential = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(credential.user, { displayName: name });
-  await set(ref(database, `users/${credential.user.uid}`), {
-    uid: credential.user.uid,
-    name,
-    email: credential.user.email,
-    onboardingCompleted: false,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+  const token = await credential.user.getIdToken();
+  const response = await fetch("/api/profile", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ name, email: credential.user.email || email }) });
+  if (!response.ok) throw new Error("Unable to create your profile right now.");
   return credential.user;
 }
 

@@ -1,4 +1,4 @@
-import { get, ref, serverTimestamp, set, update } from "firebase/database";
+import { get, ref } from "firebase/database";
 import { getFirebaseServices } from "./firebase";
 import type { UserProfile } from "../types/user";
 
@@ -9,7 +9,6 @@ export async function getUserProfile(uid: string) {
 }
 
 export async function updateUserProfile(uid: string, profile: Partial<UserProfile>) {
-  const { database } = getFirebaseServices();
   const safeProfile: Partial<UserProfile> = {
     name: profile.name,
     photoURL: profile.photoURL,
@@ -27,16 +26,21 @@ export async function updateUserProfile(uid: string, profile: Partial<UserProfil
     onboardingCompleted: profile.onboardingCompleted,
   };
   Object.keys(safeProfile).forEach((key) => safeProfile[key as keyof UserProfile] === undefined && delete safeProfile[key as keyof UserProfile]);
-  await update(ref(database, `users/${uid}`), { ...safeProfile, uid, updatedAt: serverTimestamp() });
+  const token = await getFirebaseServices().auth.currentUser?.getIdToken();
+  if (!token) throw new Error("You must be logged in to update your profile.");
+  const response = await fetch("/api/profile", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(safeProfile) });
+  if (!response.ok) throw new Error("Unable to update your profile right now.");
 }
 
 export async function createProfileIfMissing(uid: string, profile: Pick<UserProfile, "name" | "email">) {
   const existing = await getUserProfile(uid);
   if (existing) return existing;
-  const { database } = getFirebaseServices();
-  const newProfile: UserProfile = { uid, name: profile.name, email: profile.email, onboardingCompleted: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
-  await set(ref(database, `users/${uid}`), newProfile);
-  return newProfile;
+  const token = await getFirebaseServices().auth.currentUser?.getIdToken();
+  if (!token) throw new Error("You must be logged in to create your profile.");
+  const response = await fetch("/api/profile", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(profile) });
+  if (!response.ok) throw new Error("Unable to create your profile right now.");
+  const data = await response.json() as { profile: UserProfile };
+  return data.profile;
 }
 
 export function getProfileErrorMessage(error: unknown) {
