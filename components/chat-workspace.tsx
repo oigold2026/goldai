@@ -34,8 +34,8 @@ function formatDate(timestamp: number) {
 }
 
 function withRetrievedContext(text: string, images: ChatMessage["images"] = [], sources: ChatMessage["sources"] = []) {
-  const imageSection = images.length > 0 ? `\n\n### Related images\n${images.map((image) => `![${image.alt}](${image.url})`).join("\n")}` : "";
-  const sourceSection = sources.length > 0 ? `\n\n### Sources\n${sources.map((source, index) => `[${index + 1}] [${source.title}](${source.url})`).join("\n")}` : "";
+  const imageSection = images.length > 0 ? `\n\n### Related images\n${images.map((image) => `[![${image.alt}](${image.url})](${image.sourceUrl})`).join("\n")}` : "";
+  const sourceSection = sources.length > 0 ? `\n\n### Sources\n${sources.map((source, index) => `[${index + 1}] [${source.title}](${source.url}) (${source.publishedAt || "retrieved recently"})`).join("\n")}` : "";
   return `${text}${imageSection}${sourceSection}`;
 }
 

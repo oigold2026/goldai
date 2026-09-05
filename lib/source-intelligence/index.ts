@@ -18,8 +18,8 @@ export type SourceIntelligenceResult = {
   images: WebImage[];
 };
 
-const freshnessPattern = /\b(latest|current|today|now|recent|recently|this week|this month|202\d|breaking|price|score|weather|status|news|update|net worth|wealth|valuation|stock|ceo|president)\b/i;
-const imagePattern = /\b(look like|show me|image|picture|photo|visual|landmark|place|destination|animal|plant|tree|flower|product|architecture|building|artwork|painting|specimen|mountain|tower|person|who is)\b/i;
+const freshnessPattern = /\b(latest|current|today|now|recent|recently|this week|this month|202\d|breaking|price|score|weather|status|news|update|net worth|wealth|valuation|stock|ceo|president|king|monarch|royal|what happened|about him|about her)\b/i;
+const imagePattern = /\b(look like|show me|image|picture|photo|visual|landmark|place|destination|animal|plant|tree|flower|product|architecture|building|artwork|painting|specimen|mountain|tower|person|who is|king|monarch|royal|tooro|toro)\b/i;
 
 export function planSourceQuery(query: string): SourcePlan {
   const normalized = query.toLowerCase();
@@ -28,7 +28,7 @@ export function planSourceQuery(query: string): SourcePlan {
   else if (/\b(academic|research|study|paper|journal|evidence)\b/.test(normalized)) queryType = "academic";
   else if (/\b(code|coding|program|programming|api|next\.js|react|typescript|javascript|python|github|debug)\b/.test(normalized)) queryType = "technical";
   else if (/\b(net worth|wealth|stock|share|finance|financial|market|investment|revenue|valuation)\b/.test(normalized)) queryType = "finance";
-  else if (/\b(who is|biography|born|founder|ceo|president|person)\b/.test(normalized)) queryType = "people";
+  else if (/\b(who is|biography|born|founder|ceo|president|person|king|monarch|royal|tooro|toro)\b/.test(normalized)) queryType = "people";
   else if (/\b(health|medical|symptom|medicine|disease|treatment)\b/.test(normalized)) queryType = "health";
   else if (/\b(travel|hotel|tour|destination|holiday)\b/.test(normalized)) queryType = "travel";
   else if (/\b(learn|lesson|teaching|student|study plan|education)\b/.test(normalized)) queryType = "education";
@@ -40,7 +40,7 @@ export function planSourceQuery(query: string): SourcePlan {
   if (imagePattern.test(normalized) && queryType === "general") queryType = "visual";
   const requiresFreshness = freshnessPattern.test(query);
   const preferredSources = queryType === "technical" ? ["official-documentation", "github", "encyclopedic"] : queryType === "academic" ? ["crossref", "institutional", "encyclopedic"] : ["news", "official", "live-web", "encyclopedic"];
-  return { queryType, requiresFreshness, preferredSources, sourceCount: requiresFreshness || ["academic", "technical", "health", "finance"].includes(queryType) ? 5 : 3, imageSearchUseful: imagePattern.test(query) || ["geography", "travel", "animals", "plants", "products", "people", "visual", "history", "culture"].includes(queryType) };
+  return { queryType, requiresFreshness: requiresFreshness || ["people", "news", "finance"].includes(queryType), preferredSources, sourceCount: requiresFreshness || ["academic", "technical", "health", "finance", "people", "news"].includes(queryType) ? 5 : 3, imageSearchUseful: imagePattern.test(query) || ["geography", "travel", "animals", "plants", "products", "people", "visual", "history", "culture"].includes(queryType) };
 }
 
 function uniqueSources(sources: ResearchSource[]) {
@@ -108,12 +108,15 @@ function visualSubject(query: string) {
 
 export async function retrieveSourceIntelligence(query: string, requestId: string): Promise<SourceIntelligenceResult> {
   const plan = planSourceQuery(query);
+  const startedAt = Date.now();
+  if (process.env.NODE_ENV !== "production") console.info("[GoldAI] searchStarted", { requestId, query, classification: plan.queryType, requiresFreshness: plan.requiresFreshness });
   const searches: Array<Promise<ResearchSource[]>> = [searchResearchSources(query, plan.sourceCount, requestId).catch(() => [])];
   if (plan.requiresFreshness || ["news", "finance", "business", "people"].includes(plan.queryType)) searches.push(searchGoogleNews(query, 4));
   if (plan.queryType === "academic") searches.push(searchCrossref(query, 3));
   if (plan.queryType === "technical") searches.push(searchGitHub(query, 3));
   const sources = rankSources(uniqueSources((await Promise.all(searches)).flat()), plan).slice(0, plan.sourceCount);
   const images = plan.imageSearchUseful ? await searchWikimediaVisuals(visualSubject(query), 3) : [];
+  if (process.env.NODE_ENV !== "production") console.info("[GoldAI] searchCompleted", { requestId, sourcesFound: sources.length, imagesFound: images.length, durationMs: Date.now() - startedAt });
   return { plan, sources, images };
 }
 
