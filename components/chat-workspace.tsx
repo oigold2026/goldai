@@ -154,20 +154,19 @@ export function ChatWorkspace() {
   useEffect(() => {
     const bars = Array.from(document.querySelectorAll<HTMLElement>(".chat-message.assistant .message-actions"));
     const assistantMessages = messages.filter((message) => message.role === "assistant");
-    const created: HTMLButtonElement[] = [];
     bars.forEach((bar, index) => {
       const message = assistantMessages[index];
-      if (!message || bar.querySelector(".response-action-bar")) return;
+      if (!message) return;
+      bar.querySelector(".response-action-bar")?.remove();
       const actionBar = document.createElement("span");
       actionBar.className = "response-action-bar";
-      const addButton = (label: string, icon: string, callback: () => void, active = false) => { const button = document.createElement("button"); button.className = active ? "message-read-button active" : "message-read-button"; button.type = "button"; button.setAttribute("aria-label", label); button.title = label; button.innerHTML = icon; button.addEventListener("click", callback); actionBar.appendChild(button); created.push(button); };
+      const addButton = (label: string, icon: string, callback: () => void, active = false) => { const button = document.createElement("button"); button.className = active ? "message-read-button active" : "message-read-button"; button.type = "button"; button.setAttribute("aria-label", label); button.title = label; button.innerHTML = icon; button.addEventListener("click", callback); actionBar.appendChild(button); };
       addButton(speakingId === message.id ? "Stop reading response" : "Read response aloud", speakingId === message.id ? "<span aria-hidden='true'>■</span>" : "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M11 5 6 9H3v6h3l5 4V5Zm8.07 3.93a6 6 0 0 1 0 6.14M16.24 11.17a2 2 0 0 1 0 1.66' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>", () => toggleSpeech(message), speakingId === message.id);
       addButton("Like response", "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M7 10v10H4V10h3Zm0 10h10.5a2 2 0 0 0 1.9-1.4l1.5-5A2 2 0 0 0 19 11h-4l.6-3.2A2.4 2.4 0 0 0 13.2 5L7 10v10Z' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round'/></svg>", () => setMessageFeedback(message.id, "like"), feedback[message.id] === "like");
       addButton("Dislike response", "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M17 14V4h3v10h-3ZM17 4H6.5a2 2 0 0 0-1.9 1.4l-1.5 5A2 2 0 0 0 5 13h4l-.6 3.2A2.4 2.4 0 0 0 10.8 19L17 14V4Z' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round'/></svg>", () => setMessageFeedback(message.id, "dislike"), feedback[message.id] === "dislike");
       addButton(shareNoticeId === message.id ? "Link copied" : "Share response", "<svg viewBox='0 0 24 24' aria-hidden='true'><circle cx='18' cy='5' r='2' fill='none' stroke='currentColor' stroke-width='2'/><circle cx='6' cy='12' r='2' fill='none' stroke='currentColor' stroke-width='2'/><circle cx='18' cy='19' r='2' fill='none' stroke='currentColor' stroke-width='2'/><path d='m8 11 8-5M8 13l8 5' fill='none' stroke='currentColor' stroke-width='2'/></svg>", () => void shareMessage(message));
       bar.appendChild(actionBar);
     });
-    return () => created.forEach((button) => button.remove());
   }, [copiedId, feedback, messages, shareNoticeId, speakingId]);
 
   useEffect(() => {
