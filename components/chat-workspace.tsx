@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { ArrowLeft, ArrowUp, Copy, Menu, MessageSquare, Paperclip, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { ArrowLeft, ArrowUp, Copy, Menu, MessageSquare, Paperclip, Plus, Share2, Sparkles, ThumbsDown, ThumbsUp, Trash2, Volume2, X } from "lucide-react";
 import { useAuth } from "./auth-provider";
 import { useProfile } from "./profile-provider";
 import { getFirebaseServices } from "../lib/firebase";
@@ -56,6 +56,8 @@ export function ChatWorkspace() {
   const [uploading, setUploading] = useState(false);
   const [voiceState, setVoiceState] = useState<"idle" | "listening" | "error">("idle");
   const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Record<string, "like" | "dislike">>({});
+  const [shareNoticeId, setShareNoticeId] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const speechSynthesisRef = useRef<SpeechSynthesis | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -150,27 +152,24 @@ export function ChatWorkspace() {
   useEffect(() => () => { recognitionRef.current?.stop(); speechSynthesisRef.current?.cancel(); }, []);
 
   useEffect(() => {
-    const actionBars = Array.from(document.querySelectorAll<HTMLElement>(".chat-message.assistant .message-actions"));
-    const buttons: HTMLButtonElement[] = [];
-    const assistantMessages = messages.filter((item) => item.role === "assistant");
-    actionBars.forEach((actionBar, index) => {
-      if (actionBar.querySelector(".message-read-button")) return;
-      const messageId = assistantMessages[index]?.id;
-      if (!messageId) return;
-      const button = document.createElement("button");
-      button.className = "message-read-button";
-      button.type = "button";
-      const isSpeaking = speakingId === messageId;
-      button.setAttribute("aria-label", isSpeaking ? "Stop reading" : "Read aloud");
-      button.title = isSpeaking ? "Stop reading" : "Read aloud";
-      button.classList.toggle("active", isSpeaking);
-      button.innerHTML = isSpeaking ? "<svg viewBox='0 0 24 24' aria-hidden='true'><rect x='6' y='6' width='12' height='12' rx='1' fill='currentColor'/></svg>" : "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M11 5 6 9H3v6h3l5 4V5Zm8.07 3.93a6 6 0 0 1 0 6.14M16.24 11.17a2 2 0 0 1 0 1.66' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>";
-      button.addEventListener("click", () => { const message = messages.find((item) => item.id === messageId); if (message) toggleSpeech(message); });
-      actionBar.appendChild(button);
-      buttons.push(button);
+    const bars = Array.from(document.querySelectorAll<HTMLElement>(".chat-message.assistant .message-actions"));
+    const assistantMessages = messages.filter((message) => message.role === "assistant");
+    const created: HTMLButtonElement[] = [];
+    bars.forEach((bar, index) => {
+      const message = assistantMessages[index];
+      if (!message || bar.querySelector(".response-action-bar")) return;
+      const actionBar = document.createElement("span");
+      actionBar.className = "response-action-bar";
+      const addButton = (label: string, icon: string, callback: () => void, active = false) => { const button = document.createElement("button"); button.className = active ? "message-read-button active" : "message-read-button"; button.type = "button"; button.setAttribute("aria-label", label); button.title = label; button.innerHTML = icon; button.addEventListener("click", callback); actionBar.appendChild(button); created.push(button); };
+      addButton(speakingId === message.id ? "Stop reading response" : "Read response aloud", speakingId === message.id ? "<span aria-hidden='true'>■</span>" : "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M11 5 6 9H3v6h3l5 4V5Zm8.07 3.93a6 6 0 0 1 0 6.14M16.24 11.17a2 2 0 0 1 0 1.66' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>", () => toggleSpeech(message), speakingId === message.id);
+      addButton("Like response", "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M7 10v10H4V10h3Zm0 10h10.5a2 2 0 0 0 1.9-1.4l1.5-5A2 2 0 0 0 19 11h-4l.6-3.2A2.4 2.4 0 0 0 13.2 5L7 10v10Z' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round'/></svg>", () => setMessageFeedback(message.id, "like"), feedback[message.id] === "like");
+      addButton("Dislike response", "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M17 14V4h3v10h-3ZM17 4H6.5a2 2 0 0 0-1.9 1.4l-1.5 5A2 2 0 0 0 5 13h4l-.6 3.2A2.4 2.4 0 0 0 10.8 19L17 14V4Z' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round'/></svg>", () => setMessageFeedback(message.id, "dislike"), feedback[message.id] === "dislike");
+      addButton(shareNoticeId === message.id ? "Link copied" : "Share response", "<svg viewBox='0 0 24 24' aria-hidden='true'><circle cx='18' cy='5' r='2' fill='none' stroke='currentColor' stroke-width='2'/><circle cx='6' cy='12' r='2' fill='none' stroke='currentColor' stroke-width='2'/><circle cx='18' cy='19' r='2' fill='none' stroke='currentColor' stroke-width='2'/><path d='m8 11 8-5M8 13l8 5' fill='none' stroke='currentColor' stroke-width='2'/></svg>", () => void shareMessage(message));
+      addButton(copiedId === message.id ? "Copied" : "Copy response", "<svg viewBox='0 0 24 24' aria-hidden='true'><rect x='8' y='8' width='12' height='12' rx='2' fill='none' stroke='currentColor' stroke-width='2'/><path d='M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2' fill='none' stroke='currentColor' stroke-width='2'/></svg>", () => void copyMessage(message));
+      bar.appendChild(actionBar);
     });
-    return () => buttons.forEach((button) => button.remove());
-  }, [messages, speakingId]);
+    return () => created.forEach((button) => button.remove());
+  }, [copiedId, feedback, messages, shareNoticeId, speakingId]);
 
   useEffect(() => {
     const prompt = searchParams.get("prompt")?.trim();
@@ -181,6 +180,8 @@ export function ChatWorkspace() {
 
   function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }
   async function copyMessage(message: ChatMessage) { await navigator.clipboard.writeText(message.content); setCopiedId(message.id); window.setTimeout(() => setCopiedId(null), 1400); }
+  function setMessageFeedback(messageId: string, value: "like" | "dislike") { setFeedback((current) => { const next = { ...current }; if (current[messageId] === value) delete next[messageId]; else next[messageId] = value; return next; }); }
+  async function shareMessage(message: ChatMessage) { const shareData = { title: "Gold AI response", text: message.content }; try { if (navigator.share) await navigator.share(shareData); else { await navigator.clipboard.writeText(message.content); setShareNoticeId(message.id); window.setTimeout(() => setShareNoticeId(null), 1400); } } catch (shareError) { if ((shareError as Error).name !== "AbortError") setError("Unable to share this response."); } }
   async function removeConversation() { if (!user || !conversation || !window.confirm("Delete this conversation?")) return; await deleteConversation(user.uid, conversation.id); setConversations((items) => items.filter((item) => item.id !== conversation.id)); startNewChat(); }
 
   return <div className="chat-shell"><div className="voice-shortcuts"><button type="button" className={`voice-button ${voiceState === "listening" ? "listening" : ""}`} onClick={toggleVoiceInput} aria-label={voiceState === "listening" ? "Stop voice input" : "Start voice input"} title={voiceState === "listening" ? "Stop listening" : "Start voice input"}>🎤</button></div>
