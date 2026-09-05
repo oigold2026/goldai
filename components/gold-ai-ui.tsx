@@ -13,6 +13,7 @@ import {
   Home,
   Lightbulb,
   Menu,
+  MoreHorizontal,
   Mic,
   Moon,
   PenLine,
@@ -106,8 +107,8 @@ export function AppHeader({ onMenu, backToHome = false, backHref = "/" }: { onMe
   return (
     <header className="app-header">
       {backToHome && <button className="icon-button header-back" type="button" onClick={goBack} aria-label="Go back" title="Go back"><ArrowLeft size={19} /></button>}
-      <button className="icon-button mobile-menu" type="button" onClick={onMenu} aria-label="Open navigation">
-        <Menu size={20} />
+      <button className="icon-button mobile-menu" type="button" onClick={onMenu} aria-label="Open more navigation" title="More">
+        <MoreHorizontal size={20} />
       </button>
       <GoldAILogo compact />
       <div className="header-actions">
