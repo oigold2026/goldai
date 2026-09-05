@@ -66,7 +66,8 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .voice-shortcuts { position: fixed; right: 22px; bottom: 92px; z-index: 26; display: flex; align-items: center; gap: 7px; }
 .voice-button, .voice-read-button { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; min-height: 38px; padding: 0 10px; border: 1px solid var(--border); border-radius: 10px; color: var(--foreground); background: var(--surface); cursor: pointer; font-size: 12px; }
 .voice-button.listening { color: #9a5b45; border-color: #9a5b45; animation: voice-pulse 1.4s ease-in-out infinite; }
-.voice-read-button { width: 38px; min-width: 38px; padding: 0; color: var(--primary); font-weight: 700; }
+.voice-read-button { width: 38px; min-width: 38px; padding: 0; color: var(--primary); font-size: 0; font-weight: 700; }
+.voice-read-button svg { display: block; flex: 0 0 auto; }
 .voice-read-button.active { color: var(--primary-foreground); background: var(--primary); }
 @keyframes voice-pulse { 50% { box-shadow: 0 0 0 5px rgba(154,91,69,.14); } }
 @media (max-width: 760px) { .voice-shortcuts { right: 14px; bottom: 88px; } .voice-read-button { max-width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
