@@ -55,6 +55,9 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .message-content { width: 100%; }
 .chat-composer { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 25; width: min(100% - 24px, 880px); padding: 12px 12px 12px 18px; border: 1px solid var(--border); border-radius: 18px; background: color-mix(in srgb,var(--surface) 94%,transparent); backdrop-filter: blur(12px); box-shadow: var(--shadow); }
 .chat-composer textarea { min-width: 0; }
+.attach-button { position: relative; display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 10px; color: var(--foreground); background: var(--surface); cursor: pointer; transition: border-color .2s, transform .2s; }
+.attach-button:hover { border-color: var(--primary); transform: translateY(-1px); }
+.attach-button input { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; overflow: hidden; opacity: 0; pointer-events: none; }
 .voice-shortcuts { position: fixed; right: 22px; bottom: 92px; z-index: 26; display: flex; align-items: center; gap: 7px; }
 .voice-button, .voice-read-button { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; min-height: 38px; padding: 0 10px; border: 1px solid var(--border); border-radius: 10px; color: var(--foreground); background: var(--surface); cursor: pointer; font-size: 12px; }
 .voice-button.listening { color: #9a5b45; border-color: #9a5b45; animation: voice-pulse 1.4s ease-in-out infinite; }
