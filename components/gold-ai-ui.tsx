@@ -43,8 +43,6 @@ export const quickActions: { label: string; description: string; icon: LucideIco
 ];
 
 const navigation = [
-  const mobileBottomNavigation = navigation.filter(({ label }) => ["Home", "Chat", "Create", "Profile"].includes(label));
-  const mobileDrawerNavigation = navigation.filter(({ label }) => ["Study", "Research", "Teacher Tools", "Organizations", "Files"].includes(label));
   { label: "Home", href: "/", icon: Home },
   { label: "Chat", href: "/chat", icon: Sparkles },
   { label: "Study", href: "/study", icon: BookOpen },
@@ -55,6 +53,9 @@ const navigation = [
   { label: "Files", href: "/files", icon: FileText },
   { label: "Profile", href: "/profile", icon: UserRound },
 ];
+
+const mobileBottomNavigation = navigation.filter(({ label }) => ["Home", "Chat", "Create", "Profile"].includes(label));
+const mobileDrawerNavigation = navigation.filter(({ label }) => ["Study", "Research", "Teacher Tools", "Organizations", "Files"].includes(label));
 
 export function GoldAILogo({ compact = false }: { compact?: boolean }) {
   return (
@@ -145,6 +146,7 @@ function ChevronRight() {
 }
 
 export function MobileBottomNav() {
+  const pathname = usePathname();
   return (
     <nav className="mobile-nav" aria-label="Mobile navigation">
       {mobileBottomNavigation.map(({ label, href, icon: Icon }) => (

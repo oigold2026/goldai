@@ -8,6 +8,7 @@
 .mobile-drawer-nav a:hover, .mobile-drawer-nav a.active { color: var(--foreground); background: var(--surface-secondary); }
 .mobile-drawer-nav a.active { box-shadow: inset 3px 0 var(--primary); }
 @media (max-width:760px) { .mobile-drawer-layer.open { display: block; } }
+@media (max-width:760px) { .mobile-menu { display: grid !important; } }
 @import "tailwindcss";
 
 :root { --background: #fafaf8; --surface: #fff; --surface-secondary: #f3f1eb; --foreground: #111827; --muted: #f0eee8; --muted-foreground: #6b7280; --border: #e5e7eb; --input: #fff; --ring: #d4af37; --primary: #d4af37; --primary-foreground: #241d0a; --shadow: 0 14px 35px rgba(34,29,16,.07); }
