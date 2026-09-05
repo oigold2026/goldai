@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { ArrowLeft, ArrowUp, Copy, Menu, MessageSquare, Paperclip, Plus, Sparkles, Trash2, Volume2, X } from "lucide-react";
+import { ArrowLeft, ArrowUp, Copy, Menu, MessageSquare, Paperclip, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { useAuth } from "./auth-provider";
 import { useProfile } from "./profile-provider";
 import { getFirebaseServices } from "../lib/firebase";
@@ -140,15 +140,37 @@ export function ChatWorkspace() {
   }
 
   function toggleSpeech(message: ChatMessage) {
-    setError(null);
     if (!message.content.trim() || typeof window === "undefined" || !("speechSynthesis" in window)) return;
     if (speakingId === message.id) { window.speechSynthesis.cancel(); setSpeakingId(null); return; }
-    window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(message.content); utterance.lang = voiceLanguageFor(profile?.preferredLanguage).locale; utterance.onend = () => setSpeakingId(null); utterance.onerror = () => { setSpeakingId(null); setError(null); }; setSpeakingId(message.id); speechSynthesisRef.current = window.speechSynthesis; window.speechSynthesis.speak(utterance);
+    const speechText = message.content.replace(/```[\s\S]*?```/g, " code block omitted ").replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/https?:\/\/\S+/g, "").replace(/^#{1,6}\s*/gm, "").replace(/[*_~`]/g, "").replace(/^\s*[-*+]\s+/gm, "").replace(/^\s*\d+[.)]\s+/gm, "").replace(/\[\d+\]/g, "").replace(/\|/g, " ").replace(/\s+/g, " ").trim();
+    if (!speechText) return;
+    window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(speechText); utterance.lang = voiceLanguageFor(profile?.preferredLanguage).locale; utterance.onend = () => setSpeakingId(null); utterance.onerror = () => { setSpeakingId(null); }; setSpeakingId(message.id); speechSynthesisRef.current = window.speechSynthesis; window.speechSynthesis.speak(utterance);
   }
 
-  const latestAssistant = [...messages].reverse().find((message) => message.role === "assistant");
-
   useEffect(() => () => { recognitionRef.current?.stop(); speechSynthesisRef.current?.cancel(); }, []);
+
+  useEffect(() => {
+    const actionBars = Array.from(document.querySelectorAll<HTMLElement>(".chat-message.assistant .message-actions"));
+    const buttons: HTMLButtonElement[] = [];
+    const assistantMessages = messages.filter((item) => item.role === "assistant");
+    actionBars.forEach((actionBar, index) => {
+      if (actionBar.querySelector(".message-read-button")) return;
+      const messageId = assistantMessages[index]?.id;
+      if (!messageId) return;
+      const button = document.createElement("button");
+      button.className = "message-read-button";
+      button.type = "button";
+      const isSpeaking = speakingId === messageId;
+      button.setAttribute("aria-label", isSpeaking ? "Stop reading" : "Read aloud");
+      button.title = isSpeaking ? "Stop reading" : "Read aloud";
+      button.classList.toggle("active", isSpeaking);
+      button.innerHTML = isSpeaking ? "<svg viewBox='0 0 24 24' aria-hidden='true'><rect x='6' y='6' width='12' height='12' rx='1' fill='currentColor'/></svg>" : "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M11 5 6 9H3v6h3l5 4V5Zm8.07 3.93a6 6 0 0 1 0 6.14M16.24 11.17a2 2 0 0 1 0 1.66' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>";
+      button.addEventListener("click", () => { const message = messages.find((item) => item.id === messageId); if (message) toggleSpeech(message); });
+      actionBar.appendChild(button);
+      buttons.push(button);
+    });
+    return () => buttons.forEach((button) => button.remove());
+  }, [messages, speakingId]);
 
   useEffect(() => {
     const prompt = searchParams.get("prompt")?.trim();
@@ -161,7 +183,7 @@ export function ChatWorkspace() {
   async function copyMessage(message: ChatMessage) { await navigator.clipboard.writeText(message.content); setCopiedId(message.id); window.setTimeout(() => setCopiedId(null), 1400); }
   async function removeConversation() { if (!user || !conversation || !window.confirm("Delete this conversation?")) return; await deleteConversation(user.uid, conversation.id); setConversations((items) => items.filter((item) => item.id !== conversation.id)); startNewChat(); }
 
-  return <div className="chat-shell"><div className="voice-shortcuts"><button type="button" className={`voice-button ${voiceState === "listening" ? "listening" : ""}`} onClick={toggleVoiceInput} aria-label={voiceState === "listening" ? "Stop voice input" : "Start voice input"} title={voiceState === "listening" ? "Stop listening" : "Start voice input"}>🎤</button>{latestAssistant && <button type="button" className={`voice-read-button ${speakingId === latestAssistant.id ? "active" : ""}`} onClick={() => toggleSpeech(latestAssistant)} aria-label={speakingId === latestAssistant.id ? "Stop reading" : "Read aloud"} title={speakingId === latestAssistant.id ? "Stop reading" : "Read aloud"}><Volume2 size={17} /></button>}</div>
+  return <div className="chat-shell"><div className="voice-shortcuts"><button type="button" className={`voice-button ${voiceState === "listening" ? "listening" : ""}`} onClick={toggleVoiceInput} aria-label={voiceState === "listening" ? "Stop voice input" : "Start voice input"} title={voiceState === "listening" ? "Stop listening" : "Start voice input"}>🎤</button></div>
     <header className="chat-header"><div className="chat-header-leading"><Link className="icon-button chat-home-button" href="/" aria-label="Back to home" title="Back to home"><ArrowLeft size={19} /></Link><button className="icon-button chat-menu-button" type="button" onClick={() => setDrawerOpen(true)} aria-label="Open chat history"><Menu size={20} /></button><GoldAILogo compact /></div><div className="chat-header-actions"><ThemeToggle /><button className="icon-button mobile-back-button" type="button" onClick={leaveChat} aria-label="Go back" title="Go back"><ArrowLeft size={19} /></button><button className="new-chat-button" type="button" onClick={startNewChat}><Plus size={16} /> <span>New Chat</span></button></div></header>
     <div className="chat-layout">
       <aside className={`chat-history ${drawerOpen ? "open" : ""}`}><div className="chat-history-heading"><span>Recent chats</span><button className="icon-button chat-close" type="button" onClick={() => setDrawerOpen(false)} aria-label="Close chat history"><X size={18} /></button></div><button className="new-chat-button history-new" type="button" onClick={startNewChat}><Plus size={16} /> New conversation</button><div className="history-list">{conversations.map((item) => <button className={`history-item ${item.id === conversation?.id ? "active" : ""}`} type="button" key={item.id} onClick={() => void selectConversation(item)}><MessageSquare size={15} /><span><strong>{item.title}</strong><small>{formatDate(item.updatedAt)}</small></span></button>)}{conversations.length === 0 && <p className="history-empty">Your conversations will appear here.</p>}</div></aside>
