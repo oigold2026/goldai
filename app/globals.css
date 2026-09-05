@@ -78,6 +78,12 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .chat-messages { min-width: 0; }
 .chat-composer textarea { min-width: 0; }
 .chat-composer .send-button { flex: 0 0 38px; }
+
+/* Keep the single-line prompts optically centered in both composer shells. */
+.ask-box,
+.chat-composer { align-items: center; }
+.ask-box textarea,
+.chat-composer textarea { align-self: center; height: 39px; min-height: 39px; margin: 0; padding: 0 !important; line-height: 1.35; }
 @media (max-width: 420px) {
 	.chat-header { padding-inline: 10px; }
 	.chat-header-actions { gap: 6px; }
