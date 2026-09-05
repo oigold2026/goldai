@@ -153,7 +153,6 @@ export function ChatWorkspace() {
       .replace(/^#{1,6}\s*/gm, "")
       .replace(/[*_~`]/g, "")
       .replace(/^\s*[-*+]\s+/gm, "")
-      .replace(/^\s*\d+[.)]\s+/gm, "")
       .replace(/\[\d+\]/g, "")
       .replace(/[()[\]{}<>|]/g, " ")
       .replace(/[#:;*_+=\\/]/g, " ")
