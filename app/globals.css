@@ -61,6 +61,8 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .message-attachment { display: inline-flex !important; align-items: center; width: 64px !important; max-width: 64px !important; max-height: 48px !important; flex: 0 0 auto; margin-bottom: 12px; overflow: hidden; border: 1px solid var(--border); border-radius: 7px; background: var(--surface-secondary); }
 .message-attachment img { display: block; width: 64px !important; max-width: 64px !important; height: auto !important; max-height: 48px !important; object-fit: cover; }
 .message-attachment span { display: inline-flex; align-items: center; width: 64px !important; max-width: 64px !important; padding: 5px 6px; color: var(--foreground); font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-composer img { width: 48px !important; max-width: 48px !important; height: 36px !important; max-height: 36px !important; object-fit: cover; }
+.chat-composer [class*="attachment"], .chat-composer [class*="preview"] { max-width: 56px !important; max-height: 42px !important; overflow: hidden; }
 .voice-shortcuts { position: fixed; right: 22px; bottom: 92px; z-index: 26; display: flex; align-items: center; gap: 7px; }
 .voice-button, .voice-read-button { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; min-height: 38px; padding: 0 10px; border: 1px solid var(--border); border-radius: 10px; color: var(--foreground); background: var(--surface); cursor: pointer; font-size: 12px; }
 .voice-button.listening { color: #9a5b45; border-color: #9a5b45; animation: voice-pulse 1.4s ease-in-out infinite; }
