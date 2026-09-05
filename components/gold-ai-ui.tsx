@@ -182,7 +182,8 @@ export function AskGoldAI() {
   const [value, setValue] = useState("");
   const [listening, setListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
-  const recognitionRef = useRef<{ lang: string; interimResults: boolean; continuous: boolean; onresult: ((event: Event & { results: { [index: number]: { [index: number]: { transcript: string } } } }) => void) | null; onerror: (() => void) | null; onend: (() => void) | null; start: () => void; stop: () => void } | null>(null);
+  const recognitionRef = useRef<{ lang: string; interimResults: boolean; continuous: boolean; onresult: ((event: Event & { results: { length: number; [index: number]: { [index: number]: { transcript: string } } } }) => void) | null; onerror: (() => void) | null; onend: (() => void) | null; start: () => void; stop: () => void } | null>(null);
+  const voiceBaseValueRef = useRef("");
   const router = useRouter();
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -198,10 +199,11 @@ export function AskGoldAI() {
     const Recognition = browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition;
     if (!Recognition) { setVoiceError("Voice input isn't supported in this browser. You can still type your message."); return; }
     const recognition = new Recognition();
+    voiceBaseValueRef.current = value.trim();
     recognition.lang = navigator.language || "en-US";
     recognition.interimResults = true;
     recognition.continuous = false;
-    recognition.onresult = (event) => { const transcript = Array.from(event.results).map((result) => result[0]?.transcript || "").join(""); setValue((current) => current ? `${current} ${transcript}`.trim() : transcript); };
+    recognition.onresult = (event) => { const transcript = Array.from(event.results).map((result) => result[0]?.transcript || "").join(" ").trim(); setValue(voiceBaseValueRef.current ? `${voiceBaseValueRef.current} ${transcript}`.trim() : transcript); };
     recognition.onerror = () => { setListening(false); setVoiceError("Microphone access or speech recognition failed. You can continue by typing."); };
     recognition.onend = () => { setListening(false); recognitionRef.current = null; };
     recognitionRef.current = recognition; setVoiceError(null); setListening(true); recognition.start();
