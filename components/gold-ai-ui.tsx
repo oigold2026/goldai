@@ -28,7 +28,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { getDisplayName } from "../lib/display-name";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "./auth-provider";
 import { useProfile } from "./profile-provider";
 import type { StudyActivity } from "../types/study";
@@ -180,6 +180,9 @@ export function GoldAILogoLoader({ size = "md", label = "Gold AI is thinking..."
 
 export function AskGoldAI() {
   const [value, setValue] = useState("");
+  const [listening, setListening] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const recognitionRef = useRef<{ lang: string; interimResults: boolean; continuous: boolean; onresult: ((event: Event & { results: { [index: number]: { [index: number]: { transcript: string } } } }) => void) | null; onerror: (() => void) | null; onend: (() => void) | null; start: () => void; stop: () => void } | null>(null);
   const router = useRouter();
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -188,16 +191,34 @@ export function AskGoldAI() {
     if (question) router.push(`/chat?prompt=${encodeURIComponent(question)}`);
   }
 
+  function toggleVoiceInput() {
+    if (listening) { recognitionRef.current?.stop(); return; }
+    type RecognitionConstructor = new () => NonNullable<typeof recognitionRef.current>;
+    const browserWindow = window as Window & { SpeechRecognition?: RecognitionConstructor; webkitSpeechRecognition?: RecognitionConstructor };
+    const Recognition = browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition;
+    if (!Recognition) { setVoiceError("Voice input isn't supported in this browser. You can still type your message."); return; }
+    const recognition = new Recognition();
+    recognition.lang = navigator.language || "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.onresult = (event) => { const transcript = Array.from(event.results).map((result) => result[0]?.transcript || "").join(""); setValue((current) => current ? `${current} ${transcript}`.trim() : transcript); };
+    recognition.onerror = () => { setListening(false); setVoiceError("Microphone access or speech recognition failed. You can continue by typing."); };
+    recognition.onend = () => { setListening(false); recognitionRef.current = null; };
+    recognitionRef.current = recognition; setVoiceError(null); setListening(true); recognition.start();
+  }
+
+  useEffect(() => () => { recognitionRef.current?.stop(); }, [recognitionRef]);
+
   return (
     <div className="ask-area">
       <form className="ask-box" onSubmit={submit}>
         <textarea value={value} onChange={(event) => setValue(event.target.value)} placeholder="Ask Gold AI anything..." aria-label="Ask Gold AI anything" rows={1} />
         <div className="ask-controls">
-          <button className="ask-tool" type="button" aria-label="Use voice input" title="Voice input is coming soon"><Mic size={19} /></button>
+          <button className={`ask-tool ${listening ? "voice-listening" : ""}`} type="button" onClick={toggleVoiceInput} aria-label={listening ? "Stop voice input" : "Start voice input"} title={listening ? "Stop listening" : "Start voice input"}><Mic size={19} /></button>
           <button className="send-button" type="submit" disabled={!value.trim()} aria-label="Send question" title="Send question"><ArrowUp size={19} /></button>
         </div>
       </form>
-      <p className="ask-hint">Ask naturally. Gold AI will help you find your way.</p>
+      <p className="ask-hint">{voiceError || "Ask naturally. Gold AI will help you find your way."}</p>
     </div>
   );
 }
