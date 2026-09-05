@@ -47,11 +47,36 @@ function uniqueSources(sources: ResearchSource[]) {
   return sources.filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index);
 }
 
+function queryTerms(query: string) {
+  return query.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter((term) => term.length > 2 && !["what", "who", "where", "when", "tell", "about", "latest", "current", "news", "any", "something"].includes(term));
+}
+
+function relevanceScore(source: ResearchSource, query: string) {
+  const terms = queryTerms(query);
+  if (terms.length === 0) return 0.5;
+  const haystack = `${source.title} ${source.snippet} ${source.domain}`.toLowerCase();
+  return terms.filter((term) => haystack.includes(term)).length / terms.length;
+}
+
+function filterRelevantSources(sources: ResearchSource[], query: string) {
+  return sources.map((source) => ({ ...source, relevanceScore: Math.max(source.relevanceScore || 0, relevanceScore(source, query)) })).filter((source) => (source.relevanceScore || 0) >= 0.2);
+}
+
+function sourceAuthority(source: ResearchSource) {
+  const domain = source.domain.toLowerCase();
+  if (domain.endsWith(".gov") || domain.includes("go.ug") || domain.includes("uneb") || domain.includes("ncdc") || domain.includes("ubos")) return 7;
+  if (domain.endsWith(".edu") || domain.includes("ac.ug") || source.sourceType === "academic") return 6;
+  if (["reuters.com", "bbc.com", "bbc.co.uk", "apnews.com", "cnn.com"].includes(domain)) return 5;
+  if (source.sourceType === "official") return 5;
+  if (source.sourceType === "news") return 4;
+  if (domain === "wikipedia.org") return 2;
+  return 3;
+}
+
 function rankSources(sources: ResearchSource[], plan: SourcePlan) {
-  const authority: Record<string, number> = { "doi.org": 5, "github.com": 4, "wikipedia.org": 3 };
   return [...sources].sort((left, right) => {
-    const leftAuthority = authority[left.domain] || (left.sourceType === "official" ? 4 : left.sourceType === "news" ? 3 : 2);
-    const rightAuthority = authority[right.domain] || (right.sourceType === "official" ? 4 : right.sourceType === "news" ? 3 : 2);
+    const leftAuthority = sourceAuthority(left);
+    const rightAuthority = sourceAuthority(right);
     const leftFreshness = left.publishedAt ? Date.parse(left.publishedAt) || 0 : 0;
     const rightFreshness = right.publishedAt ? Date.parse(right.publishedAt) || 0 : 0;
     const freshnessWeight = plan.requiresFreshness ? 0.000001 : 0.0000001;
@@ -79,7 +104,8 @@ async function searchGoogleNews(query: string, limit: number): Promise<ResearchS
       const publisher = item.match(/<source[^>]*url="([^"]+)"[^>]*>([\s\S]*?)<\/source>/i);
       let domain = "news.google.com";
       try { if (publisher?.[1]) domain = new URL(publisher[1]).hostname.replace(/^www\./, ""); } catch { }
-      return { id: `google-news-${index}-${encodeURIComponent(link)}`, title, url: link, domain, snippet: description || title, publishedAt, retrievedAt: Date.now(), sourceType: "news" as const, relevanceScore: 0.8 };
+      const sourceType = domain.endsWith(".gov") || domain.includes("go.ug") || domain.includes("uneb") || domain.includes("ncdc") || domain.includes("ubos") || domain.endsWith(".edu") || domain.includes("ac.ug") ? "official" as const : "news" as const;
+      return { id: `google-news-${index}-${encodeURIComponent(link)}`, title, url: link, domain, snippet: description || title, publishedAt, retrievedAt: Date.now(), sourceType, relevanceScore: 0.8 };
     }).filter((source) => source.title && /^https?:\/\//.test(source.url));
   } catch { return []; }
 }
@@ -111,10 +137,10 @@ export async function retrieveSourceIntelligence(query: string, requestId: strin
   const startedAt = Date.now();
   if (process.env.NODE_ENV !== "production") console.info("[GoldAI] searchStarted", { requestId, query, classification: plan.queryType, requiresFreshness: plan.requiresFreshness });
   const searches: Array<Promise<ResearchSource[]>> = [searchResearchSources(query, plan.sourceCount, requestId).catch(() => [])];
-  if (plan.requiresFreshness || ["news", "finance", "business", "people"].includes(plan.queryType)) searches.push(searchGoogleNews(query, 4));
+  if (plan.requiresFreshness || ["news", "finance", "business", "people", "education", "health", "products", "geography"].includes(plan.queryType)) searches.push(searchGoogleNews(query, 6));
   if (plan.queryType === "academic") searches.push(searchCrossref(query, 3));
   if (plan.queryType === "technical") searches.push(searchGitHub(query, 3));
-  const sources = rankSources(uniqueSources((await Promise.all(searches)).flat()), plan).slice(0, plan.sourceCount);
+  const sources = rankSources(filterRelevantSources(uniqueSources((await Promise.all(searches)).flat()), query), plan).slice(0, plan.sourceCount);
   const images = plan.imageSearchUseful ? await searchWikimediaVisuals(visualSubject(query), 3) : [];
   if (process.env.NODE_ENV !== "production") console.info("[GoldAI] searchCompleted", { requestId, sourcesFound: sources.length, imagesFound: images.length, durationMs: Date.now() - startedAt });
   return { plan, sources, images };
