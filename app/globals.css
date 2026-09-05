@@ -394,3 +394,6 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .organization-invite-form .auth-submit { width: auto; margin: 0; padding: 0 18px; }
 .organization-invitations p { color: var(--muted-foreground); font-size: 12px; }
 @media (max-width: 767px) { .organizations-main, .organization-main { padding-top: 22px; } .organizations-layout, .organization-stats { grid-template-columns: 1fr; margin-top: 28px; } .organization-list-panel, .organization-create-panel, .organization-invite, .organization-invitations { padding: 18px; } .organization-heading { align-items: flex-start; } .organization-invite-form { grid-template-columns: 1fr; } .organization-invite-form .auth-submit { width: 100%; } }
+
+/* Final mobile override: the More trigger must remain visible after legacy rules. */
+@media (max-width: 760px) { .mobile-menu { display: grid !important; } }
