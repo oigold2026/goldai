@@ -15,6 +15,7 @@ import type { UserProfile } from "../types/user";
 import { useAuth } from "./auth-provider";
 import { useProfile } from "./profile-provider";
 import { GoldAILogo, GoldAILogoLoader, ThemeToggle } from "./gold-ai-ui";
+import { ArrowLeft } from "lucide-react";
 
 const profileSchema = z.object({
   name: z.string().trim().min(2, "Please enter at least 2 characters.").max(80, "Please use a shorter name."),
@@ -58,6 +59,11 @@ export function ProfileForm({ onboarding = false }: { onboarding?: boolean }) {
   const [selectedGroup, setSelectedGroup] = useState<ProfileFormValues["userGroup"]>(initialValues.userGroup);
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfileFormValues>({ resolver: zodResolver(profileSchema), defaultValues: initialValues });
 
+  function goBack() {
+    if (window.history.length > 1) router.back();
+    else router.push("/");
+  }
+
   useEffect(() => { reset(asFormValues(profile, getUserName(user))); }, [profile, reset, user]);
 
   const onSubmit: SubmitHandler<ProfileFormValues> = async (values) => {
@@ -74,7 +80,7 @@ export function ProfileForm({ onboarding = false }: { onboarding?: boolean }) {
 
   return (
     <main className="auth-page">
-      <div className="auth-topbar"><GoldAILogo compact /><ThemeToggle /></div>
+      <div className="auth-topbar">{!onboarding && <button className="icon-button" type="button" onClick={goBack} aria-label="Go back" title="Go back"><ArrowLeft size={19} /></button>}<GoldAILogo compact /><ThemeToggle /></div>
       <section className="profile-panel" aria-labelledby="profile-title">
         <span className="eyebrow">{onboarding ? "Welcome to Gold AI" : "Your Gold AI profile"}</span>
         <h1 id="profile-title">{onboarding ? "How will you use Gold AI?" : "Your profile"}</h1>
