@@ -1,5 +1,6 @@
 import { searchResearchSources } from "../research/provider";
 import type { ResearchSource, WebImage } from "../../types/research";
+import { searchWikimediaVisuals } from "./images";
 
 export type QueryType = "general" | "current" | "news" | "academic" | "technical" | "business" | "finance" | "geography" | "travel" | "education" | "health" | "products" | "people" | "animals" | "plants" | "history" | "culture" | "visual" | "opinion";
 
@@ -98,26 +99,6 @@ async function searchGitHub(query: string, limit: number): Promise<ResearchSourc
     if (!response.ok) return [];
     const data = await response.json() as { items?: Array<{ id: number; name: string; html_url: string; description?: string; updated_at?: string }> };
     return (data.items || []).map((item) => ({ id: `github-${item.id}`, title: item.name, url: item.html_url, domain: "github.com", snippet: item.description || "Official project repository.", publishedAt: item.updated_at, retrievedAt: Date.now(), sourceType: "technical" as const, relevanceScore: 0.9 }));
-  } catch { return []; }
-}
-
-async function searchWikimediaVisuals(query: string, limit = 3): Promise<WebImage[]> {
-  try {
-    const url = new URL("https://commons.wikimedia.org/w/api.php");
-    url.search = new URLSearchParams({ action: "query", generator: "search", gsrsearch: query, gsrnamespace: "6", gsrlimit: String(limit), prop: "imageinfo", iiprop: "url|extmetadata", iiurlwidth: "720", format: "json", origin: "*" }).toString();
-    const response = await fetch(url, { headers: { Accept: "application/json", "User-Agent": "GoldAI/1.0 images" }, cache: "no-store" });
-    if (!response.ok) return [];
-    const data = await response.json() as { query?: { pages?: Record<string, { pageid: number; title: string; imageinfo?: Array<{ thumburl?: string; url?: string; extmetadata?: { ImageDescription?: { value?: string }; Artist?: { value?: string } } }> }> } };
-    const images: WebImage[] = [];
-    for (const page of Object.values(data.query?.pages || {})) {
-      const image = page.imageinfo?.[0];
-      if (!image?.thumburl && !image?.url) continue;
-      const result: WebImage = { id: `commons-${page.pageid}`, title: page.title.replace(/^File:/, ""), url: image.thumburl || image.url!, sourceUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replaceAll(" ", "_"))}`, alt: page.title.replace(/^File:/, "") };
-      const attribution = image.extmetadata?.Artist?.value?.replace(/<[^>]+>/g, "");
-      if (attribution) result.attribution = attribution;
-      images.push(result);
-    }
-    return images;
   } catch { return []; }
 }
 
