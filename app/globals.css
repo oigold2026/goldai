@@ -58,9 +58,9 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .attach-button { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 10px; color: var(--foreground); background: var(--surface); cursor: pointer; transition: border-color .2s, transform .2s; }
 .attach-button:hover { border-color: var(--primary); transform: translateY(-1px); }
 .attach-button input { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; overflow: hidden; opacity: 0; pointer-events: none; }
-.message-attachment { display: inline-flex; align-items: center; max-width: 100px; max-height: 72px; margin-bottom: 12px; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-secondary); }
-.message-attachment img { display: block; width: 100%; max-width: 100px; max-height: 72px; object-fit: cover; }
-.message-attachment span { display: inline-flex; align-items: center; max-width: 100px; padding: 7px 8px; color: var(--foreground); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.message-attachment { display: inline-flex !important; align-items: center; width: 100px !important; max-width: 100px !important; max-height: 72px; flex: 0 0 auto; margin-bottom: 12px; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-secondary); }
+.message-attachment img { display: block; width: 100px !important; max-width: 100px !important; height: auto !important; max-height: 72px; object-fit: cover; }
+.message-attachment span { display: inline-flex; align-items: center; width: 100px !important; max-width: 100px !important; padding: 7px 8px; color: var(--foreground); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .voice-shortcuts { position: fixed; right: 22px; bottom: 92px; z-index: 26; display: flex; align-items: center; gap: 7px; }
 .voice-button, .voice-read-button { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; min-height: 38px; padding: 0 10px; border: 1px solid var(--border); border-radius: 10px; color: var(--foreground); background: var(--surface); cursor: pointer; font-size: 12px; }
 .voice-button.listening { color: #9a5b45; border-color: #9a5b45; animation: voice-pulse 1.4s ease-in-out infinite; }
