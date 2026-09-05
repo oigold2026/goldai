@@ -9,6 +9,12 @@
 .mobile-drawer-nav a.active { box-shadow: inset 3px 0 var(--primary); }
 @media (max-width:760px) { .mobile-drawer-layer.open { display: block; } }
 @media (max-width:760px) { .mobile-menu { display: grid !important; } }
+@media (max-width:760px) {
+	.mobile-nav { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 4px; padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); }
+	.mobile-nav-link { min-width: 0; min-height: 48px; justify-content: center; padding: 4px 2px; gap: 4px; font-size: 9px; line-height: 1; }
+	.mobile-nav-link svg { width: 19px; height: 19px; flex: 0 0 auto; }
+	.mobile-nav-link span { overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; }
+}
 @import "tailwindcss";
 
 :root { --background: #fafaf8; --surface: #fff; --surface-secondary: #f3f1eb; --foreground: #111827; --muted: #f0eee8; --muted-foreground: #6b7280; --border: #e5e7eb; --input: #fff; --ring: #d4af37; --primary: #d4af37; --primary-foreground: #241d0a; --shadow: 0 14px 35px rgba(34,29,16,.07); }
