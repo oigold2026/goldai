@@ -94,6 +94,38 @@
         }
       }
     },
+    "organizations": {
+      "$organizationId": {
+        ".read": "auth != null && root.child('organizationMembers').child($organizationId).child(auth.uid).child('status').val() === 'active'",
+        ".write": false,
+        ".validate": "newData.hasChildren(['id', 'name', 'type', 'ownerId', 'currency', 'status', 'createdAt', 'updatedAt']) && newData.child('id').val() === $organizationId && newData.child('name').isString() && newData.child('ownerId').isString() && newData.child('currency').isString() && newData.child('status').isString()"
+      }
+    },
+    "organizationMembers": {
+      "$organizationId": {
+        ".read": "auth != null && data.child(auth.uid).child('status').val() === 'active'",
+        ".write": false,
+        "$uid": {
+          ".validate": "newData.hasChildren(['uid', 'role', 'status', 'joinedAt']) && newData.child('uid').val() === $uid && newData.child('role').isString() && newData.child('status').isString() && newData.child('joinedAt').isNumber()"
+        }
+      }
+    },
+    "organizationInvitations": {
+      "$organizationId": {
+        ".read": "auth != null && (root.child('organizationMembers').child($organizationId).child(auth.uid).child('role').val() === 'owner' || root.child('organizationMembers').child($organizationId).child(auth.uid).child('role').val() === 'admin')",
+        ".write": false,
+        "$invitationId": { ".validate": "newData.hasChildren(['id', 'organizationId', 'email', 'invitedBy', 'role', 'status', 'createdAt', 'expiresAt']) && newData.child('id').val() === $invitationId && newData.child('organizationId').val() === $organizationId" }
+      }
+    },
+    "organizationCredits": {
+      "$organizationId": { ".read": "auth != null && root.child('organizationMembers').child($organizationId).child(auth.uid).child('status').val() === 'active'", ".write": false }
+    },
+    "organizationCreditTransactions": {
+      "$organizationId": { ".read": "auth != null && root.child('organizationMembers').child($organizationId).child(auth.uid).child('status').val() === 'active'", ".write": false }
+    },
+    "organizationUsage": {
+      "$organizationId": { ".read": "auth != null && (root.child('organizationMembers').child($organizationId).child(auth.uid).child('role').val() === 'owner' || root.child('organizationMembers').child($organizationId).child(auth.uid).child('role').val() === 'admin' || root.child('organizationMembers').child($organizationId).child(auth.uid).child('role').val() === 'manager')", ".write": false }
+    },
     "usage": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",

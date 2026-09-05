@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowUp,
   BookOpen,
+  Building2,
   Brain,
   CircleUserRound,
   FileText,
@@ -47,6 +48,7 @@ const navigation = [
   { label: "Research", href: "/research", icon: Search },
   { label: "Create", href: "/create", icon: Lightbulb },
   { label: "Teacher Tools", href: "/teacher", icon: GraduationCap },
+  { label: "Organizations", href: "/organizations", icon: Building2 },
   { label: "Profile", href: "/profile", icon: UserRound },
 ];
 
@@ -217,8 +219,6 @@ export function ContinueLearningCard() {
 
   useEffect(() => {
     if (!user) {
-      setActivities([]);
-      setLoading(false);
       return undefined;
     }
     let cancelled = false;

@@ -1,0 +1,7 @@
+import { verifyFirebaseToken } from "../../../../lib/ai/auth-server";
+import { getOrganizationAccess } from "../../../../lib/organization/service";
+import { getOrganizationCredits } from "../../../../lib/organization/credits";
+
+export const runtime = "nodejs";
+function token(request: Request) { const authorization = request.headers.get("authorization"); if (!authorization?.startsWith("Bearer ")) throw new Error("UNAUTHORIZED"); return authorization.slice(7).trim(); }
+export async function GET(request: Request, context: { params: Promise<{ organizationId: string }> }) { try { const uid = await verifyFirebaseToken(token(request)); const { organizationId } = await context.params; const access = await getOrganizationAccess(uid, organizationId); if (!access.organization || !access.member || access.member.status !== "active") return Response.json({ error: "Organization not found." }, { status: 404 }); return Response.json({ organization: access.organization, member: access.member, credits: await getOrganizationCredits(organizationId) }); } catch (error) { if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to continue." }, { status: 401 }); console.error("Gold AI organization detail failed", { error: error instanceof Error ? error.message : "unknown error" }); return Response.json({ error: "Unable to load this organization right now." }, { status: 503 }); } }

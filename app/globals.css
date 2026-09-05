@@ -254,6 +254,7 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 	.chat-header-actions .new-chat-button { display: none; }
 }
 @media (max-width: 760px) { .mobile-nav { grid-template-columns: repeat(6, minmax(0, 1fr)); } .mobile-nav-link { font-size: 8px; } }
+@media (max-width: 760px) { .mobile-nav { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
 .teacher-route { min-height: 100vh; background: var(--background); }
 .teacher-main { width: min(100%, 1240px); margin: 0 auto; padding: 30px clamp(16px, 4vw, 56px) calc(100px + env(safe-area-inset-bottom)); }
 .teacher-heading { max-width: 760px; margin: 0 auto; }
@@ -317,3 +318,35 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .learning-empty strong { color: var(--foreground); font-size: 15px; }
 .learning-empty .text-link { margin-top: 4px; }
 @media (max-width: 760px) { .learning-card { padding: 18px; } .learning-list { gap: 14px; } .learning-item { padding-top: 14px; } }
+
+.organizations-route, .organization-route { min-height: 100vh; background: var(--background); }
+.organizations-main, .organization-main { width: min(100%, 1080px); margin: 0 auto; padding: 38px clamp(16px, 4vw, 56px) calc(100px + env(safe-area-inset-bottom)); }
+.organizations-heading { max-width: 760px; margin: 0 auto; }
+.organizations-heading h1, .organization-heading h1 { margin: 13px 0 7px; font-size: clamp(34px, 5vw, 56px); line-height: 1.05; }
+.organizations-heading p, .organization-heading p { margin: 0; color: var(--muted-foreground); font-size: 15px; }
+.organizations-layout { display: grid; grid-template-columns: 1.1fr .9fr; gap: 12px; margin-top: 40px; }
+.organization-list-panel, .organization-create-panel, .organization-invite, .organization-invitations { min-width: 0; padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.organization-create-panel { display: grid; align-content: start; gap: 15px; }
+.organization-create-panel h2 { margin: 0; font-size: 22px; }
+.organization-create-panel label { display: grid; gap: 7px; color: var(--foreground); font-size: 11px; font-weight: 650; }
+.organization-create-panel input, .organization-create-panel select, .organization-invite-form input, .organization-invite-form select { width: 100%; min-width: 0; height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 9px; outline: 0; color: var(--foreground); background: var(--input); font-size: 13px; }
+.organization-list { display: grid; gap: 7px; margin-top: 18px; }
+.organization-list-item { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 14px 10px; border-bottom: 1px solid var(--border); }
+.organization-list-item > span:nth-child(2) { min-width: 0; flex: 1; }
+.organization-list-item strong, .organization-list-item small { display: block; overflow-wrap: anywhere; }
+.organization-list-item strong { font-size: 13px; }
+.organization-list-item small { margin-top: 4px; color: var(--muted-foreground); font-size: 10px; text-transform: capitalize; }
+.organization-icon { display: grid; flex: 0 0 auto; place-items: center; width: 40px; height: 40px; border-radius: 11px; color: var(--primary); background: color-mix(in srgb, var(--primary) 14%, var(--surface)); }
+.organization-icon.large { width: 52px; height: 52px; }
+.organization-back { display: inline-flex; align-items: center; gap: 7px; min-height: 42px; color: var(--muted-foreground); font-size: 12px; font-weight: 700; }
+.organization-heading { display: flex; align-items: center; gap: 15px; margin-top: 30px; }
+.organization-heading h1 { margin-top: 8px; }
+.organization-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 38px; }
+.organization-stats article { display: grid; gap: 8px; padding: 18px; border: 1px solid var(--border); border-radius: 13px; background: var(--surface); }
+.organization-stats span { color: var(--muted-foreground); font-size: 10px; }
+.organization-stats strong { font-size: 20px; overflow-wrap: anywhere; }
+.organization-invite, .organization-invitations { margin-top: 28px; }
+.organization-invite-form { display: grid; grid-template-columns: minmax(0, 1fr) 150px auto; gap: 9px; margin-top: 18px; }
+.organization-invite-form .auth-submit { width: auto; margin: 0; padding: 0 18px; }
+.organization-invitations p { color: var(--muted-foreground); font-size: 12px; }
+@media (max-width: 767px) { .organizations-main, .organization-main { padding-top: 22px; } .organizations-layout, .organization-stats { grid-template-columns: 1fr; margin-top: 28px; } .organization-list-panel, .organization-create-panel, .organization-invite, .organization-invitations { padding: 18px; } .organization-heading { align-items: flex-start; } .organization-invite-form { grid-template-columns: 1fr; } .organization-invite-form .auth-submit { width: 100%; } }

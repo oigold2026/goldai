@@ -14,13 +14,11 @@ export function TeacherWorkspace() {
   const [topic, setTopic] = useState("");
   const [classLevel, setClassLevel] = useState("");
   const [curriculum, setCurriculum] = useState("");
-  const [objectives, setObjectives] = useState("");
   const [duration, setDuration] = useState("");
   const [questionCount, setQuestionCount] = useState("10");
   const [questionType, setQuestionType] = useState("mixed");
   const [difficulty, setDifficulty] = useState("Medium");
   const [instructions, setInstructions] = useState("");
-  const [content, setContent] = useState("");
   const [material, setMaterial] = useState<TeacherMaterial | null>(null);
   const [recent, setRecent] = useState<TeacherMaterial[]>([]);
   const [loading, setLoading] = useState(false);
@@ -55,7 +53,7 @@ export function TeacherWorkspace() {
     if (!subject.trim() || !topic.trim()) { setError("Add a subject and topic first."); return; }
     setLoading(true); setError(null); setNotice(null); setMaterial(null);
     try {
-      const response = await fetch("/api/teacher", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ requestId: crypto.randomUUID(), type: tool, subject, topic, classLevel: classLevel || undefined, curriculum: curriculum || undefined, objectives: objectives || undefined, duration: duration || undefined, questionCount: Number(questionCount) || 10, questionType, difficulty, instructions: instructions || undefined, content: content || undefined }) });
+      const response = await fetch("/api/teacher", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ requestId: crypto.randomUUID(), type: tool, subject, topic, classLevel: classLevel || undefined, curriculum: curriculum || undefined, duration: duration || undefined, questionCount: Number(questionCount) || 10, questionType, difficulty, instructions: instructions || undefined }) });
       const data = await response.json() as { material?: TeacherMaterial; error?: string };
       if (!response.ok || !data.material) throw new Error(data.error || "Unable to prepare this material.");
       setMaterial(data.material); setRecent((items) => [data.material!, ...items]);

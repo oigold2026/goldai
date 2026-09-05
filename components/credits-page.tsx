@@ -17,7 +17,7 @@ function formatPrice(payment: { amount: number; currency: string }) { return `${
 
 function Link({ href, children, ...props }: { href: string; children: ReactNode; "aria-label"?: string }) {
   const router = useRouter();
-  return <a href={href} onClick={(event) => { event.preventDefault(); window.history.length > 1 ? router.back() : router.push(href); }} {...props}>{children}</a>;
+  return <a href={href} onClick={(event) => { event.preventDefault(); if (window.history.length > 1) router.back(); else router.push(href); }} {...props}>{children}</a>;
 }
 
 export function CreditsPage() {
