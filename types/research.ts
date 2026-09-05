@@ -10,6 +10,8 @@ export type ResearchSource = {
   snippet: string;
   publishedAt?: string;
   retrievedAt: number;
+  sourceType?: "encyclopedic" | "academic" | "technical" | "news" | "official" | "community" | "web";
+  relevanceScore?: number;
 };
 
 export type WebImage = {

@@ -35,9 +35,9 @@ export async function searchResearchSources(query: string, limit = 6, requestId 
       const summaryResponse = await fetch(summaryUrl, { headers: { Accept: "application/json", "User-Agent": "GoldAI/1.0 research" }, cache: "no-store" });
       const summary = summaryResponse.ok ? await summaryResponse.json() as WikipediaSummary : {};
       const url = summary.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(result.title.replaceAll(" ", "_"))}`;
-      return { id: `source-${index + 1}-${result.pageid}`, title: summary.title || result.title, url, domain: "wikipedia.org", snippet: summary.extract || cleanSnippet(result.snippet), publishedAt: summary.timestamp || result.timestamp, retrievedAt: Date.now() } satisfies ResearchSource;
+      return { id: `source-${index + 1}-${result.pageid}`, title: summary.title || result.title, url, domain: "wikipedia.org", snippet: summary.extract || cleanSnippet(result.snippet), publishedAt: summary.timestamp || result.timestamp, retrievedAt: Date.now(), sourceType: "encyclopedic", relevanceScore: Math.max(0.1, 1 - index / Math.max(limit, 1)) } satisfies ResearchSource;
     } catch {
-      return { id: `source-${index + 1}-${result.pageid}`, title: result.title, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(result.title.replaceAll(" ", "_"))}`, domain: "wikipedia.org", snippet: cleanSnippet(result.snippet), publishedAt: result.timestamp, retrievedAt: Date.now() } satisfies ResearchSource;
+      return { id: `source-${index + 1}-${result.pageid}`, title: result.title, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(result.title.replaceAll(" ", "_"))}`, domain: "wikipedia.org", snippet: cleanSnippet(result.snippet), publishedAt: result.timestamp, retrievedAt: Date.now(), sourceType: "encyclopedic", relevanceScore: Math.max(0.1, 1 - index / Math.max(limit, 1)) } satisfies ResearchSource;
     }
   }));
   const uniqueSources = sources.filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index);

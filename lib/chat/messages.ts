@@ -40,6 +40,8 @@ function findUndefinedPath(value: unknown, path: string): string | null {
 function sanitizeSource(source: ResearchSource): ResearchSource {
   const sanitized: ResearchSource = { id: source.id, title: source.title, url: source.url, domain: source.domain, snippet: source.snippet, retrievedAt: source.retrievedAt };
   if (source.publishedAt !== undefined) sanitized.publishedAt = source.publishedAt;
+  if (source.sourceType !== undefined) sanitized.sourceType = source.sourceType;
+  if (source.relevanceScore !== undefined) sanitized.relevanceScore = source.relevanceScore;
   return sanitized;
 }
 
