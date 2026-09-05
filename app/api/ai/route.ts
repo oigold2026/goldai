@@ -4,8 +4,10 @@ import { getCurrentFactsContext } from "../../../lib/ai/current-facts";
 import { loadAIProfile, verifyFirebaseToken } from "../../../lib/ai/auth-server";
 import { creditConfig } from "../../../lib/credits/config";
 import { finalizeCredits, refundReservedCredits, reserveCredits } from "../../../lib/credits/service";
+import { getUserFile } from "../../../lib/files/service";
+import type { MessageAttachment } from "../../../types/multimodal";
 
-const requestSchema = z.object({ requestId: z.string().uuid(), message: z.string().trim().min(1, "Message cannot be empty.").max(12000, "Message is too long."), language: z.string().trim().max(40).optional(), history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().trim().min(1).max(12000) })).max(12).default([]) });
+const requestSchema = z.object({ requestId: z.string().uuid(), message: z.string().trim().min(1, "Message cannot be empty.").max(12000, "Message is too long."), language: z.string().trim().max(40).optional(), history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().trim().min(1).max(12000) })).max(12).default([]), attachmentIds: z.array(z.string().uuid()).max(4).default([]) });
 
 export async function POST(request: Request) {
   try {
@@ -15,16 +17,24 @@ export async function POST(request: Request) {
     const uid = await verifyFirebaseToken(idToken);
     const parsed = requestSchema.safeParse(await request.json());
     if (!parsed.success) return Response.json({ error: parsed.error.issues[0]?.message || "Please check your request." }, { status: 400 });
-    const reservation = await reserveCredits(uid, parsed.data.requestId, creditConfig.featureCosts.basicChat);
+    const ownedFiles = await Promise.all(parsed.data.attachmentIds.map((id) => getUserFile(uid, id)));
+    if (ownedFiles.some((file) => !file)) return Response.json({ error: "One or more attachments are unavailable." }, { status: 400 });
+    const attachments = ownedFiles.filter((file): file is NonNullable<typeof file> => Boolean(file)).map((file) => ({ id: file.id, fileName: file.fileName, fileType: file.fileType, mimeType: file.mimeType, size: file.size, url: file.url, thumbnailUrl: file.thumbnailUrl, imageKitFileId: file.imageKitFileId })) satisfies MessageAttachment[];
+    const documents = attachments.filter((attachment) => attachment.fileType === "document");
+    if (documents.some((document) => document.mimeType === "application/pdf")) return Response.json({ error: "PDF analysis is not available yet. Upload an image or text file instead." }, { status: 400 });
+    const textDocuments = await Promise.all(documents.filter((document) => document.mimeType === "text/plain").map(async (document) => { const response = await fetch(document.url); return response.ok ? `${document.fileName}:\n${(await response.text()).slice(0, 12000)}` : ""; }));
+    const documentContext = textDocuments.filter(Boolean).length ? `\n\nUploaded text files:\n${textDocuments.filter(Boolean).join("\n\n")}` : "";
+    const creditCost = attachments.length ? creditConfig.featureCosts.multimodalChat : creditConfig.featureCosts.basicChat;
+    const reservation = await reserveCredits(uid, parsed.data.requestId, creditCost);
     if (reservation.status === "duplicate") return Response.json({ error: "This request has already been processed." }, { status: 409 });
     if (reservation.status === "insufficient") return Response.json({ error: "You don't have enough credits for this request." }, { status: 402 });
     const profile = await loadAIProfile(uid, idToken);
     const historyContext = parsed.data.history.length > 0 ? `\n\nRecent conversation context:\n${parsed.data.history.map(({ role, content }) => `${role}: ${content}`).join("\n")}` : "";
     try {
       const currentFactsContext = await getCurrentFactsContext(parsed.data.message, parsed.data.requestId);
-      const response = await generateAIResponse({ message: `${parsed.data.message}${historyContext}${currentFactsContext}`, language: parsed.data.language, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
-      await finalizeCredits(uid, parsed.data.requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditConfig.featureCosts.basicChat);
-      return Response.json({ ...response, creditsConsumed: creditConfig.featureCosts.basicChat, balance: reservation.account?.balance });
+      const response = await generateAIResponse({ message: `${parsed.data.message}${historyContext}${currentFactsContext}${documentContext}`, language: parsed.data.language, attachments, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
+      await finalizeCredits(uid, parsed.data.requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditCost);
+      return Response.json({ ...response, creditsConsumed: creditCost, balance: reservation.account?.balance });
     } catch (providerError) {
       await refundReservedCredits(uid, parsed.data.requestId);
       throw providerError;

@@ -1,9 +1,11 @@
 export type MessageRole = "user" | "assistant";
+import type { MessageAttachment } from "./multimodal";
 
 export type ChatMessage = {
   id: string;
   role: MessageRole;
   content: string;
+  attachments?: MessageAttachment[];
   createdAt: number;
   provider?: "openai" | "gemini";
   model?: string;

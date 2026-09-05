@@ -49,6 +49,7 @@ const navigation = [
   { label: "Create", href: "/create", icon: Lightbulb },
   { label: "Teacher Tools", href: "/teacher", icon: GraduationCap },
   { label: "Organizations", href: "/organizations", icon: Building2 },
+  { label: "Files", href: "/files", icon: FileText },
   { label: "Profile", href: "/profile", icon: UserRound },
 ];
 

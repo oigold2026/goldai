@@ -5,7 +5,7 @@ import type { AIProvider, AIProviderName } from "./types";
 
 const providers: Record<AIProviderName, () => AIProvider> = { openai: createOpenAIProvider, gemini: createGeminiProvider };
 
-export async function routeAIRequest(request: { systemInstruction: string; message: string }) {
+export async function routeAIRequest(request: { systemInstruction: string; message: string; attachments?: import("../../types/multimodal").MessageAttachment[] }) {
   const primary = aiConfig.defaultProvider;
   const fallback = aiConfig.fallbackProvider === primary ? (primary === "openai" ? "gemini" : "openai") : aiConfig.fallbackProvider;
   const errors: string[] = [];

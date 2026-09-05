@@ -94,6 +94,15 @@
         }
       }
     },
+    "userFiles": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false,
+        "$fileId": {
+          ".validate": "newData.hasChildren(['id', 'userId', 'fileName', 'fileType', 'mimeType', 'size', 'url', 'createdAt', 'updatedAt']) && newData.child('id').val() === $fileId && newData.child('userId').val() === $uid && newData.child('fileName').isString() && newData.child('fileType').isString() && newData.child('mimeType').isString() && newData.child('size').isNumber() && newData.child('url').isString() && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber()"
+        }
+      }
+    },
     "organizations": {
       "$organizationId": {
         ".read": "auth != null && root.child('organizationMembers').child($organizationId).child(auth.uid).child('status').val() === 'active'",
