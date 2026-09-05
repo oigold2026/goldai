@@ -91,7 +91,7 @@ function decodeXml(value: string) {
 async function searchGoogleNews(query: string, limit: number): Promise<ResearchSource[]> {
   try {
     const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
-    const response = await fetch(url, { headers: { Accept: "application/rss+xml, application/xml", "User-Agent": "GoldAI/1.0 research" }, cache: "no-store" });
+    const response = await fetch(url, { headers: { Accept: "application/rss+xml, application/xml", "User-Agent": "GoldAI/1.0 research" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
     if (!response.ok) return [];
     const xml = await response.text();
     return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, limit).map((match, index) => {
@@ -112,7 +112,7 @@ async function searchGoogleNews(query: string, limit: number): Promise<ResearchS
 
 async function searchCrossref(query: string, limit: number): Promise<ResearchSource[]> {
   try {
-    const response = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=${limit}&select=DOI,title,URL,published,author`, { headers: { Accept: "application/json", "User-Agent": "GoldAI/1.0 research" }, cache: "no-store" });
+    const response = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=${limit}&select=DOI,title,URL,published,author`, { headers: { Accept: "application/json", "User-Agent": "GoldAI/1.0 research" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
     if (!response.ok) return [];
     const data = await response.json() as { message?: { items?: Array<{ DOI?: string; title?: string[]; URL?: string; published?: { dateParts?: number[][] } }> } };
     return (data.message?.items || []).filter((item) => item.DOI && item.title?.[0] && item.URL).map((item, index) => ({ id: `crossref-${index}-${item.DOI}`, title: item.title![0], url: item.URL!, domain: "doi.org", snippet: "Academic publication indexed by Crossref.", publishedAt: item.published?.dateParts?.[0]?.join("-"), retrievedAt: Date.now(), sourceType: "academic" as const, relevanceScore: 0.9 }));
@@ -121,7 +121,7 @@ async function searchCrossref(query: string, limit: number): Promise<ResearchSou
 
 async function searchGitHub(query: string, limit: number): Promise<ResearchSource[]> {
   try {
-    const response = await fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&per_page=${limit}&sort=stars`, { headers: { Accept: "application/vnd.github+json", "User-Agent": "GoldAI/1.0 research" }, cache: "no-store" });
+    const response = await fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&per_page=${limit}&sort=stars`, { headers: { Accept: "application/vnd.github+json", "User-Agent": "GoldAI/1.0 research" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
     if (!response.ok) return [];
     const data = await response.json() as { items?: Array<{ id: number; name: string; html_url: string; description?: string; updated_at?: string }> };
     return (data.items || []).map((item) => ({ id: `github-${item.id}`, title: item.name, url: item.html_url, domain: "github.com", snippet: item.description || "Official project repository.", publishedAt: item.updated_at, retrievedAt: Date.now(), sourceType: "technical" as const, relevanceScore: 0.9 }));
@@ -147,5 +147,5 @@ export async function retrieveSourceIntelligence(query: string, requestId: strin
 }
 
 export function sourceContext(sources: ResearchSource[]) {
-  return sources.map((source, index) => `[${index + 1}] ${source.title}\nURL: ${source.url}\nSource type/domain: ${source.sourceType || "web"}/${source.domain}\nPublished or updated: ${source.publishedAt || "not provided"}\nRetrieved: ${new Date(source.retrievedAt).toISOString()}\n${source.snippet}`).join("\n\n");
+  return sources.slice(0, 5).map((source, index) => `[${index + 1}] ${source.title}\nURL: ${source.url}\nSource type/domain: ${source.sourceType || "web"}/${source.domain}\nPublished or updated: ${source.publishedAt || "not provided"}\nRetrieved: ${new Date(source.retrievedAt).toISOString()}\n${source.snippet.slice(0, 900)}`).join("\n\n");
 }

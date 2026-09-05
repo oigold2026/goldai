@@ -16,7 +16,7 @@ export async function searchWikimediaVisuals(query: string, limit = 3): Promise<
   try {
     const url = new URL("https://commons.wikimedia.org/w/api.php");
     url.search = new URLSearchParams({ action: "query", generator: "search", gsrsearch: query, gsrnamespace: "6", gsrlimit: String(limit), prop: "imageinfo", iiprop: "url|extmetadata", iiurlwidth: "720", format: "json", origin: "*" }).toString();
-    const response = await fetch(url, { headers: { Accept: "application/json", "User-Agent": "GoldAI/1.0 images" }, cache: "no-store" });
+    const response = await fetch(url, { headers: { Accept: "application/json", "User-Agent": "GoldAI/1.0 images" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
     if (!response.ok) return [];
     const data = await response.json() as WikimediaResponse;
     const images: WebImage[] = [];

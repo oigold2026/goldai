@@ -10,7 +10,7 @@ import type { MessageAttachment } from "../../../types/multimodal";
 const requestSchema = z.object({ requestId: z.string().uuid(), message: z.string().trim().min(1, "Message cannot be empty.").max(12000, "Message is too long."), language: z.string().trim().max(40).optional(), history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().trim().min(1).max(12000) })).max(12).default([]), attachmentIds: z.array(z.string().uuid()).max(4).default([]) });
 
 function queryWithConversationContext(message: string, history: Array<{ role: "user" | "assistant"; content: string }>) {
-  if (!/\b(about him|about her|about them|about that|what happened|any news|latest news|more about)\b/i.test(message)) return message;
+  if (!/\b(about him|about her|about them|about that|he is|she is|they are|what happened|any news|latest news|more about|additional context)\b/i.test(message)) return message;
   const context = history.slice().reverse().find((item) => item.role === "user" && item.content.trim());
   return context ? `${message} (The person or subject is from the earlier question: ${context.content.slice(0, 500)})` : message;
 }
