@@ -1,6 +1,40 @@
 import { get, push, ref, serverTimestamp, update } from "firebase/database";
 import { getFirebaseServices } from "../firebase";
 import type { ChatMessage, MessageRole } from "../../types/chat";
+import type { MessageAttachment } from "../../types/multimodal";
+
+function sanitizeAttachment(attachment: MessageAttachment): MessageAttachment {
+  const sanitized: MessageAttachment = {
+    id: attachment.id,
+    fileName: attachment.fileName,
+    fileType: attachment.fileType,
+    mimeType: attachment.mimeType,
+    size: attachment.size,
+    url: attachment.url,
+  };
+  if (attachment.thumbnailUrl !== undefined) sanitized.thumbnailUrl = attachment.thumbnailUrl;
+  if (attachment.imageKitFileId !== undefined) sanitized.imageKitFileId = attachment.imageKitFileId;
+  return sanitized;
+}
+
+function sanitizeUsage(usage: ChatMessage["usage"]): ChatMessage["usage"] {
+  if (!usage) return undefined;
+  const sanitized: NonNullable<ChatMessage["usage"]> = {};
+  if (usage.inputTokens !== undefined) sanitized.inputTokens = usage.inputTokens;
+  if (usage.outputTokens !== undefined) sanitized.outputTokens = usage.outputTokens;
+  if (usage.totalTokens !== undefined) sanitized.totalTokens = usage.totalTokens;
+  return Object.keys(sanitized).length > 0 ? sanitized : undefined;
+}
+
+function findUndefinedPath(value: unknown, path: string): string | null {
+  if (value === undefined) return path;
+  if (value === null || typeof value !== "object") return null;
+  for (const [key, child] of Object.entries(value)) {
+    const childPath = findUndefinedPath(child, path ? `${path}.${key}` : key);
+    if (childPath) return childPath;
+  }
+  return null;
+}
 
 export async function listMessages(uid: string, conversationId: string) {
   const { database } = getFirebaseServices();
@@ -12,10 +46,16 @@ export async function listMessages(uid: string, conversationId: string) {
 export async function saveMessage(uid: string, conversationId: string, message: Pick<ChatMessage, "role" | "content"> & Partial<Pick<ChatMessage, "provider" | "model" | "usage" | "attachments">>) {
   const { database } = getFirebaseServices();
   const messageRef = push(ref(database, `messages/${uid}/${conversationId}`));
-  const savedMessage: ChatMessage = { id: messageRef.key || "", role: message.role as MessageRole, content: message.content, attachments: message.attachments, createdAt: Date.now() };
+  const savedMessage: ChatMessage = { id: messageRef.key || "", role: message.role as MessageRole, content: message.content, attachments: (message.attachments || []).map(sanitizeAttachment), createdAt: Date.now() };
   if (message.provider) savedMessage.provider = message.provider;
   if (message.model) savedMessage.model = message.model;
-  if (message.usage) savedMessage.usage = message.usage;
-  await update(messageRef, { ...savedMessage, createdAt: serverTimestamp() });
+  const usage = sanitizeUsage(message.usage);
+  if (usage) savedMessage.usage = usage;
+  const payload = { ...savedMessage, createdAt: serverTimestamp() };
+  if (process.env.NODE_ENV !== "production") {
+    const undefinedPath = findUndefinedPath(payload, `messages/${uid}/${conversationId}/${messageRef.key || ""}`);
+    if (undefinedPath) throw new Error(`Invalid chat message payload: ${undefinedPath} is undefined.`);
+  }
+  await update(messageRef, payload);
   return savedMessage;
 }
