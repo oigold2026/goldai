@@ -398,3 +398,7 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 
 /* Final mobile override: the More trigger must remain visible after legacy rules. */
 @media (max-width: 760px) { .mobile-menu { display: grid !important; } }
+.voice-shortcuts { left: 50%; right: auto; bottom: 18px; transform: translateX(-50%); width: min(calc(100% - 24px), 880px); justify-content: flex-end; padding: 12px 60px 12px 18px; pointer-events: none; }
+.voice-shortcuts .voice-button { width: 39px; height: 39px; min-width: 39px; min-height: 39px; border: 0; border-radius: 11px; background: var(--surface-secondary); pointer-events: auto; }
+.voice-shortcuts .voice-read-button { pointer-events: auto; }
+@media (max-width: 760px) { .voice-shortcuts { width: calc(100% - 28px); bottom: 18px; padding-right: 58px; } }
