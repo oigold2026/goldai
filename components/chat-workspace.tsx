@@ -156,7 +156,6 @@ export function ChatWorkspace() {
       .replace(/\[\d+\]/g, "")
       .replace(/[()[\]{}<>|]/g, " ")
       .replace(/[#:;*_+=\\/]/g, " ")
-      .replace(/[-–—]/g, " ")
       .replace(/\s+/g, " ")
       .trim();
     if (!speechText) return;
