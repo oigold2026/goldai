@@ -47,6 +47,8 @@ function sanitizeSource(source: ResearchSource): ResearchSource {
 
 function sanitizeImage(image: WebImage): WebImage {
   const sanitized: WebImage = { id: image.id, title: image.title, url: image.url, sourceUrl: image.sourceUrl, alt: image.alt };
+  if (image.query !== undefined) sanitized.query = image.query;
+  if (image.relevanceScore !== undefined) sanitized.relevanceScore = image.relevanceScore;
   if (image.attribution !== undefined) sanitized.attribution = image.attribution;
   return sanitized;
 }

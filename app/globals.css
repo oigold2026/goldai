@@ -56,7 +56,11 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .chat-message.assistant .message-body { max-width: 100%; }
 .message-body { width: 100%; }
 .message-content { width: 100%; }
-.message-content img { display: block; width: min(100%, 420px); max-height: 280px; margin: 12px 0; border: 1px solid var(--border); border-radius: 10px; object-fit: cover; }
+.message-content p:has(> a > img), .message-content p:has(> img) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; margin: 14px 0; }
+.message-content p:has(> a > img) > a, .message-content p:has(> img) > img { display: block; min-width: 0; overflow: hidden; }
+.message-content img { display: block; width: 100%; max-width: 100%; aspect-ratio: 4 / 3; max-height: 280px; margin: 0; border: 1px solid var(--border); border-radius: 10px; object-fit: cover; }
+@media (min-width: 768px) { .message-content p:has(> a > img), .message-content p:has(> img) { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .message-content p:has(> a > img), .message-content p:has(> img) { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .message-content h3 { margin: 18px 0 8px; color: var(--foreground); font-size: 13px; }
 .message-content h3 + p a { color: var(--primary); }
 .message-content a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }

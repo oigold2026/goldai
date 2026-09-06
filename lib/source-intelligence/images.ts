@@ -44,7 +44,7 @@ export async function searchWikimediaVisuals(query: string, limit = 3): Promise<
         if (process.env.NODE_ENV !== "production") console.info("[Gold AI Image Search] rejected", { query, candidate: page.title, relevanceScore: relevance.score });
         continue;
       }
-      const result: WebImage = { id: `commons-${page.pageid}`, title: page.title.replace(/^File:/, ""), url: imageUrl, sourceUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replaceAll(" ", "_"))}`, alt: page.title.replace(/^File:/, "") };
+      const result: WebImage = { id: `commons-${page.pageid}`, title: page.title.replace(/^File:/, ""), url: imageUrl, sourceUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replaceAll(" ", "_"))}`, alt: page.title.replace(/^File:/, ""), query, relevanceScore: relevance.score };
       const attribution = image.extmetadata?.Artist?.value?.replace(/<[^>]+>/g, "");
       if (attribution) result.attribution = attribution;
       images.push(result);

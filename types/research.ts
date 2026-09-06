@@ -20,6 +20,8 @@ export type WebImage = {
   url: string;
   sourceUrl: string;
   alt: string;
+  query?: string;
+  relevanceScore?: number;
   attribution?: string;
 };
 
