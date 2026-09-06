@@ -33,9 +33,8 @@ function formatDate(timestamp: number) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(timestamp);
 }
 
-function withRetrievedContext(text: string, sources: ChatMessage["sources"] = []) {
-  const sourceSection = sources.length > 0 ? `\n\n### Sources\n${sources.map((source, index) => `[${index + 1}] [${source.title}](${source.url}) (${source.publishedAt || "retrieved recently"})`).join("\n")}` : "";
-  return `${text}${sourceSection}`;
+function withRetrievedContext(text: string) {
+  return text;
 }
 
 export function ChatWorkspace() {
@@ -114,7 +113,7 @@ export function ChatWorkspace() {
       const response = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ requestId: crypto.randomUUID(), message: text, language: profile?.preferredLanguage, attachmentIds: messageAttachments.map((attachment) => attachment.id), history: (forceNewConversation ? [] : messages.slice(-12)).map(({ role, content: messageContent }) => ({ role, content: messageContent })) }), signal: abortRef.current.signal });
       const data = await response.json() as { text?: string; provider?: "openai" | "gemini"; model?: string; usage?: ChatMessage["usage"]; sources?: ChatMessage["sources"]; images?: ChatMessage["images"]; error?: string };
       if (!response.ok || !data.text) throw new Error(data.error || "Gold AI could not complete that response.");
-      const assistantMessage = await saveMessage(user.uid, activeConversation.id, { role: "assistant", content: withRetrievedContext(data.text, data.sources), provider: data.provider, model: data.model, usage: data.usage, sources: data.sources, images: data.images });
+      const assistantMessage = await saveMessage(user.uid, activeConversation.id, { role: "assistant", content: withRetrievedContext(data.text), provider: data.provider, model: data.model, usage: data.usage, sources: data.sources, images: data.images });
       setMessages((items) => [...items, assistantMessage]); setAttachments([]);
       setConversations((items) => items.map((item) => item.id === activeConversation.id ? { ...item, title: item.title === "New conversation" ? titleFromMessage(text) : item.title, updatedAt: Date.now() } : item));
     } catch (sendError) {
@@ -186,10 +185,12 @@ export function ChatWorkspace() {
     const assistantMessages = messages.filter((message) => message.role === "assistant");
     bodies.forEach((body, index) => {
       const message = assistantMessages[index];
-      if (!message?.images?.length || body.querySelector(".response-image-gallery")) return;
+      if (!message) return;
+      body.querySelector(".response-image-gallery")?.remove();
+      body.querySelector(".response-sources")?.remove();
       const gallery = document.createElement("div");
       gallery.className = "response-image-gallery";
-      message.images.forEach((image) => {
+      (message.images || []).forEach((image) => {
         if (!/^https?:\/\//i.test(image.url) || !/^https?:\/\//i.test(image.sourceUrl)) return;
         const link = document.createElement("a");
         link.className = "response-image-card";
@@ -208,7 +209,25 @@ export function ChatWorkspace() {
         link.appendChild(caption);
         gallery.appendChild(link);
       });
-      if (gallery.childElementCount > 0) body.insertBefore(gallery, body.querySelector(".message-actions"));
+      const sources = document.createElement("div");
+      sources.className = "response-sources";
+      if (message.sources?.length) {
+        const heading = document.createElement("strong");
+        heading.textContent = "Sources";
+        sources.appendChild(heading);
+        message.sources.forEach((source) => {
+          if (!/^https?:\/\//i.test(source.url)) return;
+          const link = document.createElement("a");
+          link.href = source.url;
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          link.textContent = source.title;
+          sources.appendChild(link);
+        });
+      }
+      const actions = body.querySelector(".message-actions");
+      if (gallery.childElementCount > 0 && actions) body.insertBefore(gallery, actions);
+      if (sources.childElementCount > 1 && actions) body.insertBefore(sources, actions);
     });
   }, [messages]);
 
