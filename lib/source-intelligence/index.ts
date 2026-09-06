@@ -164,7 +164,7 @@ function responseVisualQuery(userQuery: string, response: string) {
 }
 
 export async function retrieveImagesForResponse(userQuery: string, response: string, requestId: string): Promise<WebImage[]> {
-  if (!/\b(person|king|queen|monarch|place|landmark|building|animal|plant|tree|flower|product|dancer|group|event|organization|company|mountain|tower|parliament|museum|river|lake|city|kingdom)\b/i.test(response)) return [];
+  if (!/\b(person|king|queen|monarch|place|landmark|building|animal|plant|tree|flower|product|dancer|group|event|organization|company|mountain|tower|parliament|museum|river|lake|city|kingdom|photosynthesis|chloroplast|independence|festival|architecture|vehicle|football|museum)\b/i.test(response)) return [];
   const query = responseVisualQuery(userQuery, response);
   if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] query", { requestId, query });
   const images = await searchWikimediaVisuals(query, 3);
