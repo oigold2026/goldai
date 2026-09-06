@@ -1,4 +1,4 @@
-Pimport { searchResearchSources } from "../research/provider";
+import { searchResearchSources } from "../research/provider";
 import type { ResearchSource, WebImage } from "../../types/research";
 import { searchWikimediaVisuals } from "./images";
 
