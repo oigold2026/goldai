@@ -515,3 +515,18 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .study-drawer-nav button.active { box-shadow: inset 3px 0 var(--primary); }
 .study-drawer-nav button svg { color: var(--primary); }
 @media (max-width: 767px) { .study-mode-header h1 { font-size: 30px; } .study-context-indicator { margin-top: 14px; } }
+
+/* Study plans overview (time progress) */
+.study-plans { margin-top: 48px; }
+.study-plans-list { display: grid; gap: 10px; }
+.study-plan-row { padding: 14px 0; border-bottom: 1px solid var(--border); display: grid; gap: 8px; }
+.study-plan-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.study-plan-top h3 { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+.study-plan-top p { margin: 4px 0 0; color: var(--muted-foreground); font-size: 11px; overflow-wrap: anywhere; }
+.study-plan-status { flex: 0 0 auto; font-size: 10px; font-weight: 700; color: var(--muted-foreground); }
+.study-plan-status.active { color: var(--primary); }
+.study-plan-meta { display: flex; justify-content: space-between; gap: 12px; color: var(--muted-foreground); font-size: 10px; }
+.study-plan-actions { display: flex; gap: 8px; }
+.study-plan-actions a, .study-plan-actions button { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 11px; border: 1px solid var(--border); border-radius: 9px; color: var(--foreground); background: var(--surface); font-size: 11px; cursor: pointer; }
+.study-plan-actions a:hover, .study-plan-actions button:hover { border-color: var(--primary); color: var(--primary); }
+@media (max-width: 767px) { .study-plan-top { flex-direction: column; gap: 6px; } .study-plan-meta { flex-direction: column; gap: 4px; } }

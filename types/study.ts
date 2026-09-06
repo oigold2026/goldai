@@ -56,6 +56,35 @@ export type StudyContext = {
   timed?: boolean;
 };
 
+export type StudyPlanStatus = "active" | "completed";
+
+/**
+ * A Study Plan is a time-boxed learning period.
+ *
+ * `startDate`/`endDate` are canonical epoch-millisecond timestamps and are
+ * the source of truth for time progress. The percentage shown in the UI is
+ * always calculated from these dates — never stored.
+ */
+export type StudyPlan = {
+  id: string;
+  userId: string;
+  title: string;
+  subject?: string;
+  topic?: string;
+  goal?: string;
+  durationDays: number;
+  startDate: number;
+  endDate: number;
+  status: StudyPlanStatus;
+  conversationId?: string;
+  educationLevel?: string;
+  country?: string;
+  curriculumId?: string;
+  curriculumLabel?: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
 export type StudyQuestion = {
   prompt: string;
   type: "multiple_choice" | "short_answer" | "true_false" | "structured" | "open_ended";

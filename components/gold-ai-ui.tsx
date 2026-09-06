@@ -31,7 +31,8 @@ import { getDisplayName } from "../lib/display-name";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "./auth-provider";
 import { useProfile } from "./profile-provider";
-import type { StudyActivity } from "../types/study";
+import type { StudyPlan } from "../types/study";
+import { isActiveStudyPlan, studyPlanProgress } from "../lib/study/plan";
 
 export const quickActions: { label: string; description: string; icon: LucideIcon; href: string }[] = [
   { label: "Learn", description: "Understand a topic", icon: BookOpen, href: "/study" },
@@ -241,48 +242,28 @@ export function CreditCard() {
   return <section className="credit-card"><div><span className="section-kicker"><Sparkles size={14} /> Your credits</span><strong className="credit-number">{user ? (balance === null ? "-" : balance) : "-"}</strong><span className="credit-caption">{user ? "available now" : "Log in to view balance"}</span></div><a className="text-link" href={user ? "/credits" : "/login"}>{user ? "View details" : "Log in"} <span>→</span></a></section>;
 }
 
-type LearningPreview = Pick<StudyActivity, "action" | "subject" | "topic" | "score" | "total" | "createdAt">;
-
-function getProgress(activity: LearningPreview) {
-  if (typeof activity.score !== "number" || typeof activity.total !== "number" || activity.total <= 0) return null;
-  return Math.min(100, Math.max(0, Math.round((activity.score / activity.total) * 100)));
-}
-
-function getStudyKey(activity: LearningPreview) {
-  return [activity.subject || "", activity.topic || "", activity.action].join("|").toLowerCase();
-}
-
 export function ContinueLearningCard() {
   const { user } = useAuth();
-  const [activities, setActivities] = useState<LearningPreview[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [plans, setPlans] = useState<StudyPlan[] | null>(null);
 
+  // Study Plans only — the card represents TIME progress through a plan period,
+  // not question/session/message counts.
   useEffect(() => {
-    if (!user) {
-      return undefined;
-    }
+    if (!user) return undefined;
     let cancelled = false;
     const timeoutId = window.setTimeout(() => {
       void user.getIdToken()
-        .then((token) => fetch("/api/study", { headers: { Authorization: `Bearer ${token}` } }))
-        .then((response) => response.ok ? response.json() as Promise<{ activities?: LearningPreview[] }> : null)
-        .then((data) => {
-          if (cancelled) return;
-          const latestByStudy = new Map<string, LearningPreview>();
-          for (const activity of data?.activities || []) {
-            const key = getStudyKey(activity);
-            const current = latestByStudy.get(key);
-            if (!current || activity.createdAt > current.createdAt) latestByStudy.set(key, activity);
-          }
-          setActivities(Array.from(latestByStudy.values()).sort((a, b) => b.createdAt - a.createdAt).slice(0, 3));
-          setLoading(false);
-        })
-        .catch(() => { if (!cancelled) setLoading(false); });
+        .then((token) => fetch("/api/study/plans", { headers: { Authorization: `Bearer ${token}` } }))
+        .then((response) => response.ok ? response.json() as Promise<{ plans?: StudyPlan[] }> : null)
+        .then((data) => { if (!cancelled) setPlans(data?.plans || []); })
+        .catch(() => { if (!cancelled) setPlans([]); });
     }, 0);
     return () => { cancelled = true; window.clearTimeout(timeoutId); };
   }, [user]);
 
-  return <section className="learning-card"><div className="learning-section-heading"><span className="section-kicker">Continue learning</span><Link className="learning-view-all" href="/study">View all <span>→</span></Link></div>{loading ? <p className="learning-empty">Loading your studies...</p> : activities.length === 0 ? <div className="learning-empty"><strong>No studies yet.</strong><span>Start learning to see your progress here.</span><Link className="text-link" href="/study">Start learning <span>→</span></Link></div> : <div className="learning-list">{activities.map((activity) => { const progress = getProgress(activity); return <article className="learning-item" key={getStudyKey(activity)}><div className="learning-item-heading"><div><h2>{activity.subject || "General study"}</h2><p>{activity.topic || "Study session"}</p></div><span className="learning-status">Active</span></div>{progress !== null && <><div className="progress-track" aria-label={`${progress}% complete`}><span style={{ width: `${progress}%` }} /></div><span className="learning-progress">{progress}% complete</span></>}<div className="learning-footer"><span>Last activity {new Date(activity.createdAt).toLocaleDateString()}</span><Link className="text-link" href="/study">Keep going <span>→</span></Link></div></article>; })}</div>}</section>;
+  const activePlans = (plans || []).filter((plan) => isActiveStudyPlan(plan)).slice(0, 2);
+
+  return <section className="learning-card"><div className="learning-section-heading"><span className="section-kicker">Continue learning</span>{plans !== null && plans.length > activePlans.length && <Link className="learning-view-all" href="/study">View all <span>→</span></Link>}</div>{user && plans === null ? <p className="learning-empty">Loading your study plans...</p> : activePlans.length === 0 ? <div className="learning-empty"><strong>Ready to start learning?</strong><span>Create a study plan and Gold AI will help you stay on track.</span><Link className="text-link" href="/study">Create Study Plan <span>→</span></Link></div> : <div className="learning-list">{activePlans.map((plan) => { const progress = studyPlanProgress(plan); return <article className="learning-item" key={plan.id}><div className="learning-item-heading"><div><h2>{plan.title}</h2><p>{plan.topic || plan.subject || plan.goal || "Study plan"}</p></div><span className="learning-status">Active</span></div><div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.percent} aria-label={`${progress.percent}% of the plan period elapsed`}><span style={{ width: `${progress.percent}%` }} /></div><span className="learning-progress">{progress.percent}% · Day {progress.day} of {progress.totalDays}</span><div className="learning-footer"><span>Ends {new Date(plan.endDate).toLocaleDateString()}</span><Link className="text-link" href={plan.conversationId ? `/chat?conversation=${encodeURIComponent(plan.conversationId)}` : "/study"}>Continue <span>→</span></Link></div></article>; })}</div>}</section>;
 }
 
 export function EmptyState({ title = "Nothing here yet.", message = "Your learning activity will appear here." }: { title?: string; message?: string }) {

@@ -8,10 +8,11 @@ import { getFirebaseServices } from "../lib/firebase";
 import { createConversation } from "../lib/chat/conversations";
 import { curriculumsFor } from "../config/curriculums";
 import { sanitizeStudyContext, studyActivityFields, studyPromptFor } from "../lib/study/context";
+import { studyPlanProgress } from "../lib/study/plan";
 import { AppHeader, GoldAILogoLoader } from "./gold-ai-ui";
 import { useProfile } from "./profile-provider";
 import { useAuth } from "./auth-provider";
-import type { StudyAction, StudyActivity, StudyContext } from "../types/study";
+import type { StudyAction, StudyActivity, StudyContext, StudyPlan } from "../types/study";
 import { explanationDepths, questionStyles } from "../types/study";
 
 type StudyMode = {
@@ -64,7 +65,7 @@ export function StudyWorkspace() {
   const [learningMaterial, setLearningMaterial] = useState("");
 
   // Plan
-  const [studyDuration, setStudyDuration] = useState("");
+  const [planDays, setPlanDays] = useState(30);
   const [availableStudyTime, setAvailableStudyTime] = useState("");
   const [preferredSchedule, setPreferredSchedule] = useState("");
 
@@ -76,9 +77,10 @@ export function StudyWorkspace() {
   const [launching, setLaunching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // History
+  // History & plans
   const [activities, setActivities] = useState<StudyActivity[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [plans, setPlans] = useState<StudyPlan[] | null>(null);
 
   /**
    * Educational context comes from the authenticated user's profile.
@@ -119,10 +121,30 @@ export function StudyWorkspace() {
     finally { setHistoryLoading(false); }
   }, [token]);
 
+  const loadPlans = useCallback(async () => {
+    try {
+      const response = await fetch("/api/study/plans", { headers: { Authorization: `Bearer ${await token()}` } });
+      const data = await response.json() as { plans?: StudyPlan[]; error?: string };
+      if (response.ok) setPlans(data.plans || []);
+    } catch { setPlans((current) => current || []); }
+  }, [token]);
+
   useEffect(() => {
     const timeoutId = window.setTimeout(() => { void loadHistory(); }, 0);
     return () => window.clearTimeout(timeoutId);
   }, [loadHistory]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => { void loadPlans(); }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [loadPlans]);
+
+  async function completePlan(planId: string) {
+    try {
+      const response = await fetch("/api/study/plans", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ planId }) });
+      if (response.ok) setPlans((current) => (current || []).map((plan) => (plan.id === planId ? { ...plan, status: "completed" as const } : plan)));
+    } catch { /* Keep the current list; the learner can retry. */ }
+  }
 
   // Close the mobile study drawer with Escape for keyboard users.
   useEffect(() => {
@@ -189,7 +211,7 @@ export function StudyWorkspace() {
         break;
       case "plan":
         if (goal.trim()) context.goal = goal.trim();
-        if (studyDuration.trim()) context.studyDuration = studyDuration.trim();
+        context.studyDuration = `${planDays} days`;
         if (availableStudyTime.trim()) context.availableStudyTime = availableStudyTime.trim();
         if (preferredSchedule.trim()) context.preferredSchedule = preferredSchedule.trim();
         break;
@@ -220,6 +242,26 @@ export function StudyWorkspace() {
         await fetch("/api/study/activity", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify(activityPayload) });
       } catch (activityError) {
         console.warn("Gold AI study activity recording failed", { error: activityError instanceof Error ? activityError.message : "unknown error" });
+      }
+
+      if (studyContext.mode === "plan") {
+        try {
+          const planPayload = {
+            title: (studyContext.goal || studyContext.topic || studyContext.subject || "Study plan").slice(0, 200),
+            subject: studyContext.subject,
+            topic: studyContext.topic,
+            goal: studyContext.goal,
+            durationDays: planDays,
+            conversationId: conversation.id,
+            educationLevel: studyContext.educationLevel,
+            country: studyContext.country,
+            curriculumId: studyContext.curriculumId,
+            curriculumLabel: studyContext.curriculumLabel,
+          };
+          await fetch("/api/study/plans", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify(planPayload) });
+        } catch (planError) {
+          console.warn("Gold AI study plan recording failed", { error: planError instanceof Error ? planError.message : "unknown error" });
+        }
       }
 
       const query = new URLSearchParams({ conversation: conversation.id, prompt, study: JSON.stringify(studyContext) });
@@ -359,8 +401,10 @@ export function StudyWorkspace() {
             <label>Available study time
               <input value={availableStudyTime} onChange={(event) => setAvailableStudyTime(event.target.value)} placeholder="e.g. 45 minutes per day" />
             </label>
-            <label>Overall duration
-              <input value={studyDuration} onChange={(event) => setStudyDuration(event.target.value)} placeholder="e.g. 3 weeks" />
+            <label>Plan length
+              <select value={String(planDays)} onChange={(event) => setPlanDays(Number(event.target.value))}>
+                {[7, 14, 30, 60, 90].map((days) => <option key={days} value={days}>{days} days</option>)}
+              </select>
             </label>
             <label>Preferred schedule <span className="study-optional">(optional)</span>
               <input value={preferredSchedule} onChange={(event) => setPreferredSchedule(event.target.value)} placeholder="e.g. Weekday evenings, Saturday mornings" />
@@ -425,6 +469,11 @@ export function StudyWorkspace() {
               {launching ? <GoldAILogoLoader size="sm" label={activeMode.loadingLabel} /> : <>{activeMode.actionLabel} <ArrowRight size={15} /></>}
             </button>
             <p className="study-action-note"><Sparkles size={14} /> Opens a new Chat session with your study settings applied automatically.</p>
+          </section>
+
+          <section className="study-plans">
+            <div className="section-title"><div><span className="eyebrow">Time progress</span><h2>Your study plans</h2></div><span className="section-rule" /></div>
+            {plans === null ? <p className="transactions-empty">Loading your plans...</p> : plans.length === 0 ? <p className="transactions-empty">No study plans yet. Create one above and its time progress will appear here.</p> : <div className="study-plans-list">{plans.map((plan) => { const progress = studyPlanProgress(plan); const statusLabel = plan.status === "completed" ? "Completed" : progress.status === "expired" ? "Ended" : progress.status === "upcoming" ? "Upcoming" : "Active"; return <article className="study-plan-row" key={plan.id}><div className="study-plan-top"><div><h3>{plan.title}</h3><p>{plan.topic || plan.subject || plan.goal || "Study plan"}</p></div><span className={`study-plan-status ${plan.status !== "completed" && progress.status === "active" ? "active" : ""}`}>{statusLabel}</span></div><div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.percent} aria-label={`${progress.percent}% of the plan period elapsed`}><span style={{ width: `${progress.percent}%` }} /></div><div className="study-plan-meta"><span>{progress.percent}% · Day {progress.day} of {progress.totalDays}</span><span>Ends {new Date(plan.endDate).toLocaleDateString()}</span></div><div className="study-plan-actions"><Link href={plan.conversationId ? `/chat?conversation=${encodeURIComponent(plan.conversationId)}` : "/study"}>Continue →</Link>{plan.status === "active" && progress.status === "active" && <button type="button" onClick={() => void completePlan(plan.id)}>Mark completed</button>}</div></article>; })}</div>}
           </section>
 
           <section className="study-history">

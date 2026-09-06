@@ -58,6 +58,15 @@
         }
       }
     },
+    "studyPlans": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false,
+        "$planId": {
+          ".validate": "newData.hasChildren(['id', 'userId', 'title', 'durationDays', 'startDate', 'endDate', 'status', 'createdAt']) && newData.child('id').val() === $planId && newData.child('userId').val() === $uid && newData.child('title').isString() && newData.child('durationDays').isNumber() && newData.child('startDate').isNumber() && newData.child('endDate').isNumber() && newData.child('status').isString() && newData.child('createdAt').isNumber()"
+        }
+      }
+    },
     "researchSessions": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
