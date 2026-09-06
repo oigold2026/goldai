@@ -12,7 +12,7 @@ type WikimediaPage = {
 
 type WikimediaResponse = { query?: { pages?: Record<string, WikimediaPage> } };
 
-const stopWords = new Set(["what", "who", "where", "when", "tell", "about", "show", "me", "image", "images", "picture", "pictures", "photo", "photos", "the", "and", "for", "with", "from", "this", "that", "current", "latest", "recent", "news", "information"]);
+const stopWords = new Set(["what", "who", "where", "when", "tell", "about", "show", "me", "image", "images", "picture", "pictures", "photo", "photos", "official", "relevant", "visual", "the", "and", "for", "with", "from", "this", "that", "current", "latest", "recent", "news", "information"]);
 
 function subjectTerms(query: string) {
   return query.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter((term) => term.length > 2 && !stopWords.has(term));

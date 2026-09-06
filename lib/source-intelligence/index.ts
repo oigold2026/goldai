@@ -150,7 +150,7 @@ function responseVisualQuery(userQuery: string, response: string) {
   const cleanResponse = response.replace(/```[\s\S]*?```/g, " ").replace(/https?:\/\/\S+/g, " ").replace(/[*_#`]/g, " ").replace(/\s+/g, " ").trim();
   const namedEntities = [...cleanResponse.matchAll(/\b(?:[A-Z][\w'’-]*)(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Kingdom|Uganda|Ugandan)){1,6}/g)].map((match) => match[0].trim()).filter((value, index, values) => values.indexOf(value) === index).sort((left, right) => right.length - left.length);
   const subject = namedEntities[0] || visualSubject(userQuery);
-  return `${subject} ${/\b(king|queen|person|dancer|place|landmark|animal|plant|product|building|event|organization|company)\b/i.test(cleanResponse) ? "official relevant image" : "relevant image"}`.trim();
+  return subject;
 }
 
 export async function retrieveImagesForResponse(userQuery: string, response: string, requestId: string): Promise<WebImage[]> {
