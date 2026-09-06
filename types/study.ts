@@ -11,6 +11,7 @@ export type StudyActivity = {
   id: string;
   userId: string;
   action: StudyAction;
+  title?: string;
   subject?: string;
   topic?: string;
   score?: number;
@@ -21,6 +22,7 @@ export type StudyActivity = {
   country?: string;
   conversationId?: string;
   status?: "active" | "completed";
+  lastAccessedAt?: number;
   createdAt: number;
 };
 

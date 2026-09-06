@@ -3,7 +3,7 @@ import { generateAIResponse } from "../../../lib/ai";
 import { loadAIProfile, verifyFirebaseToken } from "../../../lib/ai/auth-server";
 import { creditConfig } from "../../../lib/credits/config";
 import { finalizeCredits, refundReservedCredits, reserveCredits } from "../../../lib/credits/service";
-import { listStudyActivity, recordStudyActivity } from "../../../lib/study/service";
+import { listRecentStudies, listStudyActivity, recordStudyActivity } from "../../../lib/study/service";
 import type { StudyAction } from "../../../types/study";
 
 export const runtime = "nodejs";
@@ -78,6 +78,11 @@ export async function GET(request: Request) {
     const authorization = request.headers.get("authorization");
     if (!authorization?.startsWith("Bearer ")) return Response.json({ error: "Please log in to view study history." }, { status: 401 });
     const uid = await verifyFirebaseToken(authorization.slice(7).trim());
+    const url = new URL(request.url);
+    if (url.searchParams.get("recent") === "1") {
+      const limit = Math.min(50, Math.max(1, Number(url.searchParams.get("limit")) || 10));
+      return Response.json({ studies: await listRecentStudies(uid, limit) });
+    }
     return Response.json({ activities: await listStudyActivity(uid) });
   } catch (error) {
     console.error("Gold AI study history failed", { error: error instanceof Error ? error.message : "unknown error" });

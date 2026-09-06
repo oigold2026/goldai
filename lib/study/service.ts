@@ -30,6 +30,33 @@ export async function listStudyActivity(uid: string) {
   return Object.values((snapshot.val() || {}) as Record<string, StudyActivity>).sort((a, b) => b.createdAt - a.createdAt);
 }
 
+/**
+ * Recent studies sorted by last access time (most recently opened first).
+ * Falls back to createdAt when lastAccessedAt is absent so older records
+ * still appear. Lightweight: limited to the latest N per user.
+ */
+export async function listRecentStudies(uid: string, limit = 10): Promise<StudyActivity[]> {
+  const { database } = getFirebaseAdmin();
+  const snapshot = await database.ref(`studyHistory/${uid}`).limitToLast(50).once("value");
+  const records = Object.values((snapshot.val() || {}) as Record<string, StudyActivity>);
+  return records
+    .filter((record) => record.action !== "plan")
+    .sort((a, b) => (b.lastAccessedAt ?? b.createdAt) - (a.lastAccessedAt ?? a.createdAt))
+    .slice(0, limit);
+}
+
+/** Remove a single recent-study record. Does NOT touch the Chat conversation. */
+export async function deleteStudyActivity(uid: string, studyId: string) {
+  const { database } = getFirebaseAdmin();
+  await database.ref(`studyHistory/${uid}/${studyId}`).remove();
+}
+
+/** Update lastAccessedAt so a reopened study moves to the top of the list. */
+export async function touchStudyActivity(uid: string, studyId: string) {
+  const { database } = getFirebaseAdmin();
+  await database.ref(`studyHistory/${uid}/${studyId}`).update({ lastAccessedAt: Date.now() });
+}
+
 export function isStudyAction(value: string): value is StudyAction {
   return ["explain", "practice", "quiz", "summarize", "plan", "check"].includes(value);
 }

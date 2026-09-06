@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, BookOpen, Brain, CalendarDays, CheckCircle2, FileText, GraduationCap, Sparkles, UserRound, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, BookOpen, Brain, CalendarDays, CheckCircle2, FileText, GraduationCap, History, Sparkles, Trash2, UserRound, X, type LucideIcon } from "lucide-react";
 import { getFirebaseServices } from "../lib/firebase";
 import { createConversation } from "../lib/chat/conversations";
 import { curriculumsFor } from "../config/curriculums";
@@ -77,10 +77,13 @@ export function StudyWorkspace() {
   const [launching, setLaunching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // History & plans
+  // History, recent studies & plans
   const [activities, setActivities] = useState<StudyActivity[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [recentStudies, setRecentStudies] = useState<StudyActivity[] | null>(null);
+  const [recentLoading, setRecentLoading] = useState(true);
   const [plans, setPlans] = useState<StudyPlan[] | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   /**
    * Educational context comes from the authenticated user's profile.
@@ -121,6 +124,15 @@ export function StudyWorkspace() {
     finally { setHistoryLoading(false); }
   }, [token]);
 
+  const loadRecentStudies = useCallback(async () => {
+    try {
+      const response = await fetch("/api/study?recent=1&limit=10", { headers: { Authorization: `Bearer ${await token()}` } });
+      const data = await response.json() as { studies?: StudyActivity[]; error?: string };
+      if (response.ok) setRecentStudies(data.studies || []);
+    } catch { setRecentStudies([]); }
+    finally { setRecentLoading(false); }
+  }, [token]);
+
   const loadPlans = useCallback(async () => {
     try {
       const response = await fetch("/api/study/plans", { headers: { Authorization: `Bearer ${await token()}` } });
@@ -135,9 +147,30 @@ export function StudyWorkspace() {
   }, [loadHistory]);
 
   useEffect(() => {
+    const timeoutId = window.setTimeout(() => { void loadRecentStudies(); }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [loadRecentStudies]);
+
+  useEffect(() => {
     const timeoutId = window.setTimeout(() => { void loadPlans(); }, 0);
     return () => window.clearTimeout(timeoutId);
   }, [loadPlans]);
+
+  async function deleteRecentStudy(studyId: string) {
+    setRecentStudies((current) => (current || []).filter((study) => study.id !== studyId));
+    try {
+      await fetch(`/api/study/${encodeURIComponent(studyId)}`, { method: "DELETE", headers: { Authorization: `Bearer ${await token()}` } });
+    } catch {
+      void loadRecentStudies();
+    }
+  }
+
+  async function openRecentStudy(study: StudyActivity) {
+    if (study.conversationId) {
+      void fetch(`/api/study/${encodeURIComponent(study.id)}`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ lastAccessed: true }) }).catch(() => undefined);
+      router.push(`/chat?conversation=${encodeURIComponent(study.conversationId)}`);
+    }
+  }
 
   async function completePlan(planId: string) {
     try {
@@ -238,7 +271,7 @@ export function StudyWorkspace() {
       const conversation = await createConversation(user.uid, `${activeMode.label} — ${titleTopic}`.slice(0, 90));
 
       try {
-        const activityPayload = { action: studyContext.mode, ...studyActivityFields(studyContext, conversation.id) };
+        const activityPayload = { action: studyContext.mode, title: titleTopic, lastAccessedAt: Date.now(), ...studyActivityFields(studyContext, conversation.id) };
         await fetch("/api/study/activity", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify(activityPayload) });
       } catch (activityError) {
         console.warn("Gold AI study activity recording failed", { error: activityError instanceof Error ? activityError.message : "unknown error" });
