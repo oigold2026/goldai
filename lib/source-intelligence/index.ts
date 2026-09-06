@@ -141,9 +141,24 @@ export async function retrieveSourceIntelligence(query: string, requestId: strin
   if (plan.queryType === "academic") searches.push(searchCrossref(query, 3));
   if (plan.queryType === "technical") searches.push(searchGitHub(query, 3));
   const sources = rankSources(filterRelevantSources(uniqueSources((await Promise.all(searches)).flat()), query), plan).slice(0, plan.sourceCount);
-  const images = plan.imageSearchUseful ? await searchWikimediaVisuals(visualSubject(query), 3) : [];
+  const images = [];
   if (process.env.NODE_ENV !== "production") console.info("[GoldAI] searchCompleted", { requestId, sourcesFound: sources.length, imagesFound: images.length, durationMs: Date.now() - startedAt });
   return { plan, sources, images };
+}
+
+function responseVisualQuery(userQuery: string, response: string) {
+  const cleanResponse = response.replace(/```[\s\S]*?```/g, " ").replace(/https?:\/\/\S+/g, " ").replace(/[*_#`]/g, " ").replace(/\s+/g, " ").trim();
+  const namedEntities = [...cleanResponse.matchAll(/\b(?:[A-Z][\w'’-]*)(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Kingdom|Uganda|Ugandan)){1,6}/g)].map((match) => match[0].trim()).filter((value, index, values) => values.indexOf(value) === index).sort((left, right) => right.length - left.length);
+  const subject = namedEntities[0] || visualSubject(userQuery);
+  return `${subject} ${/\b(king|queen|person|dancer|place|landmark|animal|plant|product|building|event|organization|company)\b/i.test(cleanResponse) ? "official relevant image" : "relevant image"}`.trim();
+}
+
+export async function retrieveImagesForResponse(userQuery: string, response: string, requestId: string): Promise<WebImage[]> {
+  const query = responseVisualQuery(userQuery, response);
+  if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] query", { requestId, query });
+  const images = await searchWikimediaVisuals(query, 3);
+  if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] results", { requestId, count: images.length });
+  return images;
 }
 
 export function sourceContext(sources: ResearchSource[]) {

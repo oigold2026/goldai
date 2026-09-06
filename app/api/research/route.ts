@@ -5,7 +5,7 @@ import { creditConfig } from "../../../lib/credits/config";
 import { finalizeCredits, refundReservedCredits, reserveCredits } from "../../../lib/credits/service";
 import { createResearchSession, deleteResearchSession, getResearchSession, listResearchSessions, updateResearchSession } from "../../../lib/research/service";
 import { ResearchSourceProviderError } from "../../../lib/research/provider";
-import { retrieveSourceIntelligence, sourceContext } from "../../../lib/source-intelligence";
+import { retrieveImagesForResponse, retrieveSourceIntelligence, sourceContext } from "../../../lib/source-intelligence";
 import type { ResearchType } from "../../../types/research";
 
 export const runtime = "nodejs";
@@ -72,9 +72,10 @@ export async function POST(request: Request) {
       const profile = await loadAIProfile(uid, idToken);
       const prompt = `Research question: ${parsed.data.question}\nResearch type: ${parsed.data.type}\n${parsed.data.dateRange ? `Date range: ${parsed.data.dateRange}\n` : ""}Use only the retrieved sources below. Produce a structured synthesis with Overview, Key findings, Evidence, Different perspectives or uncertainty, Conclusion, and Sources. Cite claims with [1], [2], etc. Every citation must match a source URL below. Do not invent facts, sources, dates, or URLs. Distinguish source-supported information from interpretation.\n\n${sourceContext(sources)}`;
       const response = await generateAIResponse({ message: prompt, language: profile?.preferredLanguage, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
+      const images = await retrieveImagesForResponse(parsed.data.question, response.text, requestId).catch(() => []);
       await finalizeCredits(uid, requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditConfig.featureCosts.research);
-      await updateResearchSession(uid, sessionId, { status: "completed", result: response.text, sources, images: intelligence.images });
-      return Response.json({ session: { ...session, status: "completed", result: response.text, sources, images: intelligence.images }, creditsConsumed: creditConfig.featureCosts.research });
+      await updateResearchSession(uid, sessionId, { status: "completed", result: response.text, sources, images });
+      return Response.json({ session: { ...session, status: "completed", result: response.text, sources, images }, creditsConsumed: creditConfig.featureCosts.research });
     } catch (researchError) {
       await refundReservedCredits(uid, requestId);
       await updateResearchSession(uid, sessionId, { status: "failed" });

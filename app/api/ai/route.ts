@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { generateAIResponse } from "../../../lib/ai";
-import { planSourceQuery, retrieveSourceIntelligence, sourceContext } from "../../../lib/source-intelligence";
+import { planSourceQuery, retrieveImagesForResponse, retrieveSourceIntelligence, sourceContext } from "../../../lib/source-intelligence";
 import { loadAIProfile, verifyFirebaseToken } from "../../../lib/ai/auth-server";
 import { creditConfig } from "../../../lib/credits/config";
 import { finalizeCredits, refundReservedCredits, reserveCredits } from "../../../lib/credits/service";
@@ -44,9 +44,10 @@ export async function POST(request: Request) {
       if (process.env.NODE_ENV !== "production") console.info("[Gold AI Source Intelligence]", { requestId: parsed.data.requestId, query: researchQuery, classification: plan.queryType, requiresFreshness: plan.requiresFreshness, sourcesFound: intelligence.sources.length, imagesFound: intelligence.images.length });
       const retrievalContext = intelligence.sources.length > 0 ? `\n\nRetrieved web research for this query on ${new Date().toISOString().slice(0, 10)}. Prefer these sources over remembered knowledge. Use only source-supported current claims, include publication/retrieval dates when discussing wealth, prices, roles, or other changing facts, cite claims as [1], [2], and explicitly explain disagreements rather than silently merging estimates. Image results are visual context only, not factual evidence.\n\n${sourceContext(intelligence.sources)}` : intelligence.plan.requiresFreshness ? `\n\nCurrent information could not be retrieved reliably. Be transparent about uncertainty and do not present remembered information as verified current fact. The current date is ${new Date().toISOString().slice(0, 10)}.` : "";
       const response = await generateAIResponse({ message: `${parsed.data.message}${historyContext}${retrievalContext}${documentContext}`, language: parsed.data.language, attachments, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
+      const responseImages = plan.imageSearchUseful ? await retrieveImagesForResponse(researchQuery, response.text, parsed.data.requestId).catch((imageError) => { console.warn("Gold AI optional response image retrieval failed", { requestId: parsed.data.requestId, error: imageError instanceof Error ? imageError.message : "unknown error" }); return []; }) : [];
       try { await finalizeCredits(uid, parsed.data.requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditCost); }
       catch (creditError) { console.error("Gold AI credit finalization failed", { requestId: parsed.data.requestId, error: creditError instanceof Error ? creditError.message : "unknown error" }); }
-      return Response.json({ ...response, sources: intelligence.sources, images: intelligence.images, creditsConsumed: creditCost, balance: reservation.account?.balance });
+      return Response.json({ ...response, sources: intelligence.sources, images: responseImages, creditsConsumed: creditCost, balance: reservation.account?.balance });
     } catch (providerError) {
       try { await refundReservedCredits(uid, parsed.data.requestId); }
       catch (refundError) { console.error("Gold AI credit refund failed", { requestId: parsed.data.requestId, error: refundError instanceof Error ? refundError.message : "unknown error" }); }
