@@ -491,3 +491,27 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .voice-shortcuts .voice-button.listening { color: #9a5b45; }
 .voice-shortcuts .voice-read-button { pointer-events: auto; }
 @media (max-width: 760px) { .voice-shortcuts { width: calc(100% - 28px); bottom: 18px; padding-right: 58px; } }
+
+/* Phase 8b — Study redesign: mode header, profile context indicator, radio groups, mobile drawer nav */
+.study-mode-header { max-width: 760px; }
+.study-mode-header h1 { margin: 12px 0 7px; font-size: clamp(30px, 4.5vw, 46px); line-height: 1.05; letter-spacing: -.02em; }
+.study-mode-header p { margin: 0; color: var(--muted-foreground); font-size: 14px; line-height: 1.55; }
+.study-context-indicator { display: flex; align-items: flex-start; gap: 8px; margin-top: 18px; max-width: 560px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 11px; color: var(--muted-foreground); background: var(--surface-secondary); font-size: 11px; line-height: 1.55; }
+.study-context-indicator svg { flex: 0 0 auto; margin-top: 1px; color: var(--primary); }
+.study-context-indicator a { color: var(--primary); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.study-field-label { display: block; color: var(--foreground); font-size: 11px; font-weight: 650; }
+.study-field-hint { margin: 9px 0 0; color: var(--muted-foreground); font-size: 11px; line-height: 1.55; }
+.study-radio-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 7px; }
+.study-radio-option { position: relative; display: inline-flex; align-items: center; min-height: 42px; padding: 0 13px; border: 1px solid var(--border); border-radius: 10px; color: var(--muted-foreground); background: var(--surface); cursor: pointer; font-size: 12px; font-weight: 600; transition: border-color .2s, background .2s, color .2s; }
+.study-radio-option:hover { border-color: var(--primary); }
+.study-radio-option:has(input:checked), .study-radio-option.selected { border-color: var(--primary); color: var(--foreground); background: var(--surface-secondary); box-shadow: inset 0 0 0 1px var(--primary); }
+.study-radio-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.study-radio-option:has(input:focus-visible) { outline: 3px solid rgba(212,175,55,.62); outline-offset: 2px; }
+.study-action-note { display: flex; align-items: flex-start; gap: 7px; margin: 13px 0 0; color: var(--muted-foreground); font-size: 10px; line-height: 1.5; }
+.study-action-note svg { flex: 0 0 auto; margin-top: 1px; color: var(--primary); }
+.study-drawer-nav { display: grid; gap: 5px; margin-top: 24px; }
+.study-drawer-nav button { display: flex; align-items: center; gap: 12px; min-height: 48px; width: 100%; padding: 0 12px; border: 0; border-radius: 10px; color: var(--muted-foreground); background: transparent; cursor: pointer; font-size: 13px; font-weight: 650; text-align: left; }
+.study-drawer-nav button:hover, .study-drawer-nav button.active { color: var(--foreground); background: var(--surface-secondary); }
+.study-drawer-nav button.active { box-shadow: inset 3px 0 var(--primary); }
+.study-drawer-nav button svg { color: var(--primary); }
+@media (max-width: 767px) { .study-mode-header h1 { font-size: 30px; } .study-context-indicator { margin-top: 14px; } }

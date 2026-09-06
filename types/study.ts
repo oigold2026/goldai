@@ -42,6 +42,9 @@ export type StudyContext = {
   difficulty?: string;
   questionCount?: number;
   explanationDepth?: StudyExplanationDepth;
+  includeExamples?: boolean;
+  summaryStyle?: string;
+  preferredSchedule?: string;
   goal?: string;
   studyDuration?: string;
   availableStudyTime?: string;

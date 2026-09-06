@@ -26,6 +26,9 @@ const sanitizers: Record<string, (value: unknown) => unknown> = {
   learningMaterial: (value) => sanitizeString(value, 16000),
   learnerAnswer: (value) => sanitizeString(value, 16000),
   markingScheme: (value) => sanitizeString(value, 16000),
+  includeExamples: (value) => sanitizeBoolean(value),
+  summaryStyle: (value) => sanitizeString(value, 120),
+  preferredSchedule: (value) => sanitizeString(value, 200),
   questionStyle: (value) => sanitizeQuestionStyle(value),
   explanationDepth: (value) => sanitizeExplanationDepth(value),
   questionCount: (value) => sanitizeNumber(value, 1, 20),
@@ -34,11 +37,11 @@ const sanitizers: Record<string, (value: unknown) => unknown> = {
 };
 
 const allowedKeys: Record<StudyAction, string[]> = {
-  explain: ["country", "curriculumId", "curriculumLabel", "educationLevel", "subject", "topic", "explanationDepth", "goal"],
+  explain: ["country", "curriculumId", "curriculumLabel", "educationLevel", "subject", "topic", "explanationDepth", "includeExamples", "goal"],
   practice: ["country", "curriculumId", "curriculumLabel", "educationLevel", "subject", "topic", "questionStyle", "difficulty", "questionCount", "examOriented"],
   quiz: ["country", "curriculumId", "curriculumLabel", "educationLevel", "subject", "topic", "questionStyle", "difficulty", "questionCount", "examOriented", "timed"],
-  summarize: ["country", "curriculumId", "curriculumLabel", "educationLevel", "subject", "topic", "learningMaterial", "goal"],
-  plan: ["country", "curriculumId", "curriculumLabel", "educationLevel", "subject", "topic", "goal", "studyDuration", "availableStudyTime", "targetDate"],
+  summarize: ["country", "curriculumId", "curriculumLabel", "educationLevel", "subject", "topic", "learningMaterial", "summaryStyle", "goal"],
+  plan: ["country", "curriculumId", "curriculumLabel", "educationLevel", "subject", "topic", "goal", "studyDuration", "availableStudyTime", "preferredSchedule", "targetDate"],
   check: ["country", "curriculumId", "curriculumLabel", "educationLevel", "subject", "topic", "learningMaterial", "learnerAnswer", "markingScheme"],
 };
 
@@ -127,6 +130,9 @@ export function studyPromptFor(context: StudyContext): string {
   if (context.examOriented) lines.push("Exam-oriented: Yes");
   if (context.timed) lines.push("Timed: Yes");
   if (context.explanationDepth) lines.push(`Explanation depth: ${explanationDepthLabel(context.explanationDepth)}`);
+  if (context.includeExamples !== undefined) lines.push(`Include examples: ${context.includeExamples ? "Yes" : "No"}`);
+  if (context.summaryStyle) lines.push(`Summary style: ${context.summaryStyle}`);
+  if (context.preferredSchedule) lines.push(`Preferred schedule: ${context.preferredSchedule}`);
   if (context.goal) lines.push(`Learning goal: ${context.goal}`);
   if (context.studyDuration) lines.push(`Study duration: ${context.studyDuration}`);
   if (context.availableStudyTime) lines.push(`Available study time: ${context.availableStudyTime}`);
@@ -158,6 +164,8 @@ export function studyBehaviourBrief(context: StudyContext): string {
       if (context.explanationDepth === "simple") parts.push("Keep the explanation simple and grounded.");
       if (context.explanationDepth === "detailed") parts.push("Provide a thorough explanation with definitions and worked detail.");
       if (context.explanationDepth === "advanced") parts.push("Use advanced terminology and go deep into the topic.");
+      if (context.includeExamples === false) parts.push("Explain without worked examples unless the learner asks for one.");
+      else if (context.includeExamples) parts.push("Include at least one concrete worked example.");
       break;
     case "practice":
       parts.push("Create a practice session. Ask questions one at a time and wait for the learner to answer before revealing whether it is correct. Support the learner with explanations after each answer.");
@@ -168,14 +176,17 @@ export function studyBehaviourBrief(context: StudyContext): string {
       } else if (context.questionStyle === "mixed") {
         parts.push("Mix structured questions with realistic scenario-based questions that require application and reasoning.");
       }
+      if (context.difficulty === "Mixed") parts.push("Vary the difficulty across the questions from easier to more challenging.");
       if (context.examOriented) parts.push("Format the questions and marking like a real exam: clear instructions, marks where appropriate, and expectations suitable to the stated curriculum/level.");
       break;
     case "quiz":
       parts.push("Act as a quiz host. Ask one multiple-choice question at a time with four clear options. Do NOT reveal the correct answer or explanations before the learner has responded. Wait, then confirm whether the answer is correct with a brief explanation before the next question. Keep score at the end.");
       if (context.questionStyle === "scenario") parts.push("Use scenario-style quiz questions that require reasoning rather than recall only.");
+      if (context.difficulty === "Mixed") parts.push("Vary the difficulty across the quiz questions from easier to more challenging.");
       break;
     case "summarize":
       parts.push("Produce a study-focused summary of the provided material. Include a short overview, key points, important terms/definitions, and revision points. Keep it useful for active revision rather than a generic recap.");
+      if (context.summaryStyle) parts.push(`Format the output as ${context.summaryStyle}.`);
       break;
     case "plan":
       parts.push("Create a structured, achievable study plan. Break the goal into realistic sessions with specific topics, durations and a weekly rhythm. Consider the learner's available study time, overall duration and target date. The plan must be practical, not a generic list.");
