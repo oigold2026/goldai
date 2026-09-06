@@ -1,6 +1,12 @@
 export const studyActions = ["explain", "practice", "quiz", "summarize", "plan", "check"] as const;
 export type StudyAction = (typeof studyActions)[number];
 
+export const questionStyles = ["structured", "scenario", "mixed"] as const;
+export type StudyQuestionStyle = (typeof questionStyles)[number];
+
+export const explanationDepths = ["simple", "detailed", "advanced"] as const;
+export type StudyExplanationDepth = (typeof explanationDepths)[number];
+
 export type StudyActivity = {
   id: string;
   userId: string;
@@ -9,7 +15,42 @@ export type StudyActivity = {
   topic?: string;
   score?: number;
   total?: number;
+  curriculumId?: string;
+  curriculumLabel?: string;
+  educationLevel?: string;
+  country?: string;
+  conversationId?: string;
+  status?: "active" | "completed";
   createdAt: number;
+};
+
+/**
+ * Structured Study context passed into Chat / the AI.
+ *
+ * Only fields relevant to the selected mode are populated.
+ * Undefined values are removed before any Firebase write.
+ */
+export type StudyContext = {
+  mode: StudyAction;
+  country?: string;
+  curriculumId?: string;
+  curriculumLabel?: string;
+  educationLevel?: string;
+  subject?: string;
+  topic?: string;
+  questionStyle?: StudyQuestionStyle;
+  difficulty?: string;
+  questionCount?: number;
+  explanationDepth?: StudyExplanationDepth;
+  goal?: string;
+  studyDuration?: string;
+  availableStudyTime?: string;
+  targetDate?: string;
+  learningMaterial?: string;
+  learnerAnswer?: string;
+  markingScheme?: string;
+  examOriented?: boolean;
+  timed?: boolean;
 };
 
 export type StudyQuestion = {

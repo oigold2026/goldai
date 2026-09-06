@@ -13,6 +13,7 @@ import { createConversation, deleteConversation, listConversations, updateConver
 import { listMessages, saveMessage } from "../lib/chat/messages";
 import type { ChatMessage, Conversation } from "../types/chat";
 import type { MessageAttachment } from "../types/multimodal";
+import type { StudyContext } from "../types/study";
 import { GoldAILogo, GoldAILogoLoader, ThemeToggle } from "./gold-ai-ui";
 import { voiceLanguageFor } from "../config/voice-languages";
 
@@ -61,9 +62,24 @@ export function ChatWorkspace() {
   const endRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const promptHandledRef = useRef(false);
+  const studyContextRef = useRef<StudyContext | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedConversationId = searchParams.get("conversation");
+  const studyParam = searchParams.get("study");
+
+  useEffect(() => {
+    if (!studyParam) {
+      studyContextRef.current = null;
+      return;
+    }
+    try {
+      const parsedStudy: unknown = JSON.parse(studyParam);
+      if (parsedStudy && typeof parsedStudy === "object" && typeof (parsedStudy as StudyContext).mode === "string") {
+        studyContextRef.current = parsedStudy as StudyContext;
+      }
+    } catch { /* Ignore an invalid study context parameter. */ }
+  }, [studyParam]);
 
   useEffect(() => {
     if (!user) return undefined;
@@ -110,7 +126,7 @@ export function ChatWorkspace() {
       const auth = getFirebaseServices().auth;
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error("Please log in again.");
-      const response = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ requestId: crypto.randomUUID(), message: text, language: profile?.preferredLanguage, attachmentIds: messageAttachments.map((attachment) => attachment.id), history: (forceNewConversation ? [] : messages.slice(-12)).map(({ role, content: messageContent }) => ({ role, content: messageContent })) }), signal: abortRef.current.signal });
+      const response = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ requestId: crypto.randomUUID(), message: text, language: profile?.preferredLanguage, attachmentIds: messageAttachments.map((attachment) => attachment.id), history: (forceNewConversation ? [] : messages.slice(-12)).map(({ role, content: messageContent }) => ({ role, content: messageContent })), studyContext: studyContextRef.current || undefined }), signal: abortRef.current.signal });
       const data = await response.json() as { text?: string; provider?: "openai" | "gemini"; model?: string; usage?: ChatMessage["usage"]; sources?: ChatMessage["sources"]; images?: ChatMessage["images"]; error?: string };
       if (!response.ok || !data.text) throw new Error(data.error || "Gold AI could not complete that response.");
       const assistantMessage = await saveMessage(user.uid, activeConversation.id, { role: "assistant", content: withRetrievedContext(data.text), provider: data.provider, model: data.model, usage: data.usage, sources: data.sources, images: data.images });
@@ -235,8 +251,8 @@ export function ChatWorkspace() {
     const prompt = searchParams.get("prompt")?.trim();
     if (!prompt || loading || promptHandledRef.current) return;
     promptHandledRef.current = true;
-    void sendMessage(prompt, true);
-  }, [loading, searchParams, sendMessage]);
+    void sendMessage(prompt, !requestedConversationId);
+  }, [loading, requestedConversationId, searchParams, sendMessage]);
 
   function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }
   async function copyMessage(message: ChatMessage) { await navigator.clipboard.writeText(message.content); setCopiedId(message.id); window.setTimeout(() => setCopiedId(null), 1400); }

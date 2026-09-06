@@ -1,4 +1,4 @@
-import { searchResearchSources } from "../research/provider";
+Pimport { searchResearchSources } from "../research/provider";
 import type { ResearchSource, WebImage } from "../../types/research";
 import { searchWikimediaVisuals } from "./images";
 
@@ -151,7 +151,7 @@ export async function retrieveSourceIntelligence(query: string, requestId: strin
   if (plan.queryType === "technical") searches.push(searchGitHub(query, 3));
   if (plan.queryType === "opinion") searches.push(searchReddit(query, 3));
   const sources = rankSources(filterRelevantSources(uniqueSources((await Promise.all(searches)).flat()), query), plan).slice(0, plan.sourceCount);
-  const images = [];
+  const images: WebImage[] = [];
   if (process.env.NODE_ENV !== "production") console.info("[GoldAI] searchCompleted", { requestId, sourcesFound: sources.length, imagesFound: images.length, durationMs: Date.now() - startedAt });
   return { plan, sources, images };
 }
