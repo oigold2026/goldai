@@ -62,7 +62,7 @@ export default function Home() {
           </section>
           <AskGoldAI />
           <section className="section-block">
-            <div className="section-title"><div><span className="eyebrow">A little inspiration</span><h2>What can I help with?</h2></div><span className="section-rule" /></div>
+            <div className="section-title"><div><span className="eyebrow">A little inspiration</span><h2>What can I help you with?</h2></div><span className="section-rule" /></div>
           </section>
           <div className="quick-actions">{quickActions.map((action) => <QuickActionCard key={action.label} {...action} />)}</div>
           <div className="home-lower"><ContinueLearningCard /><CreditCard /></div>
