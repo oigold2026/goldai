@@ -530,3 +530,25 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .study-plan-actions a, .study-plan-actions button { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 11px; border: 1px solid var(--border); border-radius: 9px; color: var(--foreground); background: var(--surface); font-size: 11px; cursor: pointer; }
 .study-plan-actions a:hover, .study-plan-actions button:hover { border-color: var(--primary); color: var(--primary); }
 @media (max-width: 767px) { .study-plan-top { flex-direction: column; gap: 6px; } .study-plan-meta { flex-direction: column; gap: 4px; } }
+
+/* Recent Studies sidebar */
+.recent-studies { display: grid; gap: 3px; }
+.recent-studies-heading { display: block; color: var(--muted-foreground); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 0 10px 6px; }
+.recent-studies-empty { padding: 6px 10px; color: var(--muted-foreground); font-size: 11px; line-height: 1.5; }
+.recent-study-item { display: flex; align-items: center; gap: 4px; padding: 4px 6px; border-radius: 9px; }
+.recent-study-item:hover { background: var(--surface-secondary); }
+.recent-study-main { display: flex; align-items: flex-start; gap: 8px; flex: 1; min-width: 0; padding: 8px 8px 8px 34px; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.recent-study-icon { display: grid; flex: 0 0 auto; place-items: center; margin-top: 2px; color: var(--primary); }
+.recent-study-text { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.recent-study-title { display: block; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recent-study-meta { display: block; color: var(--muted-foreground); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recent-study-delete { flex: 0 0 auto; width: 30px; height: 30px; margin-top: 1px; }
+.recent-studies-view-all { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; margin-top: 4px; color: var(--primary); font-size: 11px; font-weight: 700; }
+.study-tools-heading { display: block; color: var(--muted-foreground); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 18px 10px 6px; }
+/* Delete confirmation modal */
+.modal-overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; border: 0; background: rgba(17,24,39,.48); }
+.modal-card { width: min(100% - 32px, 400px); padding: 26px; border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+.modal-card h3 { margin: 0 0 10px; font-size: 17px; }
+.modal-card p { margin: 0 0 20px; color: var(--muted-foreground); font-size: 13px; line-height: 1.5; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.modal-submit { min-width: 110px; }

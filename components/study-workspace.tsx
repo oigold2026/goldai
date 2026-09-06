@@ -37,6 +37,22 @@ const difficulties = ["Easy", "Medium", "Hard", "Mixed"];
 const questionCounts = [5, 10, 15, 20];
 const summaryStyles = ["Revision notes", "Concise summary", "Detailed notes", "Key points", "Exam-focused summary"];
 
+function relativeTime(timestamp: number): string {
+  const seconds = Math.round((Date.now() - timestamp) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} hr ago`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+  return new Date(timestamp).toLocaleDateString();
+}
+
+function studyTypeLabel(action: StudyAction): string {
+  return modes.find((mode) => mode.id === action)?.label ?? action.replaceAll("_", " ");
+}
+
 export function StudyWorkspace() {
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -85,12 +101,6 @@ export function StudyWorkspace() {
   const [plans, setPlans] = useState<StudyPlan[] | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
-  /**
-   * Educational context comes from the authenticated user's profile.
-   * The profile is the default context; the learner can always override
-   * it inside the Chat conversation for a single session without the
-   * profile being modified.
-   */
   const profileContext = useMemo(() => {
     const country = profile?.country && profile.country !== "Other" ? profile.country : undefined;
     const curriculum = curriculumsFor(country)[0];
@@ -179,7 +189,6 @@ export function StudyWorkspace() {
     } catch { /* Keep the current list; the learner can retry. */ }
   }
 
-  // Close the mobile study drawer with Escape for keyboard users.
   useEffect(() => {
     if (!drawerOpen) return undefined;
     function handleKeyDown(event: globalThis.KeyboardEvent) { if (event.key === "Escape") setDrawerOpen(false); }
@@ -194,6 +203,8 @@ export function StudyWorkspace() {
   }
 
   const activeMode = modes.find((item) => item.id === mode) || modes[0];
+  const visibleRecentStudies = (recentStudies || []).slice(0, 5);
+  const pendingDeleteStudy = pendingDelete ? (recentStudies || []).find((study) => study.id === pendingDelete) ?? null : null;
 
   function validate(): string | null {
     switch (mode) {
@@ -212,15 +223,7 @@ export function StudyWorkspace() {
   }
 
   function buildStudyContext(): StudyContext {
-    const context: StudyContext = {
-      mode,
-      country: profileContext.country,
-      curriculumId: profileContext.curriculumId,
-      curriculumLabel: profileContext.curriculumLabel,
-      educationLevel: profileContext.educationLevel,
-      subject: subject.trim() || undefined,
-      topic: topic.trim() || undefined,
-    };
+    const context: StudyContext = { mode, country: profileContext.country, curriculumId: profileContext.curriculumId, curriculumLabel: profileContext.curriculumLabel, educationLevel: profileContext.educationLevel, subject: subject.trim() || undefined, topic: topic.trim() || undefined };
     switch (mode) {
       case "explain":
         context.explanationDepth = explanationDepth;
@@ -279,18 +282,7 @@ export function StudyWorkspace() {
 
       if (studyContext.mode === "plan") {
         try {
-          const planPayload = {
-            title: (studyContext.goal || studyContext.topic || studyContext.subject || "Study plan").slice(0, 200),
-            subject: studyContext.subject,
-            topic: studyContext.topic,
-            goal: studyContext.goal,
-            durationDays: planDays,
-            conversationId: conversation.id,
-            educationLevel: studyContext.educationLevel,
-            country: studyContext.country,
-            curriculumId: studyContext.curriculumId,
-            curriculumLabel: studyContext.curriculumLabel,
-          };
+          const planPayload = { title: (studyContext.goal || studyContext.topic || studyContext.subject || "Study plan").slice(0, 200), subject: studyContext.subject, topic: studyContext.topic, goal: studyContext.goal, durationDays: planDays, conversationId: conversation.id, educationLevel: studyContext.educationLevel, country: studyContext.country, curriculumId: studyContext.curriculumId, curriculumLabel: studyContext.curriculumLabel };
           await fetch("/api/study/plans", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify(planPayload) });
         } catch (planError) {
           console.warn("Gold AI study plan recording failed", { error: planError instanceof Error ? planError.message : "unknown error" });
@@ -308,165 +300,37 @@ export function StudyWorkspace() {
   function renderModeForm() {
     switch (mode) {
       case "explain":
-        return (
-          <div className="study-form-grid">
-            <label className="study-full-field">Topic or question
-              <input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. Photosynthesis" />
-            </label>
-            <label>Subject <span className="study-optional">(from your profile)</span>
-              <input value={subject} onChange={(event) => setSubjectOverride(event.target.value)} placeholder="e.g. Biology" />
-            </label>
-            <label>Explanation depth
-              <select value={explanationDepth} onChange={(event) => setExplanationDepth(event.target.value as "simple" | "detailed" | "advanced")}>
-                {explanationDepths.map((depth) => <option key={depth} value={depth}>{depth === "simple" ? "Simple" : depth === "detailed" ? "Detailed" : "Advanced"}</option>)}
-              </select>
-            </label>
-            <div className="study-full-field">
-              <span className="study-field-label">Include examples</span>
-              <div className="study-radio-group" role="radiogroup" aria-label="Include examples">
-                <label className={`study-radio-option ${includeExamples ? "selected" : ""}`}><input type="radio" name="include-examples" checked={includeExamples} onChange={() => setIncludeExamples(true)} /><span>Yes, with examples</span></label>
-                <label className={`study-radio-option ${!includeExamples ? "selected" : ""}`}><input type="radio" name="include-examples" checked={!includeExamples} onChange={() => setIncludeExamples(false)} /><span>No examples</span></label>
-              </div>
-            </div>
-            <label className="study-full-field">Learning goal <span className="study-optional">(optional)</span>
-              <input value={goal} onChange={(event) => setGoal(event.target.value)} placeholder="e.g. Understand this for the end-of-term exam" />
-            </label>
-          </div>
-        );
+        return (<div className="study-form-grid"><label className="study-full-field">Topic or question<input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. Photosynthesis" /></label><label>Subject <span className="study-optional">(from your profile)</span><input value={subject} onChange={(event) => setSubjectOverride(event.target.value)} placeholder="e.g. Biology" /></label><label>Explanation depth<select value={explanationDepth} onChange={(event) => setExplanationDepth(event.target.value as "simple" | "detailed" | "advanced")}>{explanationDepths.map((depth) => <option key={depth} value={depth}>{depth === "simple" ? "Simple" : depth === "detailed" ? "Detailed" : "Advanced"}</option>)}</select></label><div className="study-full-field"><span className="study-field-label">Include examples</span><div className="study-radio-group" role="radiogroup" aria-label="Include examples"><label className={`study-radio-option ${includeExamples ? "selected" : ""}`}><input type="radio" name="include-examples" checked={includeExamples} onChange={() => setIncludeExamples(true)} /><span>Yes, with examples</span></label><label className={`study-radio-option ${!includeExamples ? "selected" : ""}`}><input type="radio" name="include-examples" checked={!includeExamples} onChange={() => setIncludeExamples(false)} /><span>No examples</span></label></div></div><label className="study-full-field">Learning goal <span className="study-optional">(optional)</span><input value={goal} onChange={(event) => setGoal(event.target.value)} placeholder="e.g. Understand this for the end-of-term exam" /></label></div>);
       case "practice":
-        return (
-          <div className="study-form-grid">
-            <label className="study-full-field">Topic
-              <input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. Photosynthesis" />
-            </label>
-            <label>Subject <span className="study-optional">(from your profile)</span>
-              <input value={subject} onChange={(event) => setSubjectOverride(event.target.value)} placeholder="e.g. Biology" />
-            </label>
-            <div className="study-full-field">
-              <span className="study-field-label">Question style</span>
-              <div className="study-radio-group" role="radiogroup" aria-label="Question style">
-                {questionStyles.map((style) => (
-                  <label key={style} className={`study-radio-option ${questionStyle === style ? "selected" : ""}`}>
-                    <input type="radio" name="question-style" value={style} checked={questionStyle === style} onChange={() => setQuestionStyle(style)} />
-                    <span>{style === "structured" ? "Structured questions" : style === "scenario" ? "Scenario-based questions" : "Mixed"}</span>
-                  </label>
-                ))}
-              </div>
-              {questionStyle === "scenario" && <p className="study-field-hint">Scenario questions put you in realistic situations — a farm, a lab, an experiment — and ask you to apply knowledge, reason, and make decisions.</p>}
-            </div>
-            <label>Difficulty
-              <select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}>
-                {difficulties.map((item) => <option key={item}>{item}</option>)}
-              </select>
-            </label>
-            <label>Number of questions
-              <select value={String(questionCount)} onChange={(event) => setQuestionCount(Number(event.target.value))}>
-                {questionCounts.map((count) => <option key={count} value={count}>{count}</option>)}
-              </select>
-            </label>
-            <div className="study-full-field">
-              <span className="study-field-label">Session mode</span>
-              <div className="study-radio-group" role="radiogroup" aria-label="Session mode">
-                <label className={`study-radio-option ${!examOriented ? "selected" : ""}`}><input type="radio" name="practice-session-mode" checked={!examOriented} onChange={() => setExamOriented(false)} /><span>Practice mode</span></label>
-                <label className={`study-radio-option ${examOriented ? "selected" : ""}`}><input type="radio" name="practice-session-mode" checked={examOriented} onChange={() => setExamOriented(true)} /><span>Exam-style mode</span></label>
-              </div>
-            </div>
-          </div>
-        );
+        return (<div className="study-form-grid"><label className="study-full-field">Topic<input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. Photosynthesis" /></label><label>Subject <span className="study-optional">(from your profile)</span><input value={subject} onChange={(event) => setSubjectOverride(event.target.value)} placeholder="e.g. Biology" /></label><div className="study-full-field"><span className="study-field-label">Question style</span><div className="study-radio-group" role="radiogroup" aria-label="Question style">{questionStyles.map((style) => (<label key={style} className={`study-radio-option ${questionStyle === style ? "selected" : ""}`}><input type="radio" name="question-style" value={style} checked={questionStyle === style} onChange={() => setQuestionStyle(style)} /><span>{style === "structured" ? "Structured questions" : style === "scenario" ? "Scenario-based questions" : "Mixed"}</span></label>))}</div>{questionStyle === "scenario" && <p className="study-field-hint">Scenario questions put you in realistic situations — a farm, a lab, an experiment — and ask you to apply knowledge, reason, and make decisions.</p>}</div><label>Difficulty<select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}>{difficulties.map((item) => <option key={item}>{item}</option>)}</select></label><label>Number of questions<select value={String(questionCount)} onChange={(event) => setQuestionCount(Number(event.target.value))}>{questionCounts.map((count) => <option key={count} value={count}>{count}</option>)}</select></label><div className="study-full-field"><span className="study-field-label">Session mode</span><div className="study-radio-group" role="radiogroup" aria-label="Session mode"><label className={`study-radio-option ${!examOriented ? "selected" : ""}`}><input type="radio" name="practice-session-mode" checked={!examOriented} onChange={() => setExamOriented(false)} /><span>Practice mode</span></label><label className={`study-radio-option ${examOriented ? "selected" : ""}`}><input type="radio" name="practice-session-mode" checked={examOriented} onChange={() => setExamOriented(true)} /><span>Exam-style mode</span></label></div></div></div>);
       case "quiz":
-        return (
-          <div className="study-form-grid">
-            <label className="study-full-field">Topic
-              <input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. Newton's Laws" />
-            </label>
-            <label>Subject <span className="study-optional">(from your profile)</span>
-              <input value={subject} onChange={(event) => setSubjectOverride(event.target.value)} placeholder="e.g. Physics" />
-            </label>
-            <div className="study-full-field">
-              <span className="study-field-label">Question style</span>
-              <div className="study-radio-group" role="radiogroup" aria-label="Question style">
-                {questionStyles.map((style) => (
-                  <label key={style} className={`study-radio-option ${questionStyle === style ? "selected" : ""}`}>
-                    <input type="radio" name="quiz-question-style" value={style} checked={questionStyle === style} onChange={() => setQuestionStyle(style)} />
-                    <span>{style === "structured" ? "Multiple choice" : style === "scenario" ? "Scenario-based" : "Mixed"}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <label>Difficulty
-              <select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}>
-                {difficulties.map((item) => <option key={item}>{item}</option>)}
-              </select>
-            </label>
-            <label>Number of questions
-              <select value={String(questionCount)} onChange={(event) => setQuestionCount(Number(event.target.value))}>
-                {questionCounts.map((count) => <option key={count} value={count}>{count}</option>)}
-              </select>
-            </label>
-          </div>
-        );
+        return (<div className="study-form-grid"><label className="study-full-field">Topic<input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. Newton's Laws" /></label><label>Subject <span className="study-optional">(from your profile)</span><input value={subject} onChange={(event) => setSubjectOverride(event.target.value)} placeholder="e.g. Physics" /></label><div className="study-full-field"><span className="study-field-label">Question style</span><div className="study-radio-group" role="radiogroup" aria-label="Question style">{questionStyles.map((style) => (<label key={style} className={`study-radio-option ${questionStyle === style ? "selected" : ""}`}><input type="radio" name="quiz-question-style" value={style} checked={questionStyle === style} onChange={() => setQuestionStyle(style)} /><span>{style === "structured" ? "Multiple choice" : style === "scenario" ? "Scenario-based" : "Mixed"}</span></label>))}</div></div><label>Difficulty<select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}>{difficulties.map((item) => <option key={item}>{item}</option>)}</select></label><label>Number of questions<select value={String(questionCount)} onChange={(event) => setQuestionCount(Number(event.target.value))}>{questionCounts.map((count) => <option key={count} value={count}>{count}</option>)}</select></label></div>);
       case "summarize":
-        return (
-          <div className="study-form-grid">
-            <label className="study-full-field">Material to summarize
-              <textarea value={learningMaterial} onChange={(event) => setLearningMaterial(event.target.value)} placeholder="Paste notes, a chapter, or any text you want summarized for revision..." rows={6} />
-            </label>
-            <label>Summary style
-              <select value={summaryStyle} onChange={(event) => setSummaryStyle(event.target.value)}>
-                {summaryStyles.map((item) => <option key={item}>{item}</option>)}
-              </select>
-            </label>
-            <label>Topic <span className="study-optional">(optional)</span>
-              <input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. Photosynthesis notes" />
-            </label>
-            <p className="study-field-hint study-full-field">You can also attach a document inside Chat after your session opens.</p>
-          </div>
-        );
+        return (<div className="study-form-grid"><label className="study-full-field">Material to summarize<textarea value={learningMaterial} onChange={(event) => setLearningMaterial(event.target.value)} placeholder="Paste notes, a chapter, or any text you want summarized for revision..." rows={6} /></label><label>Summary style<select value={summaryStyle} onChange={(event) => setSummaryStyle(event.target.value)}>{summaryStyles.map((item) => <option key={item}>{item}</option>)}</select></label><label>Topic <span className="study-optional">(optional)</span><input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. Photosynthesis notes" /></label><p className="study-field-hint study-full-field">You can also attach a document inside Chat after your session opens.</p></div>);
       case "plan":
-        return (
-          <div className="study-form-grid">
-            <label className="study-full-field">Learning goal
-              <textarea value={goal} onChange={(event) => setGoal(event.target.value)} placeholder="What do you want to achieve? e.g. Master Chemistry S4 by the end of term" rows={3} />
-            </label>
-            <label>Subject or topics <span className="study-optional">(optional)</span>
-              <input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. Chemistry — Moles, Acids, Electrolysis" />
-            </label>
-            <label>Available study time
-              <input value={availableStudyTime} onChange={(event) => setAvailableStudyTime(event.target.value)} placeholder="e.g. 45 minutes per day" />
-            </label>
-            <label>Plan length
-              <select value={String(planDays)} onChange={(event) => setPlanDays(Number(event.target.value))}>
-                {[7, 14, 30, 60, 90].map((days) => <option key={days} value={days}>{days} days</option>)}
-              </select>
-            </label>
-            <label>Preferred schedule <span className="study-optional">(optional)</span>
-              <input value={preferredSchedule} onChange={(event) => setPreferredSchedule(event.target.value)} placeholder="e.g. Weekday evenings, Saturday mornings" />
-            </label>
-          </div>
-        );
+        return (<div className="study-form-grid"><label className="study-full-field">Learning goal<textarea value={goal} onChange={(event) => setGoal(event.target.value)} placeholder="What do you want to achieve? e.g. Master Chemistry S4 by the end of term" rows={3} /></label><label>Subject or topics <span className="study-optional">(optional)</span><input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. Chemistry — Moles, Acids, Electrolysis" /></label><label>Available study time<input value={availableStudyTime} onChange={(event) => setAvailableStudyTime(event.target.value)} placeholder="e.g. 45 minutes per day" /></label><label>Plan length<select value={String(planDays)} onChange={(event) => setPlanDays(Number(event.target.value))}>{[7, 14, 30, 60, 90].map((days) => <option key={days} value={days}>{days} days</option>)}</select></label><label>Preferred schedule <span className="study-optional">(optional)</span><input value={preferredSchedule} onChange={(event) => setPreferredSchedule(event.target.value)} placeholder="e.g. Weekday evenings, Saturday mornings" /></label></div>);
       case "check":
-        return (
-          <div className="study-form-grid">
-            <label className="study-full-field">Question or problem
-              <textarea value={learningMaterial} onChange={(event) => setLearningMaterial(event.target.value)} placeholder="What question are you answering?" rows={3} />
-            </label>
-            <label className="study-full-field">Your answer
-              <textarea value={learnerAnswer} onChange={(event) => setLearnerAnswer(event.target.value)} placeholder="Write your answer here..." rows={5} />
-            </label>
-            <label className="study-full-field">Marking scheme or context <span className="study-optional">(optional)</span>
-              <textarea value={markingScheme} onChange={(event) => setMarkingScheme(event.target.value)} placeholder="Expected points or marks breakdown, if you have them..." rows={3} />
-            </label>
-          </div>
-        );
+        return (<div className="study-form-grid"><label className="study-full-field">Question or problem<textarea value={learningMaterial} onChange={(event) => setLearningMaterial(event.target.value)} placeholder="What question are you answering?" rows={3} /></label><label className="study-full-field">Your answer<textarea value={learnerAnswer} onChange={(event) => setLearnerAnswer(event.target.value)} placeholder="Write your answer here..." rows={5} /></label><label className="study-full-field">Marking scheme or context <span className="study-optional">(optional)</span><textarea value={markingScheme} onChange={(event) => setMarkingScheme(event.target.value)} placeholder="Expected points or marks breakdown, if you have them..." rows={3} /></label></div>);
     }
   }
 
   function renderModeButton(modeItem: StudyMode, onSelect: () => void, isActive: boolean) {
     const Icon = modeItem.icon;
+    return (<button key={modeItem.id} type="button" className={isActive ? "active" : ""} aria-current={isActive ? "true" : undefined} onClick={onSelect}><Icon size={18} /><span>{modeItem.label}</span></button>);
+  }
+
+  function renderRecentStudyItem(study: StudyActivity) {
     return (
-      <button key={modeItem.id} type="button" className={isActive ? "active" : ""} aria-current={isActive ? "true" : undefined} onClick={onSelect}>
-        <Icon size={18} /><span>{modeItem.label}</span>
-      </button>
+      <div className="recent-study-item" key={study.id}>
+        <button className="recent-study-main" type="button" onClick={() => void openRecentStudy(study)} aria-label={`Continue studying ${study.title || study.topic || study.action}`}>
+          <span className="recent-study-icon"><History size={15} /></span>
+          <span className="recent-study-text">
+            <span className="recent-study-title">{study.title || study.topic || studyTypeLabel(study.action)}</span>
+            <span className="recent-study-meta">{studyTypeLabel(study.action)} · {relativeTime(study.lastAccessedAt ?? study.createdAt)}</span>
+          </span>
+        </button>
+        <button className="icon-button recent-study-delete" type="button" onClick={() => setPendingDelete(study.id)} aria-label="Delete recent study" title="Delete recent study"><Trash2 size={14} /></button>
+      </div>
     );
   }
 
@@ -476,7 +340,21 @@ export function StudyWorkspace() {
       <div className="app-shell">
         <aside className="study-sidebar">
           <div className="study-sidebar-brand"><Sparkles size={18} /><span>Study & Learn</span></div>
+          <nav className="recent-studies" aria-label="Recent studies">
+            <span className="recent-studies-heading">Recent studies</span>
+            {recentLoading ? (
+              <p className="recent-studies-empty">Loading...</p>
+            ) : visibleRecentStudies.length === 0 ? (
+              <p className="recent-studies-empty">No recent studies yet</p>
+            ) : (
+              <>
+                {visibleRecentStudies.map(renderRecentStudyItem)}
+                {(recentStudies || []).length > 5 && <Link className="recent-studies-view-all" href="/study">View all <span>→</span></Link>}
+              </>
+            )}
+          </nav>
           <nav className="study-tools" aria-label="Study modes">
+            <span className="study-tools-heading">Study & Learn</span>
             {modes.map((modeItem) => renderModeButton(modeItem, () => selectMode(modeItem.id), mode === modeItem.id))}
           </nav>
         </aside>
@@ -487,51 +365,47 @@ export function StudyWorkspace() {
             <p>{activeMode.description}</p>
             <div className="study-context-indicator" role="note">
               <UserRound size={15} />
-              {profileContext.contextParts.length > 0 ? (
-                <span>Personalized for your profile{profileContext.contextParts.length ? ` • ${profileContext.contextParts.join(" • ")}` : ""}</span>
-              ) : (
-                <span>Using general learning context. <Link href="/profile">Add your education details in Profile</Link> for more personalized study support.</span>
-              )}
+              {profileContext.contextParts.length > 0 ? (<span>Personalized for your profile{profileContext.contextParts.length ? ` • ${profileContext.contextParts.join(" • ")}` : ""}</span>) : (<span>Using general learning context. <Link href="/profile">Add your education details in Profile</Link> for more personalized study support.</span>)}
             </div>
           </header>
-
           <section className="study-form-panel" aria-label={`${activeMode.label} setup`}>
             {renderModeForm()}
             {error && <p className="form-error study-start-error" role="alert">{error}</p>}
-            <button className="auth-submit study-submit" type="button" disabled={launching} onClick={() => void startStudy()} aria-label={activeMode.actionLabel}>
-              {launching ? <GoldAILogoLoader size="sm" label={activeMode.loadingLabel} /> : <>{activeMode.actionLabel} <ArrowRight size={15} /></>}
-            </button>
+            <button className="auth-submit study-submit" type="button" disabled={launching} onClick={() => void startStudy()} aria-label={activeMode.actionLabel}>{launching ? <GoldAILogoLoader size="sm" label={activeMode.loadingLabel} /> : <>{activeMode.actionLabel} <ArrowRight size={15} /></>}</button>
             <p className="study-action-note"><Sparkles size={14} /> Opens a new Chat session with your study settings applied automatically.</p>
           </section>
-
           <section className="study-plans">
             <div className="section-title"><div><span className="eyebrow">Time progress</span><h2>Your study plans</h2></div><span className="section-rule" /></div>
             {plans === null ? <p className="transactions-empty">Loading your plans...</p> : plans.length === 0 ? <p className="transactions-empty">No study plans yet. Create one above and its time progress will appear here.</p> : <div className="study-plans-list">{plans.map((plan) => { const progress = studyPlanProgress(plan); const statusLabel = plan.status === "completed" ? "Completed" : progress.status === "expired" ? "Ended" : progress.status === "upcoming" ? "Upcoming" : "Active"; return <article className="study-plan-row" key={plan.id}><div className="study-plan-top"><div><h3>{plan.title}</h3><p>{plan.topic || plan.subject || plan.goal || "Study plan"}</p></div><span className={`study-plan-status ${plan.status !== "completed" && progress.status === "active" ? "active" : ""}`}>{statusLabel}</span></div><div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.percent} aria-label={`${progress.percent}% of the plan period elapsed`}><span style={{ width: `${progress.percent}%` }} /></div><div className="study-plan-meta"><span>{progress.percent}% · Day {progress.day} of {progress.totalDays}</span><span>Ends {new Date(plan.endDate).toLocaleDateString()}</span></div><div className="study-plan-actions"><Link href={plan.conversationId ? `/chat?conversation=${encodeURIComponent(plan.conversationId)}` : "/study"}>Continue →</Link>{plan.status === "active" && progress.status === "active" && <button type="button" onClick={() => void completePlan(plan.id)}>Mark completed</button>}</div></article>; })}</div>}
           </section>
-
           <section className="study-history">
             <div className="section-title"><div><span className="eyebrow">Your progress</span><h2>Recent study activity</h2></div><span className="section-rule" /></div>
             {historyLoading ? <p className="transactions-empty">Loading history...</p> : activities.length === 0 ? <p className="transactions-empty">Your study activity will appear here.</p> : activities.slice(0, 6).map((activity) => <div className="study-history-row" key={activity.id}><span>{activity.action.replaceAll("_", " ")}</span><strong>{activity.topic || activity.subject || "Study session"}</strong><small>{new Date(activity.createdAt).toLocaleDateString()}</small></div>)}
           </section>
         </main>
       </div>
-
       <div className={`mobile-drawer-layer ${drawerOpen ? "open" : ""}`} aria-hidden={!drawerOpen}>
-        {drawerOpen && (
-          <>
-            <button className="mobile-drawer-overlay" type="button" onClick={() => setDrawerOpen(false)} aria-label="Close study navigation" />
-            <aside className="mobile-drawer" role="dialog" aria-modal="true" aria-label="Study modes">
-              <div className="mobile-drawer-header">
-                <div className="study-sidebar-brand"><Sparkles size={18} /><span>Study & Learn</span></div>
-                <button className="icon-button" type="button" onClick={() => setDrawerOpen(false)} aria-label="Close study navigation"><X size={18} /></button>
-              </div>
-              <nav className="study-drawer-nav" aria-label="Study modes">
-                {modes.map((modeItem) => renderModeButton(modeItem, () => selectMode(modeItem.id), mode === modeItem.id))}
-              </nav>
-            </aside>
-          </>
-        )}
+        {drawerOpen && (<>
+          <button className="mobile-drawer-overlay" type="button" onClick={() => setDrawerOpen(false)} aria-label="Close study navigation" />
+          <aside className="mobile-drawer" role="dialog" aria-modal="true" aria-label="Study modes">
+            <div className="mobile-drawer-header"><div className="study-sidebar-brand"><Sparkles size={18} /><span>Study & Learn</span></div><button className="icon-button" type="button" onClick={() => setDrawerOpen(false)} aria-label="Close study navigation"><X size={18} /></button></div>
+            <nav className="recent-studies" aria-label="Recent studies"><span className="recent-studies-heading">Recent studies</span>{recentLoading ? (<p className="recent-studies-empty">Loading...</p>) : visibleRecentStudies.length === 0 ? (<p className="recent-studies-empty">No recent studies yet</p>) : (<>{visibleRecentStudies.map(renderRecentStudyItem)}{(recentStudies || []).length > 5 && <Link className="recent-studies-view-all" href="/study">View all <span>→</span></Link>}</>)}</nav>
+            <nav className="study-drawer-nav" aria-label="Study modes"><span className="study-tools-heading">Study & Learn</span>{modes.map((modeItem) => renderModeButton(modeItem, () => selectMode(modeItem.id), mode === modeItem.id))}</nav>
+          </aside>
+        </>)}
       </div>
+      {pendingDeleteStudy && (
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Delete recent study">
+          <div className="modal-card">
+            <h3>Delete this recent study?</h3>
+            <p>This removes "{pendingDeleteStudy.title || pendingDeleteStudy.topic || studyTypeLabel(pendingDeleteStudy.action)}" from your recent studies. Your chat conversation will not be deleted.</p>
+            <div className="modal-actions">
+              <button className="auth-secondary" type="button" onClick={() => setPendingDelete(null)}>Cancel</button>
+              <button className="auth-submit modal-submit" type="button" onClick={() => { if (pendingDelete) { void deleteRecentStudy(pendingDelete); setPendingDelete(null); } }}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
