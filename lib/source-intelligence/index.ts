@@ -128,6 +128,15 @@ async function searchGitHub(query: string, limit: number): Promise<ResearchSourc
   } catch { return []; }
 }
 
+async function searchReddit(query: string, limit: number): Promise<ResearchSource[]> {
+  try {
+    const response = await fetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&sort=relevance&limit=${limit}`, { headers: { Accept: "application/json", "User-Agent": "GoldAI/1.0 public research" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
+    if (!response.ok) return [];
+    const data = await response.json() as { data?: { children?: Array<{ data?: { id?: string; title?: string; permalink?: string; selftext?: string; created_utc?: number } }> } };
+    return (data.data?.children || []).map((entry) => entry.data).filter((item): item is NonNullable<typeof item> => Boolean(item?.id && item.title && item.permalink)).map((item) => ({ id: `reddit-${item.id}`, title: item.title!, url: `https://www.reddit.com${item.permalink!}`, domain: "reddit.com", snippet: item.selftext?.slice(0, 900) || item.title!, publishedAt: item.created_utc ? new Date(item.created_utc * 1000).toISOString() : undefined, retrievedAt: Date.now(), sourceType: "community" as const, relevanceScore: 0.7 }));
+  } catch { return []; }
+}
+
 function visualSubject(query: string) {
   return query.replace(/\b(what is|who is|tell me about|current|latest|today|now|recent|net worth|wealth|valuation|and|his|her|their|show me|pictures? of|photos? of)\b/gi, " ").replace(/[?!.,]/g, " ").replace(/\s+/g, " ").trim() || query;
 }
@@ -140,6 +149,7 @@ export async function retrieveSourceIntelligence(query: string, requestId: strin
   if (plan.requiresFreshness || ["news", "finance", "business", "people", "education", "health", "products", "geography"].includes(plan.queryType)) searches.push(searchGoogleNews(query, 6));
   if (plan.queryType === "academic") searches.push(searchCrossref(query, 3));
   if (plan.queryType === "technical") searches.push(searchGitHub(query, 3));
+  if (plan.queryType === "opinion") searches.push(searchReddit(query, 3));
   const sources = rankSources(filterRelevantSources(uniqueSources((await Promise.all(searches)).flat()), query), plan).slice(0, plan.sourceCount);
   const images = [];
   if (process.env.NODE_ENV !== "production") console.info("[GoldAI] searchCompleted", { requestId, sourcesFound: sources.length, imagesFound: images.length, durationMs: Date.now() - startedAt });
@@ -154,6 +164,7 @@ function responseVisualQuery(userQuery: string, response: string) {
 }
 
 export async function retrieveImagesForResponse(userQuery: string, response: string, requestId: string): Promise<WebImage[]> {
+  if (!/\b(person|king|queen|monarch|place|landmark|building|animal|plant|tree|flower|product|dancer|group|event|organization|company|mountain|tower|parliament|museum|river|lake|city|kingdom)\b/i.test(response)) return [];
   const query = responseVisualQuery(userQuery, response);
   if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] query", { requestId, query });
   const images = await searchWikimediaVisuals(query, 3);

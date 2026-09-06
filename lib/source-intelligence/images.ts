@@ -40,7 +40,7 @@ export async function searchWikimediaVisuals(query: string, limit = 3): Promise<
       const imageUrl = image?.thumburl || image?.url;
       if (!imageUrl) continue;
       const relevance = imageRelevance(query, page, image);
-      if (!relevance.distinctiveMatch || relevance.score < 0.6) {
+      if (!relevance.distinctiveMatch || relevance.score < 0.5) {
         if (process.env.NODE_ENV !== "production") console.info("[Gold AI Image Search] rejected", { query, candidate: page.title, relevanceScore: relevance.score });
         continue;
       }
