@@ -33,10 +33,9 @@ function formatDate(timestamp: number) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(timestamp);
 }
 
-function withRetrievedContext(text: string, images: ChatMessage["images"] = [], sources: ChatMessage["sources"] = []) {
-  const imageSection = images.length > 0 ? `\n\n### Related images\n${images.map((image) => `[![${image.alt}](${image.url})](${image.sourceUrl})`).join("\n")}` : "";
+function withRetrievedContext(text: string, sources: ChatMessage["sources"] = []) {
   const sourceSection = sources.length > 0 ? `\n\n### Sources\n${sources.map((source, index) => `[${index + 1}] [${source.title}](${source.url}) (${source.publishedAt || "retrieved recently"})`).join("\n")}` : "";
-  return `${text}${imageSection}${sourceSection}`;
+  return `${text}${sourceSection}`;
 }
 
 export function ChatWorkspace() {
@@ -115,7 +114,7 @@ export function ChatWorkspace() {
       const response = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ requestId: crypto.randomUUID(), message: text, language: profile?.preferredLanguage, attachmentIds: messageAttachments.map((attachment) => attachment.id), history: (forceNewConversation ? [] : messages.slice(-12)).map(({ role, content: messageContent }) => ({ role, content: messageContent })) }), signal: abortRef.current.signal });
       const data = await response.json() as { text?: string; provider?: "openai" | "gemini"; model?: string; usage?: ChatMessage["usage"]; sources?: ChatMessage["sources"]; images?: ChatMessage["images"]; error?: string };
       if (!response.ok || !data.text) throw new Error(data.error || "Gold AI could not complete that response.");
-      const assistantMessage = await saveMessage(user.uid, activeConversation.id, { role: "assistant", content: withRetrievedContext(data.text, data.images, data.sources), provider: data.provider, model: data.model, usage: data.usage, sources: data.sources, images: data.images });
+      const assistantMessage = await saveMessage(user.uid, activeConversation.id, { role: "assistant", content: withRetrievedContext(data.text, data.sources), provider: data.provider, model: data.model, usage: data.usage, sources: data.sources, images: data.images });
       setMessages((items) => [...items, assistantMessage]); setAttachments([]);
       setConversations((items) => items.map((item) => item.id === activeConversation.id ? { ...item, title: item.title === "New conversation" ? titleFromMessage(text) : item.title, updatedAt: Date.now() } : item));
     } catch (sendError) {
@@ -181,6 +180,37 @@ export function ChatWorkspace() {
       bar.appendChild(actionBar);
     });
   }, [copiedId, feedback, messages, shareNoticeId, speakingId]);
+
+  useEffect(() => {
+    const bodies = Array.from(document.querySelectorAll<HTMLElement>(".chat-message.assistant .message-body"));
+    const assistantMessages = messages.filter((message) => message.role === "assistant");
+    bodies.forEach((body, index) => {
+      const message = assistantMessages[index];
+      if (!message?.images?.length || body.querySelector(".response-image-gallery")) return;
+      const gallery = document.createElement("div");
+      gallery.className = "response-image-gallery";
+      message.images.forEach((image) => {
+        if (!/^https?:\/\//i.test(image.url) || !/^https?:\/\//i.test(image.sourceUrl)) return;
+        const link = document.createElement("a");
+        link.className = "response-image-card";
+        link.href = image.sourceUrl;
+        link.target = "_blank";
+        link.rel = "noreferrer";
+        link.title = image.title;
+        const picture = document.createElement("img");
+        picture.src = image.url;
+        picture.alt = image.alt;
+        picture.loading = "lazy";
+        picture.addEventListener("error", () => link.remove(), { once: true });
+        link.appendChild(picture);
+        const caption = document.createElement("span");
+        caption.textContent = image.title;
+        link.appendChild(caption);
+        gallery.appendChild(link);
+      });
+      if (gallery.childElementCount > 0) body.insertBefore(gallery, body.querySelector(".message-actions"));
+    });
+  }, [messages]);
 
   useEffect(() => {
     const prompt = searchParams.get("prompt")?.trim();
