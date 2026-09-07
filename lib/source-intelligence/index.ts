@@ -164,7 +164,8 @@ function responseVisualQueries(response: string) {
     ...[...cleanResponse.matchAll(/\b[A-Z][\w'’-]+\s+[A-Z][\w'’-]+(?:\s+[A-Z][\w'’-]+)?\b/g)].map((match) => match[0]),
   ]).filter((value) => !/^(Overview|Key Facts|Other Companies|Founder Of|As Of|In March|The United|United States|New York)\b/i.test(value));
   const singleNamedEntities = [...cleanResponse.matchAll(/\b[A-Z][a-z][\w'’-]{2,}\b(?=\s+(?:is|was|are|was|refers|stands|located|known|served|founded)\b)/g)].map((match) => match[0]);
-  const namedEntities = unique([...personNames, ...singleNamedEntities, ...[...cleanResponse.matchAll(/\b[A-Z][\w'’-]*(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Uganda|Ugandan)){1,5}\b/g)].map((match) => match[0])).filter((value) => !/^(Overview|Key Facts|Other Companies|Founder Of|As Of|In March|The United|United States|New York)\b/i.test(value));
+  const namedEntityMatches = [...cleanResponse.matchAll(/\b[A-Z][\w'’-]*(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Uganda|Ugandan)){1,5}\b/g)].map((match) => match[0]);
+  const namedEntities = unique([...personNames, ...singleNamedEntities, ...namedEntityMatches]).filter((value) => !/^(Overview|Key Facts|Other Companies|Founder Of|As Of|In March|The United|United States|New York)\b/i.test(value));
   const visualWords = unique([...cleanResponse.matchAll(/\b(?:palace|castle|museum|parliament|landmark|monument|cathedral|mosque|church|city|capital|kingdom|country|river|lake|mountain|island|beach|building|stadium|festival|painting|sculpture|animal|bird|plant|tree|flower|car|vehicle|product|logo|flag|uniform|architecture)\b/gi)].map((match) => match[0].toLowerCase()));
   return unique([...personNames, ...singleNamedEntities, ...namedEntities, ...visualWords]).slice(0, 8);
 }

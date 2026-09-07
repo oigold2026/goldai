@@ -5,4 +5,5 @@ export const aiConfig = {
   fallbackProvider: (process.env.AI_FALLBACK_PROVIDER === "openai" ? "openai" : "gemini") as AIProviderName,
   openaiModel: process.env.OPENAI_MODEL || "gpt-4o-mini",
   geminiModel: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+  geminiGoogleSearch: process.env.GEMINI_GOOGLE_SEARCH !== "false",
 };
