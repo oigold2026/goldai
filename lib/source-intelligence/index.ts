@@ -169,7 +169,7 @@ export async function retrieveImagesForResponse(userQuery: string, response: str
   const plan = planSourceQuery(userQuery);
   if (!plan.imageSearchUseful && !/\b(person|place|landmark|building|animal|plant|product|dancer|group|event|organization|company|mountain|tower|museum|river|lake|city|kingdom|architecture|vehicle|football)\b/i.test(response)) return [];
   const queries = responseVisualQueries(response).filter((query, index, all) => query && all.indexOf(query) === index);
-  if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] queries", { requestId, queries });
+  console.info("[Gold AI Image Pipeline] response-derived queries", { requestId, queries, queryCount: queries.length });
   const images: WebImage[] = [];
   for (const query of queries) {
     const queryImages = await searchWebVisuals(query, 3);
