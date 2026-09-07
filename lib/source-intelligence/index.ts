@@ -159,17 +159,25 @@ export async function retrieveSourceIntelligence(query: string, requestId: strin
 function responseVisualQuery(userQuery: string, response: string) {
   const cleanResponse = response.replace(/```[\s\S]*?```/g, " ").replace(/https?:\/\/\S+/g, " ").replace(/[*_#`]/g, " ").replace(/\s+/g, " ").trim();
   const namedEntities = [...cleanResponse.matchAll(/\b(?:[A-Z][\w'’-]*)(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Kingdom|Uganda|Ugandan)){1,6}/g)].map((match) => match[0].trim()).filter((value, index, values) => values.indexOf(value) === index).sort((left, right) => right.length - left.length);
-  const subject = namedEntities[0] || visualSubject(userQuery);
-  return subject;
+  const requestedSubject = visualSubject(userQuery);
+  if (requestedSubject && requestedSubject !== userQuery) return requestedSubject;
+  return namedEntities[0] || requestedSubject;
 }
 
 export async function retrieveImagesForResponse(userQuery: string, response: string, requestId: string): Promise<WebImage[]> {
-  if (!/\b(person|king|queen|monarch|place|landmark|building|animal|plant|tree|flower|product|dancer|group|event|organization|company|mountain|tower|parliament|museum|river|lake|city|kingdom|photosynthesis|chloroplast|independence|festival|architecture|vehicle|football|museum)\b/i.test(response)) return [];
-  const query = responseVisualQuery(userQuery, response);
-  if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] query", { requestId, query });
-  const images = await searchWikimediaVisuals(query, 3);
-  if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] results", { requestId, count: images.length });
-  return images;
+  const plan = planSourceQuery(userQuery);
+  if (!plan.imageSearchUseful && !/\b(person|place|landmark|building|animal|plant|product|dancer|group|event|organization|company|mountain|tower|museum|river|lake|city|kingdom|architecture|vehicle|football)\b/i.test(response)) return [];
+  const requestedSubject = visualSubject(userQuery);
+  const queries = [requestedSubject, responseVisualQuery(userQuery, response)].filter((query, index, all) => query && all.indexOf(query) === index);
+  if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] queries", { requestId, queries });
+  for (const query of queries) {
+    const images = await searchWikimediaVisuals(query, 3);
+    if (images.length > 0) {
+      if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] results", { requestId, query, count: images.length });
+      return images;
+    }
+  }
+  return [];
 }
 
 export function sourceContext(sources: ResearchSource[]) {

@@ -23,7 +23,7 @@ function imageRelevance(query: string, page: WikimediaPage, image: NonNullable<W
   const haystack = `${page.title} ${image.extmetadata?.Artist?.value || ""}`.toLowerCase();
   const matched = terms.filter((term) => haystack.includes(term));
   const score = terms.length === 0 ? 0 : matched.length / terms.length;
-  const distinctiveMatch = terms.length <= 1 ? matched.length === 1 : matched.length >= Math.min(2, terms.length);
+  const distinctiveMatch = matched.length > 0;
   return { score, distinctiveMatch };
 }
 
@@ -40,7 +40,7 @@ export async function searchWikimediaVisuals(query: string, limit = 3): Promise<
       const imageUrl = image?.thumburl || image?.url;
       if (!imageUrl) continue;
       const relevance = imageRelevance(query, page, image);
-      if (!relevance.distinctiveMatch || relevance.score < 0.5) {
+      if (!relevance.distinctiveMatch || relevance.score < (subjectTerms(query).length <= 1 ? 1 : 0.34)) {
         if (process.env.NODE_ENV !== "production") console.info("[Gold AI Image Search] rejected", { query, candidate: page.title, relevanceScore: relevance.score });
         continue;
       }
