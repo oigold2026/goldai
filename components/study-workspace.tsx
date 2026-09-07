@@ -208,6 +208,10 @@ export function StudyWorkspace() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [drawerOpen]);
 
+  function getActiveStudyView(): "recent" | StudyAction {
+    return view === "tools" ? mode : "recent";
+  }
+
   function selectMode(next: StudyAction) {
     setMode(next);
     setView("tools");
@@ -349,13 +353,15 @@ export function StudyWorkspace() {
     }
   }
 
-  function renderModeButton(modeItem: StudyMode, onSelect: () => void, isActive: boolean) {
+  function renderModeButton(modeItem: StudyMode, onSelect: () => void) {
     const Icon = modeItem.icon;
+    const isActive = getActiveStudyView() === modeItem.id;
     return (<button key={modeItem.id} type="button" className={isActive ? "active" : ""} aria-current={isActive ? "true" : undefined} onClick={onSelect}><Icon size={18} /><span>{modeItem.label}</span></button>);
   }
 
   function renderRecentStudiesButton() {
-    return (<button key="recent" type="button" className={view === "recent" ? "active" : ""} aria-current={view === "recent" ? "true" : undefined} onClick={selectRecent}><History size={18} /><span>Recent studies</span></button>);
+    const isActive = getActiveStudyView() === "recent";
+    return (<button key="recent" type="button" className={isActive ? "active" : ""} aria-current={isActive ? "true" : undefined} onClick={selectRecent}><History size={18} /><span>Recent studies</span></button>);
   }
 
 
@@ -370,7 +376,7 @@ export function StudyWorkspace() {
             <span className="study-tools-heading">Study & Learn</span>
             {renderRecentStudiesButton()}
             <div className="study-tools-divider" />
-            {modes.map((modeItem) => renderModeButton(modeItem, () => selectMode(modeItem.id), mode === modeItem.id))}
+            {modes.map((modeItem) => renderModeButton(modeItem, () => selectMode(modeItem.id)))}
           </nav>
         </aside>
         <main className="study-main">
@@ -474,7 +480,7 @@ export function StudyWorkspace() {
           <button className="mobile-drawer-overlay" type="button" onClick={() => setDrawerOpen(false)} aria-label="Close study navigation" />
           <aside className="mobile-drawer" role="dialog" aria-modal="true" aria-label="Study modes">
             <div className="mobile-drawer-header"><div className="study-sidebar-brand"><Sparkles size={18} /><span>Study & Learn</span></div><button className="icon-button" type="button" onClick={() => setDrawerOpen(false)} aria-label="Close study navigation"><X size={18} /></button></div>
-            <nav className="study-drawer-nav" aria-label="Study modes"><span className="study-tools-heading">Study & Learn</span>{renderRecentStudiesButton()}<div className="study-tools-divider" />{modes.map((modeItem) => renderModeButton(modeItem, () => selectMode(modeItem.id), mode === modeItem.id))}</nav>
+            <nav className="study-drawer-nav" aria-label="Study modes"><span className="study-tools-heading">Study & Learn</span>{renderRecentStudiesButton()}<div className="study-tools-divider" />{modes.map((modeItem) => renderModeButton(modeItem, () => selectMode(modeItem.id)))}</nav>
           </aside>
         </>)}
       </div>
