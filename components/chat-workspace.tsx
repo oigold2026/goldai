@@ -38,6 +38,15 @@ function withRetrievedContext(text: string) {
   return text;
 }
 
+function formatAssistantContent(content: string) {
+  return content
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/\r\n/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export function ChatWorkspace() {
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -91,7 +100,7 @@ export function ChatWorkspace() {
         const initialConversation = requestedConversation;
         if (initialConversation) {
           setConversation(initialConversation);
-          void listMessages(user.uid, initialConversation.id).then(setMessages).catch(() => setError("We couldn't load this conversation. Please try again."));
+          void listMessages(user.uid, initialConversation.id).then((items) => setMessages(items.map((item) => item.role === "assistant" ? { ...item, content: formatAssistantContent(item.content) } : item))).catch(() => setError("We couldn't load this conversation. Please try again."));
         }
       }).catch(() => { setError("We couldn't load your conversations. Please check your connection and try again."); setLoading(false); });
     });
@@ -104,7 +113,7 @@ export function ChatWorkspace() {
     if (!user) return;
     router.push(`/chat?conversation=${encodeURIComponent(next.id)}`);
     setConversation(next); setDrawerOpen(false); setError(null);
-    try { setMessages(await listMessages(user.uid, next.id)); }
+    try { setMessages((await listMessages(user.uid, next.id)).map((item) => item.role === "assistant" ? { ...item, content: formatAssistantContent(item.content) } : item)); }
     catch { setError("We couldn't load this conversation. Please try again."); }
   }
 
@@ -130,7 +139,7 @@ export function ChatWorkspace() {
       const data = await response.json() as { text?: string; provider?: "openai" | "gemini"; model?: string; usage?: ChatMessage["usage"]; sources?: ChatMessage["sources"]; images?: ChatMessage["images"]; error?: string };
       if (!response.ok || !data.text) throw new Error(data.error || "Gold AI could not complete that response.");
       const assistantMessage = await saveMessage(user.uid, activeConversation.id, { role: "assistant", content: withRetrievedContext(data.text), provider: data.provider, model: data.model, usage: data.usage, sources: data.sources, images: data.images });
-      setMessages((items) => [...items, assistantMessage]); setAttachments([]);
+      setMessages((items) => [...items, { ...assistantMessage, content: formatAssistantContent(assistantMessage.content) }]); setAttachments([]);
       setConversations((items) => items.map((item) => item.id === activeConversation.id ? { ...item, title: item.title === "New conversation" ? titleFromMessage(text) : item.title, updatedAt: Date.now() } : item));
     } catch (sendError) {
       if ((sendError as Error).name !== "AbortError") { setError(sendError instanceof Error ? sendError.message : "Gold AI couldn't complete that response. Please try again."); setRetryContent(text); }

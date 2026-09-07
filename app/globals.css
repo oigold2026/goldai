@@ -56,12 +56,24 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .chat-message.assistant .message-body { max-width: 100%; }
 .message-body { width: 100%; }
 .message-content { width: 100%; }
+.message-content > p { margin: 0 0 14px; color: var(--foreground); font-size: 15px; line-height: 1.75; }
+.message-content > p:last-child { margin-bottom: 0; }
+.message-content h1,.message-content h2,.message-content h3 { color: var(--foreground); line-height: 1.25; }
+.message-content h1 { margin: 24px 0 10px; font-size: 22px; }
+.message-content h2 { margin: 22px 0 9px; font-size: 18px; }
 .message-content p:has(> a > img), .message-content p:has(> img) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; margin: 14px 0; }
 .message-content p:has(> a > img) > a, .message-content p:has(> img) > img { display: block; min-width: 0; overflow: hidden; }
 .message-content img { display: block; width: 100%; max-width: 100%; aspect-ratio: 4 / 3; max-height: 280px; margin: 0; border: 1px solid var(--border); border-radius: 10px; object-fit: cover; }
 @media (min-width: 768px) { .message-content p:has(> a > img), .message-content p:has(> img) { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 1024px) { .message-content p:has(> a > img), .message-content p:has(> img) { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .message-content h3 { margin: 18px 0 8px; color: var(--foreground); font-size: 13px; }
+.message-content ul,.message-content ol { display: grid; gap: 7px; margin: 10px 0 16px; padding-left: 24px; color: var(--foreground); font-size: 14px; line-height: 1.65; }
+.message-content li::marker { color: var(--primary); font-weight: 700; }
+.message-content strong { color: var(--foreground); font-weight: 750; }
+.message-content em { color: var(--muted-foreground); }
+.message-content pre { overflow-x: auto; margin: 14px 0; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; color: var(--foreground); background: var(--surface-secondary); font-size: 12px; line-height: 1.6; }
+.message-content pre code { padding: 0; border: 0; background: transparent; }
+.message-content :not(pre) > code { padding: 2px 5px; border: 1px solid var(--border); border-radius: 4px; color: var(--primary-foreground); background: color-mix(in srgb,var(--primary) 22%,var(--surface)); font-size: .9em; }
 .message-content h3 + p a { color: var(--primary); }
 .message-content a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
 .message-content blockquote { margin: 14px 0; padding: 10px 14px; border-left: 3px solid var(--primary); border-radius: 0 8px 8px 0; color: var(--muted-foreground); background: var(--surface-secondary); }
