@@ -40,7 +40,7 @@ export function planSourceQuery(query: string): SourcePlan {
   if (imagePattern.test(normalized) && queryType === "general") queryType = "visual";
   const requiresFreshness = freshnessPattern.test(query);
   const preferredSources = queryType === "technical" ? ["official-documentation", "github", "encyclopedic"] : queryType === "academic" ? ["crossref", "institutional", "encyclopedic"] : ["news", "official", "live-web", "encyclopedic"];
-  return { queryType, requiresFreshness: requiresFreshness || ["people", "news", "finance"].includes(queryType), preferredSources, sourceCount: requiresFreshness || ["academic", "technical", "health", "finance", "people", "news"].includes(queryType) ? 5 : 3, imageSearchUseful: imagePattern.test(query) || ["geography", "travel", "animals", "plants", "products", "people", "visual", "history", "culture"].includes(queryType) };
+  return { queryType, requiresFreshness: requiresFreshness || ["people", "news", "finance"].includes(queryType), preferredSources, sourceCount: 20, imageSearchUseful: imagePattern.test(query) || ["geography", "travel", "animals", "plants", "products", "people", "visual", "history", "culture"].includes(queryType) };
 }
 
 function uniqueSources(sources: ResearchSource[]) {
@@ -183,5 +183,5 @@ export async function retrieveImagesForResponse(userQuery: string, response: str
 }
 
 export function sourceContext(sources: ResearchSource[]) {
-  return sources.slice(0, 5).map((source, index) => `[${index + 1}] ${source.title}\nURL: ${source.url}\nSource type/domain: ${source.sourceType || "web"}/${source.domain}\nPublished or updated: ${source.publishedAt || "not provided"}\nRetrieved: ${new Date(source.retrievedAt).toISOString()}\n${source.snippet.slice(0, 900)}`).join("\n\n");
+  return sources.slice(0, 20).map((source, index) => `[${index + 1}] ${source.title}\nURL: ${source.url}\nSource type/domain: ${source.sourceType || "web"}/${source.domain}\nPublished or updated: ${source.publishedAt || "not provided"}\nRetrieved: ${new Date(source.retrievedAt).toISOString()}\n${source.snippet.slice(0, 600)}`).join("\n\n");
 }

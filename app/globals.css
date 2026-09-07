@@ -91,8 +91,10 @@ html[data-theme="dark"] { --background: #0b0b0b; --surface: #151515; --surface-s
 .response-image-card { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; color: var(--foreground); background: var(--surface-secondary); }
 .response-image-card img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
 .response-image-card span { display: block; padding: 6px 8px; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-.response-sources { display: grid; gap: 5px; margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--border); font-size: 10px; }
-.response-sources strong { color: var(--foreground); font-size: 11px; }
+.response-sources { margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--border); font-size: 10px; }
+.response-sources-toggle { min-height: 30px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; color: var(--muted-foreground); background: var(--surface); cursor: pointer; font-size: 10px; font-weight: 700; }
+.response-sources-toggle:hover { border-color: var(--primary); color: var(--foreground); }
+.response-source-list { display: grid; gap: 5px; margin-top: 9px; }
 .response-sources a { color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .response-sources a:hover { color: var(--primary); }
 @media (min-width: 768px) { .response-image-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

@@ -236,10 +236,9 @@ export function ChatWorkspace() {
       });
       const sources = document.createElement("div");
       sources.className = "response-sources";
+      const sourceLinks = document.createElement("div");
+      sourceLinks.className = "response-source-list";
       if (message.sources?.length) {
-        const heading = document.createElement("strong");
-        heading.textContent = "Sources";
-        sources.appendChild(heading);
         message.sources.forEach((source) => {
           if (!/^https?:\/\//i.test(source.url)) return;
           const link = document.createElement("a");
@@ -247,12 +246,28 @@ export function ChatWorkspace() {
           link.target = "_blank";
           link.rel = "noreferrer";
           link.textContent = source.title;
-          sources.appendChild(link);
+          sourceLinks.appendChild(link);
         });
+      }
+      if (sourceLinks.childElementCount > 0) {
+        const toggle = document.createElement("button");
+        toggle.className = "response-sources-toggle";
+        toggle.type = "button";
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.textContent = `View sources (${sourceLinks.childElementCount})`;
+        toggle.addEventListener("click", () => {
+          const expanded = toggle.getAttribute("aria-expanded") === "true";
+          toggle.setAttribute("aria-expanded", String(!expanded));
+          toggle.textContent = `${expanded ? "View" : "Hide"} sources (${sourceLinks.childElementCount})`;
+          sourceLinks.hidden = expanded;
+        });
+        sources.appendChild(toggle);
+        sourceLinks.hidden = true;
+        sources.appendChild(sourceLinks);
       }
       const actions = body.querySelector(".message-actions");
       if (gallery.childElementCount > 0 && actions) body.insertBefore(gallery, actions);
-      if (sources.childElementCount > 1 && actions) body.insertBefore(sources, actions);
+      if (sources.childElementCount > 0 && actions) body.insertBefore(sources, actions);
     });
   }, [messages]);
 
