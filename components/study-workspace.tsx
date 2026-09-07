@@ -347,21 +347,6 @@ export function StudyWorkspace() {
     return (<button key="recent" type="button" className={view === "recent" ? "active" : ""} aria-current={view === "recent" ? "true" : undefined} onClick={selectRecent}><History size={18} /><span>Recent studies</span></button>);
   }
 
-  function renderRecentStudyItem(study: StudyActivity) {
-    return (
-      <div className="recent-study-item" key={study.id}>
-        <button className="recent-study-main" type="button" onClick={() => void openRecentStudy(study)} aria-label={`Continue studying ${study.title || study.topic || study.action}`}>
-          <span className="recent-study-icon"><History size={15} /></span>
-          <span className="recent-study-text">
-            <span className="recent-study-title">{study.title || study.topic || studyTypeLabel(study.action)}</span>
-            <span className="recent-study-meta">{studyTypeLabel(study.action)} · {relativeTime(study.lastAccessedAt ?? study.createdAt)}</span>
-          </span>
-        </button>
-        <button className="icon-button recent-study-delete" type="button" onClick={() => setPendingDelete(study.id)} aria-label="Delete recent study" title="Delete recent study"><Trash2 size={14} /></button>
-      </div>
-    );
-  }
-
 
 
   return (
