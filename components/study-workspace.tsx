@@ -69,8 +69,9 @@ export function StudyWorkspace() {
   const searchParams = useSearchParams();
 
   const [mode, setMode] = useState<StudyAction>("explain");
-  const [view, setView] = useState<"recent" | "tools">("tools");
+  const [view, setView] = useState<"recent" | "tools" | "select-action">("recent");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedRecentStudy, setSelectedRecentStudy] = useState<StudyActivity | null>(null);
 
   // Shared inputs. Subject is derived from the profile unless the learner overrides it.
   const [topic, setTopic] = useState("");
@@ -193,13 +194,6 @@ export function StudyWorkspace() {
     }
   }
 
-  async function openRecentStudy(study: StudyActivity) {
-    if (study.conversationId) {
-      void fetch(`/api/study/${encodeURIComponent(study.id)}`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ lastAccessed: true }) }).catch(() => undefined);
-      router.push(`/chat?conversation=${encodeURIComponent(study.conversationId)}`);
-    }
-  }
-
   async function completePlan(planId: string) {
     try {
       const response = await fetch("/api/study/plans", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ planId }) });
@@ -219,14 +213,31 @@ export function StudyWorkspace() {
     setView("tools");
     setError(null);
     setDrawerOpen(false);
+    setSelectedRecentStudy(null);
   }
 
   function selectRecent() {
     setView("recent");
+    setSelectedRecentStudy(null);
     setDrawerOpen(false);
   }
 
-  const activeMode = view === "recent" ? recentMode : modes.find((item) => item.id === mode) || modes[0];
+  function openRecentStudyActionSelection(study: StudyActivity) {
+    setSelectedRecentStudy(study);
+    setView("select-action");
+    setDrawerOpen(false);
+  }
+
+  function startStudyFromRecent(selectedMode: StudyAction) {
+    if (!selectedRecentStudy) return;
+    setMode(selectedMode);
+    setTopic(selectedRecentStudy.topic || "");
+    setSubjectOverride(selectedRecentStudy.subject || null);
+    setView("tools");
+    setSelectedRecentStudy(null);
+  }
+
+  const activeMode = view === "recent" ? recentMode : view === "select-action" ? { ...recentMode, label: "Select a learning mode", description: "Choose how you'd like to study this topic" } : modes.find((item) => item.id === mode) || modes[0];
   const visibleRecentStudies = (recentStudies || []).slice(0, 5);
   const pendingDeleteStudy = pendingDelete ? (recentStudies || []).find((study) => study.id === pendingDelete) ?? null : null;
 
@@ -383,18 +394,54 @@ export function StudyWorkspace() {
                     {(recentStudies || []).map((study) => (
                       <article className="recent-study-card" key={study.id}>
                         <div className="recent-study-card-content">
-                          <button className="recent-study-card-main" type="button" onClick={() => void openRecentStudy(study)} aria-label={`Continue studying ${study.title || study.topic || study.action}`}>
+                          <button className="recent-study-card-main" type="button" onClick={() => openRecentStudyActionSelection(study)} aria-label={`Continue studying ${study.title || study.topic || study.action}`}>
                             <h3>{study.title || study.topic || studyTypeLabel(study.action)}</h3>
                             <p>{studyTypeLabel(study.action)}</p>
                             <span className="recent-study-card-time">Last studied: {relativeTime(study.lastAccessedAt ?? study.createdAt)}</span>
                           </button>
                           <button className="icon-button recent-study-card-delete" type="button" onClick={(e) => { e.stopPropagation(); setPendingDelete(study.id); }} aria-label="Delete recent study" title="Delete recent study"><Trash2 size={16} /></button>
                         </div>
-                        <Link className="recent-study-card-continue" href={study.conversationId ? `/chat?conversation=${encodeURIComponent(study.conversationId)}` : "/study"}>Continue <ArrowRight size={14} /></Link>
+                        <button className="recent-study-card-continue" type="button" onClick={() => openRecentStudyActionSelection(study)}>Continue <ArrowRight size={14} /></button>
                       </article>
                     ))}
                   </div>
                 )}
+              </section>
+            </>
+          ) : view === "select-action" ? (
+            <>
+              <header className="study-mode-header">
+                <span className="eyebrow">Study & Learn</span>
+                <h1>{selectedRecentStudy?.title || selectedRecentStudy?.topic || "Select a learning mode"}</h1>
+                <p>What would you like to do with this topic?</p>
+              </header>
+              <section className="study-form-panel" aria-label="Select a learning mode">
+                <div className="study-action-grid">
+                  {modes.map((modeItem) => {
+                    const Icon = modeItem.icon;
+                    return (
+                      <button
+                        key={modeItem.id}
+                        type="button"
+                        className="study-action-card"
+                        onClick={() => startStudyFromRecent(modeItem.id)}
+                        aria-label={`Start ${modeItem.label.toLowerCase()}`}
+                      >
+                        <span className="study-action-icon"><Icon size={24} /></span>
+                        <strong>{modeItem.label}</strong>
+                        <small>{modeItem.description}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  className="auth-secondary"
+                  type="button"
+                  onClick={selectRecent}
+                  style={{ marginTop: "28px" }}
+                >
+                  ← Back to Recent Studies
+                </button>
               </section>
             </>
           ) : (
@@ -417,10 +464,6 @@ export function StudyWorkspace() {
               <section className="study-plans">
                 <div className="section-title"><div><span className="eyebrow">Time progress</span><h2>Your study plans</h2></div><span className="section-rule" /></div>
                 {plans === null ? <p className="transactions-empty">Loading your plans...</p> : plans.length === 0 ? <p className="transactions-empty">No study plans yet. Create one above and its time progress will appear here.</p> : <div className="study-plans-list">{plans.map((plan) => { const progress = studyPlanProgress(plan); const statusLabel = plan.status === "completed" ? "Completed" : progress.status === "expired" ? "Ended" : progress.status === "upcoming" ? "Upcoming" : "Active"; return <article className="study-plan-row" key={plan.id}><div className="study-plan-top"><div><h3>{plan.title}</h3><p>{plan.topic || plan.subject || plan.goal || "Study plan"}</p></div><span className={`study-plan-status ${plan.status !== "completed" && progress.status === "active" ? "active" : ""}`}>{statusLabel}</span></div><div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.percent} aria-label={`${progress.percent}% of the plan period elapsed`}><span style={{ width: `${progress.percent}%` }} /></div><div className="study-plan-meta"><span>{progress.percent}% · Day {progress.day} of {progress.totalDays}</span><span>Ends {new Date(plan.endDate).toLocaleDateString()}</span></div><div className="study-plan-actions"><Link href={plan.conversationId ? `/chat?conversation=${encodeURIComponent(plan.conversationId)}` : "/study"}>Continue →</Link>{plan.status === "active" && progress.status === "active" && <button type="button" onClick={() => void completePlan(plan.id)}>Mark completed</button>}</div></article>; })}</div>}
-              </section>
-              <section className="study-history">
-                <div className="section-title"><div><span className="eyebrow">Your progress</span><h2>Recent study activity</h2></div><span className="section-rule" /></div>
-                {historyLoading ? <p className="transactions-empty">Loading history...</p> : activities.length === 0 ? <p className="transactions-empty">Your study activity will appear here.</p> : activities.slice(0, 6).map((activity) => <div className="study-history-row" key={activity.id}><span>{activity.action.replaceAll("_", " ")}</span><strong>{activity.topic || activity.subject || "Study session"}</strong><small>{new Date(activity.createdAt).toLocaleDateString()}</small></div>)}
               </section>
             </>
           )}
