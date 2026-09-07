@@ -31,7 +31,8 @@ import { getDisplayName } from "../lib/display-name";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "./auth-provider";
 import { useProfile } from "./profile-provider";
-import type { StudyActivity } from "../types/study";
+import { studyPlanProgress } from "../lib/study/plan";
+import type { StudyPlan } from "../types/study";
 
 export const quickActions: { label: string; description: string; icon: LucideIcon; href: string }[] = [
   { label: "Learn", description: "Understand a topic", icon: BookOpen, href: "/study" },
@@ -243,23 +244,24 @@ export function CreditCard() {
 
 export function ContinueLearningCard() {
   const { user } = useAuth();
-  const [studies, setStudies] = useState<StudyActivity[] | null>(null);
+  const [plans, setPlans] = useState<StudyPlan[] | null>(null);
 
-  // Recent studies the learner can continue in Chat (max 2 on Home).
+  // Continue Learning is reserved for active study plans with time progress.
   useEffect(() => {
     if (!user) return undefined;
     let cancelled = false;
     const timeoutId = window.setTimeout(() => {
       void user.getIdToken()
-        .then((token) => fetch("/api/study?recent=1&limit=2", { headers: { Authorization: `Bearer ${token}` } }))
-        .then((response) => response.ok ? response.json() as Promise<{ studies?: StudyActivity[] }> : null)
-        .then((data) => { if (!cancelled) setStudies(data?.studies || []); })
-        .catch(() => { if (!cancelled) setStudies([]); });
+        .then((token) => fetch("/api/study/plans", { headers: { Authorization: `Bearer ${token}` } }))
+        .then((response) => response.ok ? response.json() as Promise<{ plans?: StudyPlan[] }> : null)
+        .then((data) => { if (!cancelled) setPlans(data?.plans || []); })
+        .catch(() => { if (!cancelled) setPlans([]); });
     }, 0);
     return () => { cancelled = true; window.clearTimeout(timeoutId); };
   }, [user]);
 
-  return <section className="learning-card"><div className="learning-section-heading"><span className="section-kicker">Continue learning</span>{(studies || []).length > 0 && <Link className="learning-view-all" href="/study?view=recent">View all <span>→</span></Link>}</div>{user && studies === null ? <p className="learning-empty">Loading your studies...</p> : (studies || []).length === 0 ? <div className="learning-empty"><strong>Ready to start learning?</strong><span>Start a study session and it will appear here.</span><Link className="text-link" href="/study">Start learning <span>→</span></Link></div> : <div className="learning-list">{(studies || []).map((study) => (<article className="learning-item" key={study.id}><div className="learning-item-heading"><div><h2>{study.title || study.topic || study.action.replaceAll("_", " ")}</h2><p>{study.action.replaceAll("_", " ")}</p></div><span className="learning-status">Active</span></div><div className="learning-footer"><span>Continue where you left off</span><Link className="text-link" href={study.conversationId ? `/chat?conversation=${encodeURIComponent(study.conversationId)}` : "/study"}>Continue <span>→</span></Link></div></article>))}</div>}</section>;
+  const activePlans = (plans || []).filter((plan) => plan.status !== "completed" && studyPlanProgress(plan).status === "active").slice(0, 2);
+  return <section className="learning-card"><div className="learning-section-heading"><span className="section-kicker">Continue learning</span>{activePlans.length > 0 && <Link className="learning-view-all" href="/study?view=active">View all <span>→</span></Link>}</div>{user && plans === null ? <p className="learning-empty">Loading your study plans...</p> : activePlans.length === 0 ? <div className="learning-empty"><strong>No active study plans yet</strong><span>Create a study plan to track your progress here.</span><Link className="text-link" href="/study">Create a plan <span>→</span></Link></div> : <div className="learning-list">{activePlans.map((plan) => { const progress = studyPlanProgress(plan); return <article className="learning-item" key={plan.id}><div className="learning-item-heading"><div><h2>{plan.title}</h2><p>{plan.topic || plan.subject || plan.goal || "Study plan"}</p></div><span className="learning-status">Active</span></div><div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.percent} aria-label={`${progress.percent}% of the plan period elapsed`}><span style={{ width: `${progress.percent}%` }} /></div><div className="learning-footer"><span>{progress.percent}% · Day {progress.day} of {progress.totalDays}</span><Link className="text-link" href={plan.conversationId ? `/chat?conversation=${encodeURIComponent(plan.conversationId)}` : "/study?view=active"}>Continue <span>→</span></Link></div></article>; })}</div>}</section>;
 }
 
 export function EmptyState({ title = "Nothing here yet.", message = "Your learning activity will appear here." }: { title?: string; message?: string }) {

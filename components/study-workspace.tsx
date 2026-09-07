@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, BookOpen, Brain, CalendarDays, CheckCircle2, FileText, GraduationCap, History, Sparkles, Trash2, UserRound, X, type LucideIcon } from "lucide-react";
+import { Activity, ArrowRight, BookOpen, Brain, CalendarDays, CheckCircle2, FileText, GraduationCap, History, Sparkles, Trash2, UserRound, X, type LucideIcon } from "lucide-react";
 import { getFirebaseServices } from "../lib/firebase";
 import { createConversation } from "../lib/chat/conversations";
 import { curriculumsFor } from "../config/curriculums";
@@ -69,7 +69,7 @@ export function StudyWorkspace() {
   const searchParams = useSearchParams();
 
   const [mode, setMode] = useState<StudyAction>("explain");
-  const [view, setView] = useState<"recent" | "tools">("recent");
+  const [view, setView] = useState<"recent" | "active" | "tools">("recent");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Shared inputs. Subject is derived from the profile unless the learner overrides it.
@@ -181,6 +181,8 @@ export function StudyWorkspace() {
   useEffect(() => {
     if (searchParams.get("view") === "recent") {
       setView("recent");
+    } else if (searchParams.get("view") === "active") {
+      setView("active");
     }
   }, [searchParams]);
 
@@ -207,8 +209,8 @@ export function StudyWorkspace() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [drawerOpen]);
 
-  function getActiveStudyView(): "recent" | StudyAction {
-    return view === "tools" ? mode : "recent";
+  function getActiveStudyView(): "recent" | "active" | StudyAction {
+    return view === "tools" ? mode : view;
   }
 
   function selectMode(next: StudyAction) {
@@ -220,6 +222,11 @@ export function StudyWorkspace() {
 
   function selectRecent() {
     setView("recent");
+    setDrawerOpen(false);
+  }
+
+  function selectActive() {
+    setView("active");
     setDrawerOpen(false);
   }
 
@@ -236,7 +243,8 @@ export function StudyWorkspace() {
     router.push(`/chat?conversation=${encodeURIComponent(study.conversationId)}`);
   }
 
-  const activeMode = view === "recent" ? recentMode : modes.find((item) => item.id === mode) || modes[0];
+  const activeMode = view === "recent" ? recentMode : view === "active" ? { ...recentMode, label: "Active studies", description: "Keep moving through your active study plans.", icon: Activity } : modes.find((item) => item.id === mode) || modes[0];
+  const activePlans = (plans || []).filter((plan) => plan.status !== "completed" && studyPlanProgress(plan).status === "active");
   const visibleRecentStudies = (recentStudies || []).slice(0, 5);
   const pendingDeleteStudy = pendingDelete ? (recentStudies || []).find((study) => study.id === pendingDelete) ?? null : null;
 
@@ -359,6 +367,11 @@ export function StudyWorkspace() {
     return (<button key="recent" type="button" className={isActive ? "active" : ""} aria-current={isActive ? "true" : undefined} onClick={selectRecent}><History size={18} /><span>Recent studies</span></button>);
   }
 
+  function renderActiveStudiesButton() {
+    const isActive = getActiveStudyView() === "active";
+    return (<button key="active" type="button" className={isActive ? "active" : ""} aria-current={isActive ? "true" : undefined} onClick={selectActive}><Activity size={18} /><span>Active studies</span></button>);
+  }
+
 
 
   return (
@@ -370,6 +383,7 @@ export function StudyWorkspace() {
           <nav className="study-tools" aria-label="Study modes">
             <span className="study-tools-heading">Study & Learn</span>
             {renderRecentStudiesButton()}
+            {renderActiveStudiesButton()}
             <div className="study-tools-divider" />
             {modes.map((modeItem) => renderModeButton(modeItem, () => selectMode(modeItem.id)))}
           </nav>
@@ -409,6 +423,17 @@ export function StudyWorkspace() {
                 )}
               </section>
             </>
+          ) : view === "active" ? (
+            <>
+              <header className="study-mode-header">
+                <span className="eyebrow">Study & Learn</span>
+                <h1>{activeMode.label}</h1>
+                <p>{activeMode.description}</p>
+              </header>
+              <section className="study-form-panel" aria-label="Active studies">
+                {plans === null ? <p className="transactions-empty">Loading your active studies...</p> : activePlans.length === 0 ? <p className="transactions-empty">No active study plans yet. Create a study plan to track your progress here.</p> : <div className="study-plans-list">{activePlans.map((plan) => { const progress = studyPlanProgress(plan); return <article className="study-plan-row" key={plan.id}><div className="study-plan-top"><div><h3>{plan.title}</h3><p>{plan.topic || plan.subject || plan.goal || "Study plan"}</p></div><span className="study-plan-status active">Active</span></div><div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.percent} aria-label={`${progress.percent}% of the plan period elapsed`}><span style={{ width: `${progress.percent}%` }} /></div><div className="study-plan-meta"><span>{progress.percent}% · Day {progress.day} of {progress.totalDays}</span><span>Ends {new Date(plan.endDate).toLocaleDateString()}</span></div><div className="study-plan-actions"><Link href={plan.conversationId ? `/chat?conversation=${encodeURIComponent(plan.conversationId)}` : "/study"}>Continue →</Link><button type="button" onClick={() => void completePlan(plan.id)}>Mark completed</button></div></article>; })}</div>}
+              </section>
+            </>
           ) : (
             <>
               <header className="study-mode-header">
@@ -426,10 +451,6 @@ export function StudyWorkspace() {
                 <button className="auth-submit study-submit" type="button" disabled={launching} onClick={() => void startStudy()} aria-label={activeMode.actionLabel}>{launching ? <GoldAILogoLoader size="sm" label={activeMode.loadingLabel} /> : <>{activeMode.actionLabel} <ArrowRight size={15} /></>}</button>
                 <p className="study-action-note"><Sparkles size={14} /> Opens a new Chat session with your study settings applied automatically.</p>
               </section>
-              <section className="study-plans">
-                <div className="section-title"><div><span className="eyebrow">Time progress</span><h2>Your study plans</h2></div><span className="section-rule" /></div>
-                {plans === null ? <p className="transactions-empty">Loading your plans...</p> : plans.length === 0 ? <p className="transactions-empty">No study plans yet. Create one above and its time progress will appear here.</p> : <div className="study-plans-list">{plans.map((plan) => { const progress = studyPlanProgress(plan); const statusLabel = plan.status === "completed" ? "Completed" : progress.status === "expired" ? "Ended" : progress.status === "upcoming" ? "Upcoming" : "Active"; return <article className="study-plan-row" key={plan.id}><div className="study-plan-top"><div><h3>{plan.title}</h3><p>{plan.topic || plan.subject || plan.goal || "Study plan"}</p></div><span className={`study-plan-status ${plan.status !== "completed" && progress.status === "active" ? "active" : ""}`}>{statusLabel}</span></div><div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.percent} aria-label={`${progress.percent}% of the plan period elapsed`}><span style={{ width: `${progress.percent}%` }} /></div><div className="study-plan-meta"><span>{progress.percent}% · Day {progress.day} of {progress.totalDays}</span><span>Ends {new Date(plan.endDate).toLocaleDateString()}</span></div><div className="study-plan-actions"><Link href={plan.conversationId ? `/chat?conversation=${encodeURIComponent(plan.conversationId)}` : "/study"}>Continue →</Link>{plan.status === "active" && progress.status === "active" && <button type="button" onClick={() => void completePlan(plan.id)}>Mark completed</button>}</div></article>; })}</div>}
-              </section>
             </>
           )}
         </main>
@@ -439,7 +460,7 @@ export function StudyWorkspace() {
           <button className="mobile-drawer-overlay" type="button" onClick={() => setDrawerOpen(false)} aria-label="Close study navigation" />
           <aside className="mobile-drawer" role="dialog" aria-modal="true" aria-label="Study modes">
             <div className="mobile-drawer-header"><div className="study-sidebar-brand"><Sparkles size={18} /><span>Study & Learn</span></div><button className="icon-button" type="button" onClick={() => setDrawerOpen(false)} aria-label="Close study navigation"><X size={18} /></button></div>
-            <nav className="study-drawer-nav" aria-label="Study modes"><span className="study-tools-heading">Study & Learn</span>{renderRecentStudiesButton()}<div className="study-tools-divider" />{modes.map((modeItem) => renderModeButton(modeItem, () => selectMode(modeItem.id)))}</nav>
+            <nav className="study-drawer-nav" aria-label="Study modes"><span className="study-tools-heading">Study & Learn</span>{renderRecentStudiesButton()}{renderActiveStudiesButton()}<div className="study-tools-divider" />{modes.map((modeItem) => renderModeButton(modeItem, () => selectMode(modeItem.id)))}</nav>
           </aside>
         </>)}
       </div>
