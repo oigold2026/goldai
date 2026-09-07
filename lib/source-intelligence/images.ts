@@ -2,8 +2,9 @@ import type { WebImage } from "../../types/research";
 
 type GoogleImageItem = { link?: string; image?: { contextLink?: string; thumbnailLink?: string }; title?: string; snippet?: string };
 type GoogleImageResponse = { items?: GoogleImageItem[] };
-type OpenverseResponse = { results?: Array<{ id?: string; title?: string; thumbnail?: string; foreign_landing_url?: string; creator?: string; alt?: string }> };
+type OpenverseResponse = { results?: Array<{ id?: string; title?: string; thumbnail?: string; url?: string; foreign_landing_url?: string; creator?: string; alt?: string }> };
 type CommonsResponse = { query?: { pages?: Record<string, { pageid: number; title: string; imageinfo?: Array<{ thumburl?: string; url?: string }> }> } };
+type WikipediaSummaryResponse = { title?: string; thumbnail?: { source?: string }; content_urls?: { desktop?: { page?: string } } };
 
 export class GoogleImagePermissionError extends Error {}
 
@@ -49,7 +50,19 @@ async function searchOpenverseImages(query: string, limit: number): Promise<WebI
     const response = await fetch(url, { headers: { Accept: "application/json", "User-Agent": "GoldAI/1.0 images" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
     if (!response.ok) return [];
     const data = await response.json() as OpenverseResponse;
-    return (data.results || []).filter((item) => item.thumbnail && item.foreign_landing_url).map((item, index) => ({ id: `openverse-${item.id || index}`, title: item.title || query, url: item.thumbnail!, sourceUrl: item.foreign_landing_url!, alt: item.alt || item.title || query, query, attribution: item.creator }));
+    return (data.results || []).filter((item) => (item.thumbnail || item.url) && item.foreign_landing_url).map((item, index) => ({ id: `openverse-${item.id || index}`, title: item.title || query, url: item.thumbnail || item.url!, sourceUrl: item.foreign_landing_url!, alt: item.alt || item.title || query, query, attribution: item.creator }));
+  } catch { return []; }
+}
+
+async function searchWikipediaImage(query: string): Promise<WebImage[]> {
+  try {
+    const title = encodeURIComponent(query.replace(/\b(portrait|official photo|photo|images?)\b/gi, " ").replace(/\s+/g, " ").trim());
+    const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${title}`, { headers: { Accept: "application/json", "User-Agent": "GoldAI/1.0 images" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
+    if (!response.ok) return [];
+    const data = await response.json() as WikipediaSummaryResponse;
+    const imageUrl = data.thumbnail?.source;
+    const sourceUrl = data.content_urls?.desktop?.page;
+    return imageUrl && sourceUrl ? [{ id: `wikipedia-image-${encodeURIComponent(query)}`, title: data.title || query, url: imageUrl, sourceUrl, alt: data.title || query, query }] : [];
   } catch { return []; }
 }
 
@@ -71,6 +84,8 @@ export async function searchWebVisuals(query: string, limit = 3): Promise<WebIma
   } catch (error) {
     if (error instanceof GoogleImagePermissionError) console.warn("[Gold AI Image Search] Google unavailable; using fallback providers", { query });
   }
-  const [openverseImages, commonsImages] = await Promise.all([searchOpenverseImages(query, limit), searchCommonsImages(query, limit)]);
-  return [...openverseImages, ...commonsImages].slice(0, limit);
+  const [openverseImages, commonsImages, wikipediaImages] = await Promise.all([searchOpenverseImages(query, limit), searchCommonsImages(query, limit), searchWikipediaImage(query)]);
+  const fallbackImages = [...openverseImages, ...commonsImages, ...wikipediaImages].slice(0, limit);
+  console.info("[Gold AI Image Search] fallback results", { query, count: fallbackImages.length });
+  return fallbackImages;
 }
