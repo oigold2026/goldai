@@ -9,6 +9,7 @@ export type ChatMessage = {
   attachments?: MessageAttachment[];
   sources?: ResearchSource[];
   images?: WebImage[];
+  feedback?: "like" | "dislike";
   createdAt: number;
   provider?: "openai" | "gemini";
   model?: string;

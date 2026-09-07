@@ -78,3 +78,8 @@ export async function saveMessage(uid: string, conversationId: string, message: 
   await update(messageRef, payload);
   return savedMessage;
 }
+
+export async function updateMessageFeedback(uid: string, conversationId: string, messageId: string, feedback: ChatMessage["feedback"]) {
+  const { database } = getFirebaseServices();
+  await update(ref(database, `messages/${uid}/${conversationId}/${messageId}`), { feedback: feedback ?? null });
+}

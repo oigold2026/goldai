@@ -10,7 +10,7 @@ import { useAuth } from "./auth-provider";
 import { useProfile } from "./profile-provider";
 import { getFirebaseServices } from "../lib/firebase";
 import { createConversation, deleteConversation, listConversations, updateConversation } from "../lib/chat/conversations";
-import { listMessages, saveMessage } from "../lib/chat/messages";
+import { listMessages, saveMessage, updateMessageFeedback } from "../lib/chat/messages";
 import type { ChatMessage, Conversation } from "../types/chat";
 import type { MessageAttachment } from "../types/multimodal";
 import type { StudyContext } from "../types/study";
@@ -100,7 +100,7 @@ export function ChatWorkspace() {
         const initialConversation = requestedConversation;
         if (initialConversation) {
           setConversation(initialConversation);
-          void listMessages(user.uid, initialConversation.id).then((items) => setMessages(items.map((item) => item.role === "assistant" ? { ...item, content: formatAssistantContent(item.content) } : item))).catch(() => setError("We couldn't load this conversation. Please try again."));
+          void listMessages(user.uid, initialConversation.id).then((items) => { setMessages(items.map((item) => item.role === "assistant" ? { ...item, content: formatAssistantContent(item.content) } : item)); setFeedback(Object.fromEntries(items.filter((item) => item.feedback).map((item) => [item.id, item.feedback!] as const))); }).catch(() => setError("We couldn't load this conversation. Please try again."));
         }
       }).catch(() => { setError("We couldn't load your conversations. Please check your connection and try again."); setLoading(false); });
     });
@@ -113,11 +113,11 @@ export function ChatWorkspace() {
     if (!user) return;
     router.push(`/chat?conversation=${encodeURIComponent(next.id)}`);
     setConversation(next); setDrawerOpen(false); setError(null);
-    try { setMessages((await listMessages(user.uid, next.id)).map((item) => item.role === "assistant" ? { ...item, content: formatAssistantContent(item.content) } : item)); }
+    try { const nextMessages = await listMessages(user.uid, next.id); setMessages(nextMessages.map((item) => item.role === "assistant" ? { ...item, content: formatAssistantContent(item.content) } : item)); setFeedback(Object.fromEntries(nextMessages.filter((item) => item.feedback).map((item) => [item.id, item.feedback!] as const))); }
     catch { setError("We couldn't load this conversation. Please try again."); }
   }
 
-  function startNewChat() { router.push("/chat?new=true"); setConversation(null); setMessages([]); setRetryContent(null); setError(null); setDrawerOpen(false); }
+  function startNewChat() { router.push("/chat?new=true"); setConversation(null); setMessages([]); setFeedback({}); setRetryContent(null); setError(null); setDrawerOpen(false); }
 
   function leaveChat() {
     router.back();
@@ -280,7 +280,12 @@ export function ChatWorkspace() {
 
   function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }
   async function copyMessage(message: ChatMessage) { await navigator.clipboard.writeText(message.content); setCopiedId(message.id); window.setTimeout(() => setCopiedId(null), 1400); }
-  function setMessageFeedback(messageId: string, value: "like" | "dislike") { setFeedback((current) => { const next = { ...current }; if (current[messageId] === value) delete next[messageId]; else next[messageId] = value; return next; }); }
+  function setMessageFeedback(messageId: string, value: "like" | "dislike") {
+    if (!user || !conversation) return;
+    const nextValue = feedback[messageId] === value ? undefined : value;
+    setFeedback((current) => { const next = { ...current }; if (nextValue) next[messageId] = nextValue; else delete next[messageId]; return next; });
+    void updateMessageFeedback(user.uid, conversation.id, messageId, nextValue).catch(() => setError("Unable to save your feedback right now."));
+  }
   async function shareMessage(message: ChatMessage) { const shareData = { title: "Gold AI response", text: message.content }; try { if (navigator.share) await navigator.share(shareData); else { await navigator.clipboard.writeText(message.content); setShareNoticeId(message.id); window.setTimeout(() => setShareNoticeId(null), 1400); } } catch (shareError) { if ((shareError as Error).name !== "AbortError") setError("Unable to share this response."); } }
   async function removeConversation() { if (!user || !conversation || !window.confirm("Delete this conversation?")) return; await deleteConversation(user.uid, conversation.id); setConversations((items) => items.filter((item) => item.id !== conversation.id)); startNewChat(); }
 
