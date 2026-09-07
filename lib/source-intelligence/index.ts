@@ -159,18 +159,10 @@ export async function retrieveSourceIntelligence(query: string, requestId: strin
 function responseVisualQueries(response: string) {
   const cleanResponse = response.replace(/```[\s\S]*?```/g, " ").replace(/https?:\/\/\S+/g, " ").replace(/[*_#`]/g, " ").replace(/\s+/g, " ").trim();
   const unique = (values: string[]) => values.map((value) => value.trim()).filter((value, index, all) => value && all.indexOf(value) === index);
-  const personNames = unique([...cleanResponse.matchAll(/\b(?:King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+[A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*){0,4}/g)].map((match) => match[0]));
-  const namedEntities = unique([...cleanResponse.matchAll(/\b(?:[A-Z][\w'’-]*)(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Uganda|Ugandan)){1,5}/g)].map((match) => match[0])).sort((left, right) => right.length - left.length);
-  const visualNouns = /\b(?:palace|castle|museum|parliament|landmark|monument|cathedral|mosque|church|city|capital|kingdom|country|river|lake|mountain|island|beach|building|stadium|festival|painting|sculpture|animal|bird|plant|tree|flower|car|vehicle|product|logo|flag|uniform|architecture)\b/i;
-  const nounPhrases = unique(cleanResponse.split(/[.!?\n]/).flatMap((sentence) => {
-    const words = sentence.split(/\s+/);
-    return words.map((word, index) => visualNouns.test(word) ? words.slice(Math.max(0, index - 2), index + 2).join(" ") : "");
-  })).slice(0, 2);
-  if (personNames.length > 0) {
-    const subject = personNames[0].replace(/^(King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+/i, "").trim();
-    return [`${subject} portrait`, `site:starsinsider.com ${subject}`, `official photo of ${subject}`, subject];
-  }
-  return unique([...namedEntities.slice(0, 2), ...nounPhrases]).slice(0, 4);
+  const personNames = unique([...cleanResponse.matchAll(/\b(?:King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+[A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*){0,4}/g)].map((match) => match[0].replace(/^(King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+/i, "")));
+  const namedEntities = unique([...cleanResponse.matchAll(/\b[A-Z][\w'’-]*(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Uganda|Ugandan)){1,5}\b/g)].map((match) => match[0])).filter((value) => !personNames.some((person) => value.includes(person)));
+  const visualWords = unique([...cleanResponse.matchAll(/\b(?:palace|castle|museum|parliament|landmark|monument|cathedral|mosque|church|city|capital|kingdom|country|river|lake|mountain|island|beach|building|stadium|festival|painting|sculpture|animal|bird|plant|tree|flower|car|vehicle|product|logo|flag|uniform|architecture)\b/gi)].map((match) => match[0].toLowerCase()));
+  return unique([...personNames, ...namedEntities, ...visualWords]).slice(0, 8);
 }
 
 export async function retrieveImagesForResponse(userQuery: string, response: string, requestId: string): Promise<WebImage[]> {
@@ -178,14 +170,15 @@ export async function retrieveImagesForResponse(userQuery: string, response: str
   if (!plan.imageSearchUseful && !/\b(person|place|landmark|building|animal|plant|product|dancer|group|event|organization|company|mountain|tower|museum|river|lake|city|kingdom|architecture|vehicle|football)\b/i.test(response)) return [];
   const queries = responseVisualQueries(response).filter((query, index, all) => query && all.indexOf(query) === index);
   if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] queries", { requestId, queries });
+  const images: WebImage[] = [];
   for (const query of queries) {
-    const images = await searchWebVisuals(query, 3);
-    if (images.length > 0) {
-      if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] results", { requestId, query, count: images.length });
-      return images;
-    }
+    const queryImages = await searchWebVisuals(query, 3);
+    const newImages = queryImages.filter((image) => !images.some((existing) => existing.url === image.url));
+    images.push(...newImages);
+    if (images.length >= 3) break;
   }
-  return [];
+  if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] results", { requestId, queries, count: images.length });
+  return images.slice(0, 3);
 }
 
 export function sourceContext(sources: ResearchSource[]) {
