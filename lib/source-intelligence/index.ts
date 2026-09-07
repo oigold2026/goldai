@@ -159,10 +159,14 @@ export async function retrieveSourceIntelligence(query: string, requestId: strin
 function responseVisualQueries(response: string) {
   const cleanResponse = response.replace(/```[\s\S]*?```/g, " ").replace(/https?:\/\/\S+/g, " ").replace(/[*_#`]/g, " ").replace(/\s+/g, " ").trim();
   const unique = (values: string[]) => values.map((value) => value.trim()).filter((value, index, all) => value && all.indexOf(value) === index);
-  const personNames = unique([...cleanResponse.matchAll(/\b(?:King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+[A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*){0,4}/g)].map((match) => match[0].replace(/^(King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+/i, "")));
-  const namedEntities = unique([...cleanResponse.matchAll(/\b[A-Z][\w'’-]*(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Uganda|Ugandan)){1,5}\b/g)].map((match) => match[0])).filter((value) => !personNames.some((person) => value.includes(person)));
+  const personNames = unique([
+    ...[...cleanResponse.matchAll(/\b(?:King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+[A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*){0,4}/g)].map((match) => match[0].replace(/^(King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+/i, "")),
+    ...[...cleanResponse.matchAll(/\b[A-Z][\w'’-]+\s+[A-Z][\w'’-]+(?:\s+[A-Z][\w'’-]+)?\b/g)].map((match) => match[0]),
+  ]).filter((value) => !/^(Overview|Key Facts|Other Companies|Founder Of|As Of|In March|The United|United States|New York)\b/i.test(value));
+  const singleNamedEntities = [...cleanResponse.matchAll(/\b[A-Z][a-z][\w'’-]{2,}\b(?=\s+(?:is|was|are|was|refers|stands|located|known|served|founded)\b)/g)].map((match) => match[0]);
+  const namedEntities = unique([...personNames, ...singleNamedEntities, ...[...cleanResponse.matchAll(/\b[A-Z][\w'’-]*(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Uganda|Ugandan)){1,5}\b/g)].map((match) => match[0])).filter((value) => !/^(Overview|Key Facts|Other Companies|Founder Of|As Of|In March|The United|United States|New York)\b/i.test(value));
   const visualWords = unique([...cleanResponse.matchAll(/\b(?:palace|castle|museum|parliament|landmark|monument|cathedral|mosque|church|city|capital|kingdom|country|river|lake|mountain|island|beach|building|stadium|festival|painting|sculpture|animal|bird|plant|tree|flower|car|vehicle|product|logo|flag|uniform|architecture)\b/gi)].map((match) => match[0].toLowerCase()));
-  return unique([...personNames, ...namedEntities, ...visualWords]).slice(0, 8);
+  return unique([...personNames, ...singleNamedEntities, ...namedEntities, ...visualWords]).slice(0, 8);
 }
 
 export async function retrieveImagesForResponse(userQuery: string, response: string, requestId: string): Promise<WebImage[]> {
