@@ -158,13 +158,19 @@ export async function retrieveSourceIntelligence(query: string, requestId: strin
 
 function responseVisualQueries(response: string) {
   const cleanResponse = response.replace(/```[\s\S]*?```/g, " ").replace(/https?:\/\/\S+/g, " ").replace(/[*_#`]/g, " ").replace(/\s+/g, " ").trim();
-  const personNames = [...cleanResponse.matchAll(/\b(?:King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+[A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*){0,4}/g)].map((match) => match[0].trim()).filter((value, index, values) => values.indexOf(value) === index);
-  const namedEntities = [...cleanResponse.matchAll(/\b(?:[A-Z][\w'’-]*)(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Uganda|Ugandan)){1,6}/g)].map((match) => match[0].trim()).filter((value, index, values) => values.indexOf(value) === index).sort((left, right) => right.length - left.length);
-  const responseSubject = namedEntities[0] || cleanResponse.split(/[.!?\n]/)[0].slice(0, 120).trim();
-  const subject = visualSubject(personNames[0] || responseSubject) || personNames[0] || responseSubject;
-  if (!subject) return [];
-  if (personNames.length > 0) return [`portrait of ${subject}`, `official portrait of ${subject}`, subject];
-  return [subject];
+  const unique = (values: string[]) => values.map((value) => value.trim()).filter((value, index, all) => value && all.indexOf(value) === index);
+  const personNames = unique([...cleanResponse.matchAll(/\b(?:King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+[A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*){0,4}/g)].map((match) => match[0]));
+  const namedEntities = unique([...cleanResponse.matchAll(/\b(?:[A-Z][\w'’-]*)(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Uganda|Ugandan)){1,5}/g)].map((match) => match[0])).sort((left, right) => right.length - left.length);
+  const visualNouns = /\b(?:palace|castle|museum|parliament|landmark|monument|cathedral|mosque|church|city|capital|kingdom|country|river|lake|mountain|island|beach|building|stadium|festival|painting|sculpture|animal|bird|plant|tree|flower|car|vehicle|product|logo|flag|uniform|architecture)\b/i;
+  const nounPhrases = unique(cleanResponse.split(/[.!?\n]/).flatMap((sentence) => {
+    const words = sentence.split(/\s+/);
+    return words.map((word, index) => visualNouns.test(word) ? words.slice(Math.max(0, index - 2), index + 2).join(" ") : "");
+  })).slice(0, 2);
+  if (personNames.length > 0) {
+    const subject = personNames[0].replace(/^(King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+/i, "").trim();
+    return [`${subject} portrait`, `site:starsinsider.com ${subject}`, `official photo of ${subject}`, subject];
+  }
+  return unique([...namedEntities.slice(0, 2), ...nounPhrases]).slice(0, 4);
 }
 
 export async function retrieveImagesForResponse(userQuery: string, response: string, requestId: string): Promise<WebImage[]> {

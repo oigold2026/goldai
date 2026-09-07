@@ -1,58 +1,30 @@
 import type { WebImage } from "../../types/research";
 
-type WikimediaPage = {
-  pageid: number;
-  title: string;
-  imageinfo?: Array<{
-    thumburl?: string;
-    url?: string;
-    extmetadata?: { Artist?: { value?: string } };
-  }>;
-};
-
-type WikimediaResponse = { query?: { pages?: Record<string, WikimediaPage> } };
-
 type OpenverseImage = { id?: string; title?: string; thumbnail?: string; url?: string; foreign_landing_url?: string; creator?: string; alt?: string };
 type OpenverseResponse = { results?: OpenverseImage[] };
 
-const stopWords = new Set(["what", "who", "where", "when", "tell", "about", "show", "me", "image", "images", "picture", "pictures", "photo", "photos", "official", "relevant", "visual", "the", "and", "for", "with", "from", "this", "that", "current", "latest", "recent", "news", "information"]);
+type NewsImageItem = { title: string; link: string; imageUrl: string; publisher?: string };
 
-function subjectTerms(query: string) {
-  return query.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter((term) => term.length > 2 && !stopWords.has(term));
+function decodeXml(value: string) {
+  return value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
 }
 
-function imageRelevance(query: string, page: WikimediaPage, image: NonNullable<WikimediaPage["imageinfo"]>[number]) {
-  const terms = subjectTerms(query);
-  const haystack = `${page.title} ${image.extmetadata?.Artist?.value || ""}`.toLowerCase();
-  const matched = terms.filter((term) => haystack.includes(term));
-  const score = terms.length === 0 ? 0 : matched.length / terms.length;
-  const distinctiveMatch = matched.length > 0;
-  return { score, distinctiveMatch };
+function newsImageItems(xml: string, limit: number): NewsImageItem[] {
+  return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].slice(0, limit * 3).map((match) => {
+    const item = match[1];
+    const read = (tag: string) => decodeXml(item.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "i"))?.[1] || "").trim();
+    const link = read("link");
+    const mediaUrl = item.match(/<(?:media:content|media:thumbnail|enclosure)[^>]+url=["']([^"']+)["']/i)?.[1] || item.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
+    return { title: read("title"), link, imageUrl: decodeXml(mediaUrl), publisher: read("source") };
+  }).filter((item) => /^https?:\/\//i.test(item.link) && /^https?:\/\//i.test(item.imageUrl));
 }
 
-export async function searchWikimediaVisuals(query: string, limit = 3): Promise<WebImage[]> {
+export async function searchGoogleNewsVisuals(query: string, limit = 3): Promise<WebImage[]> {
   try {
-    const url = new URL("https://commons.wikimedia.org/w/api.php");
-    url.search = new URLSearchParams({ action: "query", generator: "search", gsrsearch: query, gsrnamespace: "6", gsrlimit: String(limit), prop: "imageinfo", iiprop: "url|extmetadata", iiurlwidth: "720", format: "json", origin: "*" }).toString();
-    const response = await fetch(url, { headers: { Accept: "application/json", "User-Agent": "GoldAI/1.0 images" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
+    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(`${query} (photo OR portrait OR images)`)}&hl=en-US&gl=US&ceid=US:en`;
+    const response = await fetch(url, { headers: { Accept: "application/rss+xml, application/xml", "User-Agent": "GoldAI/1.0 images" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
     if (!response.ok) return [];
-    const data = await response.json() as WikimediaResponse;
-    const images: WebImage[] = [];
-    for (const page of Object.values(data.query?.pages || {})) {
-      const image = page.imageinfo?.[0];
-      const imageUrl = image?.thumburl || image?.url;
-      if (!imageUrl) continue;
-      const relevance = imageRelevance(query, page, image);
-      if (!relevance.distinctiveMatch || relevance.score < (subjectTerms(query).length <= 1 ? 1 : 0.34)) {
-        if (process.env.NODE_ENV !== "production") console.info("[Gold AI Image Search] rejected", { query, candidate: page.title, relevanceScore: relevance.score });
-        continue;
-      }
-      const result: WebImage = { id: `commons-${page.pageid}`, title: page.title.replace(/^File:/, ""), url: imageUrl, sourceUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replaceAll(" ", "_"))}`, alt: page.title.replace(/^File:/, ""), query, relevanceScore: relevance.score };
-      const attribution = image.extmetadata?.Artist?.value?.replace(/<[^>]+>/g, "");
-      if (attribution) result.attribution = attribution;
-      images.push(result);
-    }
-    return images;
+    return newsImageItems(await response.text(), limit).map((item, index) => ({ id: `google-news-image-${index}-${encodeURIComponent(query)}`, title: item.title || query, url: item.imageUrl, sourceUrl: item.link, alt: item.title || query, query, attribution: item.publisher }));
   } catch {
     return [];
   }
@@ -80,9 +52,9 @@ export async function searchOpenverseVisuals(query: string, limit = 3): Promise<
 }
 
 export async function searchWebVisuals(query: string, limit = 3): Promise<WebImage[]> {
-  const [wikimedia, openverse] = await Promise.all([
-    searchWikimediaVisuals(query, limit),
+  const [news, openverse] = await Promise.all([
+    searchGoogleNewsVisuals(query, limit),
     searchOpenverseVisuals(query, limit),
   ]);
-  return [...wikimedia, ...openverse].slice(0, limit);
+  return [...news, ...openverse].slice(0, limit);
 }
