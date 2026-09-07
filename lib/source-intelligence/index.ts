@@ -156,18 +156,21 @@ export async function retrieveSourceIntelligence(query: string, requestId: strin
   return { plan, sources, images };
 }
 
-function responseVisualQuery(response: string) {
+function responseVisualQueries(response: string) {
   const cleanResponse = response.replace(/```[\s\S]*?```/g, " ").replace(/https?:\/\/\S+/g, " ").replace(/[*_#`]/g, " ").replace(/\s+/g, " ").trim();
-  const namedEntities = [...cleanResponse.matchAll(/\b(?:[A-Z][\w'’-]*)(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Kingdom|Uganda|Ugandan)){1,6}/g)].map((match) => match[0].trim()).filter((value, index, values) => values.indexOf(value) === index).sort((left, right) => right.length - left.length);
+  const personNames = [...cleanResponse.matchAll(/\b(?:King|Queen|President|Prime Minister|Chief|Dr\.?|Professor|Sir|Dame|Prince|Princess)\s+[A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*){0,4}/g)].map((match) => match[0].trim()).filter((value, index, values) => values.indexOf(value) === index);
+  const namedEntities = [...cleanResponse.matchAll(/\b(?:[A-Z][\w'’-]*)(?:\s+(?:[A-Z][\w'’-]*|of|the|Kingdom|King|Uganda|Ugandan)){1,6}/g)].map((match) => match[0].trim()).filter((value, index, values) => values.indexOf(value) === index).sort((left, right) => right.length - left.length);
   const responseSubject = namedEntities[0] || cleanResponse.split(/[.!?\n]/)[0].slice(0, 120).trim();
-  return visualSubject(responseSubject) || responseSubject;
+  const subject = visualSubject(personNames[0] || responseSubject) || personNames[0] || responseSubject;
+  if (!subject) return [];
+  if (personNames.length > 0) return [`portrait of ${subject}`, `official portrait of ${subject}`, subject];
+  return [subject];
 }
 
 export async function retrieveImagesForResponse(userQuery: string, response: string, requestId: string): Promise<WebImage[]> {
   const plan = planSourceQuery(userQuery);
   if (!plan.imageSearchUseful && !/\b(person|place|landmark|building|animal|plant|product|dancer|group|event|organization|company|mountain|tower|museum|river|lake|city|kingdom|architecture|vehicle|football)\b/i.test(response)) return [];
-  const responseSubject = responseVisualQuery(response);
-  const queries = [responseSubject].filter((query, index, all) => query && all.indexOf(query) === index);
+  const queries = responseVisualQueries(response).filter((query, index, all) => query && all.indexOf(query) === index);
   if (process.env.NODE_ENV !== "production") console.info("[GoldAI Image Pipeline] queries", { requestId, queries });
   for (const query of queries) {
     const images = await searchWebVisuals(query, 3);
