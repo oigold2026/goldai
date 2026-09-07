@@ -12,6 +12,9 @@ type WikimediaPage = {
 
 type WikimediaResponse = { query?: { pages?: Record<string, WikimediaPage> } };
 
+type OpenverseImage = { id?: string; title?: string; thumbnail?: string; url?: string; foreign_landing_url?: string; creator?: string; alt?: string };
+type OpenverseResponse = { results?: OpenverseImage[] };
+
 const stopWords = new Set(["what", "who", "where", "when", "tell", "about", "show", "me", "image", "images", "picture", "pictures", "photo", "photos", "official", "relevant", "visual", "the", "and", "for", "with", "from", "this", "that", "current", "latest", "recent", "news", "information"]);
 
 function subjectTerms(query: string) {
@@ -53,4 +56,33 @@ export async function searchWikimediaVisuals(query: string, limit = 3): Promise<
   } catch {
     return [];
   }
+}
+
+export async function searchOpenverseVisuals(query: string, limit = 3): Promise<WebImage[]> {
+  try {
+    const url = new URL("https://api.openverse.org/v1/images/");
+    url.search = new URLSearchParams({ q: query, page_size: String(limit), mature: "false" }).toString();
+    const response = await fetch(url, { headers: { Accept: "application/json", "User-Agent": "GoldAI/1.0 images" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
+    if (!response.ok) return [];
+    const data = await response.json() as OpenverseResponse;
+    return (data.results || []).filter((image) => image.thumbnail && image.url && image.foreign_landing_url).map((image, index) => ({
+      id: `openverse-${image.id || index}-${encodeURIComponent(query)}`,
+      title: image.title || query,
+      url: image.thumbnail!,
+      sourceUrl: image.foreign_landing_url!,
+      alt: image.alt || image.title || query,
+      query,
+      attribution: image.creator || undefined,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function searchWebVisuals(query: string, limit = 3): Promise<WebImage[]> {
+  const [wikimedia, openverse] = await Promise.all([
+    searchWikimediaVisuals(query, limit),
+    searchOpenverseVisuals(query, limit),
+  ]);
+  return [...wikimedia, ...openverse].slice(0, limit);
 }
