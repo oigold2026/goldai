@@ -69,9 +69,8 @@ export function StudyWorkspace() {
   const searchParams = useSearchParams();
 
   const [mode, setMode] = useState<StudyAction>("explain");
-  const [view, setView] = useState<"recent" | "tools" | "select-action">("recent");
+  const [view, setView] = useState<"recent" | "tools">("recent");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedRecentStudy, setSelectedRecentStudy] = useState<StudyActivity | null>(null);
 
   // Shared inputs. Subject is derived from the profile unless the learner overrides it.
   const [topic, setTopic] = useState("");
@@ -217,31 +216,27 @@ export function StudyWorkspace() {
     setView("tools");
     setError(null);
     setDrawerOpen(false);
-    setSelectedRecentStudy(null);
   }
 
   function selectRecent() {
     setView("recent");
-    setSelectedRecentStudy(null);
     setDrawerOpen(false);
   }
 
-  function openRecentStudyActionSelection(study: StudyActivity) {
-    setSelectedRecentStudy(study);
-    setView("select-action");
-    setDrawerOpen(false);
+  function continueRecentStudy(study: StudyActivity) {
+    if (!study.conversationId) {
+      setError("This study does not have a saved Chat conversation.");
+      return;
+    }
+    void token().then((idToken) => fetch(`/api/study/${encodeURIComponent(study.id)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+      body: JSON.stringify({ lastAccessed: true }),
+    })).catch(() => { /* Opening Chat should not be blocked by activity timestamp updates. */ });
+    router.push(`/chat?conversation=${encodeURIComponent(study.conversationId)}`);
   }
 
-  function startStudyFromRecent(selectedMode: StudyAction) {
-    if (!selectedRecentStudy) return;
-    setMode(selectedMode);
-    setTopic(selectedRecentStudy.topic || "");
-    setSubjectOverride(selectedRecentStudy.subject || null);
-    setView("tools");
-    setSelectedRecentStudy(null);
-  }
-
-  const activeMode = view === "recent" ? recentMode : view === "select-action" ? { ...recentMode, label: "Select a learning mode", description: "Choose how you'd like to study this topic" } : modes.find((item) => item.id === mode) || modes[0];
+  const activeMode = view === "recent" ? recentMode : modes.find((item) => item.id === mode) || modes[0];
   const visibleRecentStudies = (recentStudies || []).slice(0, 5);
   const pendingDeleteStudy = pendingDelete ? (recentStudies || []).find((study) => study.id === pendingDelete) ?? null : null;
 
@@ -400,54 +395,18 @@ export function StudyWorkspace() {
                     {(recentStudies || []).map((study) => (
                       <article className="recent-study-card" key={study.id}>
                         <div className="recent-study-card-content">
-                          <button className="recent-study-card-main" type="button" onClick={() => openRecentStudyActionSelection(study)} aria-label={`Continue studying ${study.title || study.topic || study.action}`}>
+                          <button className="recent-study-card-main" type="button" onClick={() => continueRecentStudy(study)} aria-label={`Continue studying ${study.title || study.topic || study.action}`}>
                             <h3>{study.title || study.topic || studyTypeLabel(study.action)}</h3>
                             <p>{studyTypeLabel(study.action)}</p>
                             <span className="recent-study-card-time">Last studied: {relativeTime(study.lastAccessedAt ?? study.createdAt)}</span>
                           </button>
                           <button className="icon-button recent-study-card-delete" type="button" onClick={(e) => { e.stopPropagation(); setPendingDelete(study.id); }} aria-label="Delete recent study" title="Delete recent study"><Trash2 size={16} /></button>
                         </div>
-                        <button className="recent-study-card-continue" type="button" onClick={() => openRecentStudyActionSelection(study)}>Continue <ArrowRight size={14} /></button>
+                        <button className="recent-study-card-continue" type="button" onClick={() => continueRecentStudy(study)}>Continue <ArrowRight size={14} /></button>
                       </article>
                     ))}
                   </div>
                 )}
-              </section>
-            </>
-          ) : view === "select-action" ? (
-            <>
-              <header className="study-mode-header">
-                <span className="eyebrow">Study & Learn</span>
-                <h1>{selectedRecentStudy?.title || selectedRecentStudy?.topic || "Select a learning mode"}</h1>
-                <p>What would you like to do with this topic?</p>
-              </header>
-              <section className="study-form-panel" aria-label="Select a learning mode">
-                <div className="study-action-grid">
-                  {modes.map((modeItem) => {
-                    const Icon = modeItem.icon;
-                    return (
-                      <button
-                        key={modeItem.id}
-                        type="button"
-                        className="study-action-card"
-                        onClick={() => startStudyFromRecent(modeItem.id)}
-                        aria-label={`Start ${modeItem.label.toLowerCase()}`}
-                      >
-                        <span className="study-action-icon"><Icon size={24} /></span>
-                        <strong>{modeItem.label}</strong>
-                        <small>{modeItem.description}</small>
-                      </button>
-                    );
-                  })}
-                </div>
-                <button
-                  className="auth-secondary"
-                  type="button"
-                  onClick={selectRecent}
-                  style={{ marginTop: "28px" }}
-                >
-                  ← Back to Recent Studies
-                </button>
               </section>
             </>
           ) : (
