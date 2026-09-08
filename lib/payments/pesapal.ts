@@ -7,9 +7,10 @@ import type { PaymentRecord, PaymentStatus } from "../../types/payments";
 
 const sandboxUrl = "https://cybqa.pesapal.com/pesapalv3";
 const productionUrl = "https://pay.pesapal.com/v3";
+const externalRequestTimeoutMs = 45_000;
 
 type PesaPalEnvironment = "sandbox" | "live";
-type PesaPalConfig = { baseUrl: string; environment: PesaPalEnvironment; key: string; secret: string; ipnUrl: string };
+type PesaPalConfig = { baseUrl: string; environment: PesaPalEnvironment; key: string; secret: string; ipnUrl: string; callbackUrl: string };
 type PesaPalStatus = { payment_status_description?: string; payment_status_code?: number | string; status_code?: number | string };
 export class PaymentServiceError extends Error { constructor(message: string, public readonly status: 400 | 502 | 503 | 500) { super(message); } }
 class PesaPalApiError extends PaymentServiceError { constructor(message: string, status: 502 | 503, public readonly providerStatus: number, public readonly providerMessage?: unknown) { super(message, status); } }
@@ -52,14 +53,18 @@ function config(): PesaPalConfig {
   const environment: PesaPalEnvironment = requestedEnvironment === "live" || baseEnvironment === "live" ? "live" : "sandbox";
   const expectedHostname = environment === "live" ? new URL(productionUrl).hostname : new URL(sandboxUrl).hostname;
   if (parsedBaseUrl.hostname !== expectedHostname) throw new PaymentServiceError("PESAPAL_ENVIRONMENT and PESAPAL_BASE_URL do not match.", 500);
-  return { baseUrl, environment, key, secret, ipnUrl };
+  return { baseUrl, environment, key, secret, ipnUrl, callbackUrl: new URL("/api/payments/pesapal/callback", ipnUrl).toString() };
+}
+
+function indexKey(value: string) {
+  return encodeURIComponent(value.trim());
 }
 
 async function pesapalRequest<T>(path: string, init: RequestInit, token?: string) {
   const settings = config();
   let response: Response;
   try {
-    response = await fetch(`${settings.baseUrl.replace(/\/$/, "")}${path}`, { ...init, headers: { Accept: "application/json", "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init.headers } });
+    response = await fetch(`${settings.baseUrl.replace(/\/$/, "")}${path}`, { ...init, signal: AbortSignal.timeout(externalRequestTimeoutMs), headers: { Accept: "application/json", "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init.headers } });
   } catch (error) {
     console.error("Gold AI PesaPal network request failed", { path, environment: settings.environment, hostname: new URL(settings.baseUrl).hostname, error: error instanceof Error ? error.message : "unknown error" });
     throw new PaymentServiceError("PesaPal service is unavailable.", 503);
@@ -105,16 +110,24 @@ export async function createPesapalPayment(uid: string, packageId: string, custo
   const merchantReference = `GOLD-${randomUUID().replaceAll("-", "").slice(0, 20).toUpperCase()}`;
   const now = Date.now();
   const payment: PaymentRecord = { id: paymentId, userId: uid, packageId: creditPackage.id, amount: creditPackage.amount, currency: creditPackage.currency, credits: creditPackage.credits, status: "pending", merchantReference, createdAt: now, updatedAt: now };
-  await database.ref(`payments/${uid}/${paymentId}`).set(payment);
+  await database.ref().update({
+    [`payments/${uid}/${paymentId}`]: payment,
+    [`paymentById/${indexKey(paymentId)}`]: { userId: uid, paymentId },
+    [`paymentByReference/${indexKey(merchantReference)}`]: { userId: uid, paymentId },
+  });
   console.info("Gold AI pending payment record created", { uid, paymentId });
   try {
     const token = await requestToken();
     const configuredIpnId = process.env.PESAPAL_IPN_ID?.trim();
     const ipn = configuredIpnId ? { ipn_id: configuredIpnId } : await pesapalRequest<{ ipn_id?: string }>("/api/URLSetup/RegisterIPN", { method: "POST", body: JSON.stringify({ url: settings.ipnUrl, ipn_notification_type: "POST" }) }, token);
     if (!ipn.ipn_id) throw new PaymentServiceError("PesaPal notification setup failed.", 502);
-    const order = await pesapalRequest<{ order_tracking_id?: string; redirect_url?: string }>("/api/Transactions/SubmitOrderRequest", { method: "POST", body: JSON.stringify({ id: merchantReference, currency: creditPackage.currency, amount: creditPackage.amount, description: `${creditPackage.name} credit package`, callback_url: settings.ipnUrl, notification_id: ipn.ipn_id, billing_address: { email_address: customer.email, first_name: customer.firstName || "Gold AI", last_name: customer.lastName || "User", phone_number: customer.phone || undefined } }) }, token);
+    const order = await pesapalRequest<{ order_tracking_id?: string; redirect_url?: string }>("/api/Transactions/SubmitOrderRequest", { method: "POST", body: JSON.stringify({ id: merchantReference, currency: creditPackage.currency, amount: creditPackage.amount, description: `${creditPackage.name} credit package`, callback_url: settings.callbackUrl, notification_id: ipn.ipn_id, billing_address: { email_address: customer.email, first_name: customer.firstName || "Gold AI", last_name: customer.lastName || "User", phone_number: customer.phone || undefined } }) }, token);
     if (!order.order_tracking_id || !order.redirect_url) throw new PaymentServiceError("PesaPal did not provide a checkout link.", 502);
-    await database.ref(`payments/${uid}/${paymentId}`).update({ pesapalOrderTrackingId: order.order_tracking_id, updatedAt: Date.now() });
+    await database.ref().update({
+      [`payments/${uid}/${paymentId}/pesapalOrderTrackingId`]: order.order_tracking_id,
+      [`payments/${uid}/${paymentId}/updatedAt`]: Date.now(),
+      [`paymentByTrackingId/${indexKey(order.order_tracking_id)}`]: { userId: uid, paymentId },
+    });
     return { success: true, paymentId, redirectUrl: order.redirect_url };
   } catch (error) {
     await database.ref(`payments/${uid}/${paymentId}`).update({ status: "failed", updatedAt: Date.now() });
@@ -131,10 +144,9 @@ export async function verifyAndCompletePayment(paymentId: string, trackingId?: s
   const { database } = getFirebaseAdmin();
   let uid = "";
   let record: PaymentRecord | null = null;
-  const paymentsSnapshot = await database.ref("payments").once("value");
-  for (const [candidateUid, candidatePayments] of Object.entries((paymentsSnapshot.val() || {}) as Record<string, Record<string, PaymentRecord>>)) {
-    if (candidatePayments[paymentId]) { uid = candidateUid; record = candidatePayments[paymentId]; break; }
-  }
+  const paymentIndex = (await database.ref(`paymentById/${indexKey(paymentId)}`).once("value")).val() as { userId?: string } | null;
+  uid = paymentIndex?.userId || "";
+  if (uid) record = (await database.ref(`payments/${uid}/${paymentId}`).once("value")).val() as PaymentRecord | null;
   if (!uid || !record) throw new Error("Payment not found.");
   const actualTrackingId = trackingId || record.pesapalOrderTrackingId;
   if (!actualTrackingId) throw new Error("Payment tracking information is missing.");
@@ -158,7 +170,7 @@ export async function verifyAndCompletePayment(paymentId: string, trackingId?: s
   const completedPayment = { ...record, status: "completed" as const, pesapalOrderTrackingId: actualTrackingId, pesapalStatus: providerStatus.payment_status_description || "Completed", updatedAt: Date.now() };
   if (allocated) {
     const updatedAccount = (await accountRef.once("value")).val() as CreditAccount;
-    const transactionId = randomUUID();
+    const transactionId = `purchase_${paymentId}`;
     const transaction: CreditTransaction = { id: transactionId, type: "purchase", amount: record.credits, balanceAfter: updatedAccount.balance, source: "pesapal", description: `${record.credits} credits purchased`, reference: paymentId, createdAt: Date.now() };
     await database.ref().update({ [`payments/${uid}/${paymentId}`]: completedPayment, [`creditTransactions/${uid}/${transactionId}`]: transaction });
   } else {
@@ -169,22 +181,18 @@ export async function verifyAndCompletePayment(paymentId: string, trackingId?: s
 
 export async function findPaymentByReference(merchantReference: string) {
   const { database } = getFirebaseAdmin();
-  const snapshot = await database.ref("payments").once("value");
-  for (const [uid, candidatePayments] of Object.entries((snapshot.val() || {}) as Record<string, Record<string, PaymentRecord>>)) {
-    const payment = Object.values(candidatePayments).find((candidate) => candidate.merchantReference === merchantReference);
-    if (payment) return { uid, payment };
-  }
-  return null;
+  const index = (await database.ref(`paymentByReference/${indexKey(merchantReference)}`).once("value")).val() as { userId?: string; paymentId?: string } | null;
+  if (!index?.userId || !index.paymentId) return null;
+  const payment = (await database.ref(`payments/${index.userId}/${index.paymentId}`).once("value")).val() as PaymentRecord | null;
+  return payment ? { uid: index.userId, payment } : null;
 }
 
 export async function findPaymentByTrackingId(trackingId: string) {
   const { database } = getFirebaseAdmin();
-  const snapshot = await database.ref("payments").once("value");
-  for (const [uid, candidatePayments] of Object.entries((snapshot.val() || {}) as Record<string, Record<string, PaymentRecord>>)) {
-    const payment = Object.values(candidatePayments).find((candidate) => candidate.pesapalOrderTrackingId === trackingId);
-    if (payment) return { uid, payment };
-  }
-  return null;
+  const index = (await database.ref(`paymentByTrackingId/${indexKey(trackingId)}`).once("value")).val() as { userId?: string; paymentId?: string } | null;
+  if (!index?.userId || !index.paymentId) return null;
+  const payment = (await database.ref(`payments/${index.userId}/${index.paymentId}`).once("value")).val() as PaymentRecord | null;
+  return payment ? { uid: index.userId, payment } : null;
 }
 
 export async function listPayments(uid: string) {

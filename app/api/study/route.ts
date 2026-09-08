@@ -60,12 +60,12 @@ export async function POST(request: Request) {
     try {
       const profile = await loadAIProfile(uid, idToken);
       const response = await generateAIResponse({ message: actionPrompts[parsed.data.action](parsed.data), language: profile?.preferredLanguage, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
+      const activity = await recordStudyActivity(uid, { action: parsed.data.action, subject: parsed.data.subject, topic: parsed.data.topic });
       const finalized = await finalizeCredits(uid, requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, cost);
       if (!finalized) {
         await refundReservedCredits(uid, requestId).catch(() => undefined);
         throw new Error("Credit ledger finalization failed after study generation.");
       }
-      const activity = await recordStudyActivity(uid, { action: parsed.data.action, subject: parsed.data.subject, topic: parsed.data.topic });
       return Response.json({ ...response, activity, creditsConsumed: cost, balance: reservation.account?.balance });
     } catch (providerError) {
       await refundReservedCredits(uid, requestId);

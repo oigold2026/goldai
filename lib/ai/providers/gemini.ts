@@ -11,7 +11,12 @@ export function createGeminiProvider(): AIProvider {
       (modelConfig as typeof modelConfig & { tools?: unknown[] }).tools = [{ googleSearchRetrieval: { dynamicRetrievalConfig: { mode: "MODE_DYNAMIC", dynamicThreshold: 0.3 } } }];
     }
     const model = client.getGenerativeModel(modelConfig);
-    const imageParts = await Promise.all((attachments || []).filter((attachment) => attachment.fileType === "image").map(async (attachment) => { const response = await fetch(attachment.url); const bytes = Buffer.from(await response.arrayBuffer()).toString("base64"); return { inlineData: { data: bytes, mimeType: attachment.mimeType } }; }));
+    const imageParts = await Promise.all((attachments || []).filter((attachment) => attachment.fileType === "image").map(async (attachment) => {
+      const response = await fetch(attachment.url, { signal: AbortSignal.timeout(30_000) });
+      if (!response.ok) throw new Error(`Unable to load image attachment (${response.status}).`);
+      const bytes = Buffer.from(await response.arrayBuffer()).toString("base64");
+      return { inlineData: { data: bytes, mimeType: attachment.mimeType } };
+    }));
     const result = await model.generateContent([{ text: message }, ...imageParts]);
     const response = result.response;
     const usage = response.usageMetadata;

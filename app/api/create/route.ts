@@ -46,12 +46,12 @@ export async function POST(request: Request) {
     try {
       const profile = await loadAIProfile(uid, idToken);
       const response = await generateAIResponse({ message: buildPrompt(type.value, parsed.data.prompt, parsed.data.instructions, parsed.data.action === "improve" || parsed.data.action === "regenerate" ? parsed.data.content || current?.content : undefined), language: profile?.preferredLanguage, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
+      const creation = current ? (await updateCreation(uid, current.id, response.text), { ...current, content: response.text, updatedAt: Date.now(), creditsUsed: current.creditsUsed + creditConfig.featureCosts.create }) : await saveCreation(uid, { type: type.value, prompt: parsed.data.prompt, instructions: parsed.data.instructions, content: response.text, creditsUsed: creditConfig.featureCosts.create });
       const finalized = await finalizeCredits(uid, requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditConfig.featureCosts.create);
       if (!finalized) {
         await refundReservedCredits(uid, requestId).catch(() => undefined);
         throw new Error("Credit ledger finalization failed after generation.");
       }
-      const creation = current ? (await updateCreation(uid, current.id, response.text), { ...current, content: response.text, updatedAt: Date.now(), creditsUsed: current.creditsUsed + creditConfig.featureCosts.create }) : await saveCreation(uid, { type: type.value, prompt: parsed.data.prompt, instructions: parsed.data.instructions, content: response.text, creditsUsed: creditConfig.featureCosts.create });
       return Response.json({ creation, provider: response.provider, model: response.model, creditsConsumed: creditConfig.featureCosts.create });
     } catch (generationError) { await refundReservedCredits(uid, requestId); throw generationError; }
   } catch (error) { if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to create content." }, { status: 401 }); console.error("Gold AI create request failed", { uid: uid || "anonymous", requestId: requestId || "unknown", error: error instanceof Error ? error.message : "unknown error" }); return Response.json({ error: "Gold AI could not create that content right now. Please try again." }, { status: 503 }); }

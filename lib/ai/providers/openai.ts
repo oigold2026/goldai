@@ -5,7 +5,7 @@ import type { AIProvider } from "../types";
 export function createOpenAIProvider(): AIProvider {
   return { name: "openai", async generateResponse({ systemInstruction, message, attachments }) {
     if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured.");
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 45_000, maxRetries: 1 });
     const userContent = attachments?.length ? [{ type: "text" as const, text: message }, ...attachments.filter((attachment) => attachment.fileType === "image").map((attachment) => ({ type: "image_url" as const, image_url: { url: attachment.url } }))] : message;
     const completion = await client.chat.completions.create({ model: aiConfig.openaiModel, messages: [{ role: "system", content: systemInstruction }, { role: "user", content: userContent }] });
     const choice = completion.choices[0];
