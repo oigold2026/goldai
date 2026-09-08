@@ -1,0 +1,2000 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Product | Kanye Series</title>
+
+<meta
+    name="description"
+    content="Product details from Kanye Series."
+>
+<meta name="theme-color" content="#1e3a8a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kanye Series">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./images/logo.png">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+>
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/aos@2.3.4/dist/aos.css"
+>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script defer src="./js/pwa.js"></script>
+
+<style>
+
+html {
+    scroll-behavior: smooth;
+}
+
+.product-main-image {
+    transition:
+        opacity .25s ease,
+        transform .3s ease;
+}
+
+.product-main-image.fade {
+    opacity: .35;
+}
+
+.product-thumbnail {
+    transition:
+        transform .2s ease,
+        border-color .2s ease,
+        opacity .2s ease;
+}
+
+.product-thumbnail:hover {
+    transform: translateY(-2px);
+}
+
+.product-thumbnail.active {
+    border-color: #1d4ed8;
+    box-shadow:
+        0 0 0 2px rgba(29, 78, 216, .15);
+}
+
+.product-thumbnail img {
+    transition: transform .25s ease;
+}
+
+.product-thumbnail:hover img {
+    transform: scale(1.05);
+}
+
+.gallery-scroll::-webkit-scrollbar {
+    height: 5px;
+}
+
+.gallery-scroll::-webkit-scrollbar-track {
+    background: #e2e8f0;
+    border-radius: 999px;
+}
+
+.gallery-scroll::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 999px;
+}
+
+.focus-ring:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, .35);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+
+}
+
+</style>
+</head>
+
+
+<body class="min-h-screen bg-slate-50 text-slate-900">
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="border-b border-slate-200 bg-white">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
+
+    <!-- Logo -->
+        <a href="index.html"
+             class="flex min-w-0 items-center gap-2 font-black text-blue-950"
+             aria-label="Kanye Series home">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-900 text-white">
+                <img src="./images/logo2.png" alt="">
+      </span>
+            <span class="truncate text-base tracking-tight">KANYE SERIES</span>
+    </a>
+
+    <!-- Top Navigation -->
+    <nav class="flex items-center gap-2 sm:gap-3">
+
+      <!-- Products -->
+      <a href="products.html"
+         class="flex h-10 w-10 items-center justify-center rounded-xl text-blue-800 transition hover:bg-blue-50 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+         aria-label="Products"
+         title="Products">
+        <i class="bi bi-grid-fill text-xl"></i>
+      </a>
+
+      <!-- Wishlist -->
+      <a href="wishlist.html"
+         class="relative flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+         aria-label="Wishlist"
+         title="Wishlist">
+        <i class="bi bi-heart text-xl"></i>
+        <span id="wishlistCount"
+              class="absolute -right-1 -top-1 hidden min-w-4 rounded-full bg-red-600 px-1 text-center text-[10px] font-bold leading-4 text-white">
+          0
+        </span>
+      </a>
+
+      <!-- Cart -->
+      <a href="cart.html"
+            class="relative flex h-10 w-10 items-center justify-center rounded-xl text-blue-800 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+         aria-label="Shopping Cart"
+         title="Cart">
+        <i class="bi bi-cart3 text-xl"></i>
+        <span id="cartCount"
+              class="absolute -right-1 -top-1 hidden min-w-4 rounded-full bg-blue-700 px-1 text-center text-[10px] font-bold leading-4 text-white">
+          0
+        </span>
+      </a>
+
+    </nav>
+
+  </div>
+</header>
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main
+    class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12"
+>
+
+
+    <!-- BACK -->
+
+    <a
+        href="products.html"
+        class="focus-ring inline-flex items-center gap-2 rounded-lg text-sm font-bold text-blue-800 hover:underline"
+        data-aos="fade-right"
+    >
+
+        <i class="bi bi-arrow-left"></i>
+
+        Back to products
+
+    </a>
+
+
+    <!-- =================================================
+         LOADING
+    ================================================== -->
+
+    <section
+        id="loading"
+        class="mt-8 rounded-3xl border border-slate-200 bg-white p-12 text-center text-slate-500 shadow-sm"
+    >
+
+        <i
+            class="bi bi-arrow-repeat mr-2 animate-spin"
+        ></i>
+
+        Loading product...
+
+    </section>
+
+
+    <!-- =================================================
+         NOT FOUND
+    ================================================== -->
+
+    <section
+        id="notFound"
+        class="mt-8 hidden rounded-3xl border border-amber-200 bg-amber-50 p-12 text-center"
+        data-aos="fade-up"
+    >
+
+        <i
+            class="bi bi-exclamation-circle text-3xl text-amber-600"
+        ></i>
+
+        <h1
+            class="mt-3 text-xl font-black"
+        >
+            Product not found
+        </h1>
+
+        <p
+            class="mt-2 text-slate-600"
+        >
+            This item may no longer be available.
+        </p>
+
+        <a
+            href="products.html"
+            class="mt-6 inline-block rounded-xl bg-blue-800 px-5 py-3 text-sm font-bold text-white hover:bg-blue-900 focus-ring"
+        >
+            Browse products
+        </a>
+
+    </section>
+
+
+    <!-- =================================================
+         PRODUCT
+    ================================================== -->
+
+    <section
+        id="product"
+        class="mt-8 hidden overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+    >
+
+        <div
+            class="grid gap-8 p-5 md:grid-cols-2 md:p-8"
+        >
+
+
+            <!-- =========================================
+                 IMAGE GALLERY
+            ========================================== -->
+
+            <div
+                data-aos="fade-right"
+            >
+
+                <!-- MAIN IMAGE -->
+
+                <div
+                    class="group relative overflow-hidden rounded-2xl bg-slate-100"
+                >
+
+                    <div
+                        class="aspect-square w-full"
+                    >
+
+                        <img
+                            id="image"
+                            src=""
+                            class="product-main-image h-full w-full object-cover"
+                            alt=""
+                        >
+
+                    </div>
+
+
+                    <!-- PREVIOUS -->
+
+                    <button
+                        id="previousImage"
+                        type="button"
+                        class="focus-ring absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg transition hover:bg-white disabled:hidden"
+                        aria-label="Previous image"
+                    >
+
+                        <i class="bi bi-chevron-left"></i>
+
+                    </button>
+
+
+                    <!-- NEXT -->
+
+                    <button
+                        id="nextImage"
+                        type="button"
+                        class="focus-ring absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg transition hover:bg-white disabled:hidden"
+                        aria-label="Next image"
+                    >
+
+                        <i class="bi bi-chevron-right"></i>
+
+                    </button>
+
+
+                    <!-- IMAGE NUMBER -->
+
+                    <span
+                        id="imageCounter"
+                        class="absolute bottom-3 right-3 rounded-full bg-black/65 px-3 py-1 text-xs font-bold text-white"
+                    >
+                        1 / 1
+                    </span>
+
+                </div>
+
+
+                <!-- =====================================
+                     OTHER IMAGES
+                ====================================== -->
+
+                <div
+                    id="otherImagesSection"
+                    class="mt-4"
+                >
+
+                    <div
+                        class="mb-2 flex items-center justify-between"
+                    >
+
+                        <h2
+                            class="text-sm font-black text-slate-800"
+                        >
+                            Other Images
+                        </h2>
+
+                        <span
+                            id="imageCountText"
+                            class="text-xs font-semibold text-slate-400"
+                        >
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="thumbnailContainer"
+                        class="gallery-scroll flex gap-3 overflow-x-auto pb-2"
+                    >
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================================
+                 PRODUCT INFORMATION
+            ========================================== -->
+
+            <div
+                class="flex flex-col"
+                data-aos="fade-left"
+            >
+
+                <p
+                    id="category"
+                    class="text-xs font-bold uppercase tracking-wider text-blue-700"
+                ></p>
+
+
+                <h1
+                    id="name"
+                    class="mt-2 text-3xl font-black text-blue-950 sm:text-4xl"
+                ></h1>
+
+
+                <p
+                    id="price"
+                    class="mt-5 text-2xl font-black text-blue-800"
+                ></p>
+
+
+                <p
+                    id="stock"
+                    class="mt-3 text-sm font-bold"
+                ></p>
+
+
+                <div
+                    class="mt-6 h-px bg-slate-200"
+                ></div>
+
+
+                <p
+                    id="description"
+                    class="mt-6 whitespace-pre-line leading-7 text-slate-600"
+                ></p>
+
+
+                <!-- ACTIONS -->
+
+                <div
+                    class="mt-8 flex flex-wrap gap-3"
+                >
+
+                    <button
+                        id="cartButton"
+                        type="button"
+                        class="focus-ring rounded-xl bg-blue-800 px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-blue-900 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    >
+
+                        <i
+                            class="bi bi-cart-plus mr-2"
+                        ></i>
+
+                        Add to cart
+
+                    </button>
+
+
+                    <button
+                        id="wishlistButton"
+                        type="button"
+                        class="focus-ring rounded-xl border border-slate-300 px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50"
+                    >
+
+                        <i
+                            class="bi bi-heart mr-2"
+                        ></i>
+
+                        Add to wishlist
+
+                    </button>
+
+                </div>
+
+
+                <!-- PRODUCT INFO -->
+
+                <div
+                    class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3"
+                >
+
+                    <div
+                        class="rounded-2xl bg-slate-50 p-4"
+                        data-aos="fade-up"
+                        data-aos-delay="100"
+                    >
+
+                        <i
+                            class="bi bi-shield-check text-xl text-blue-700"
+                        ></i>
+
+                        <p
+                            class="mt-2 text-xs font-bold text-slate-700"
+                        >
+                            Secure shopping
+                        </p>
+
+                    </div>
+
+
+                    <div
+                        class="rounded-2xl bg-slate-50 p-4"
+                        data-aos="fade-up"
+                        data-aos-delay="200"
+                    >
+
+                        <i
+                            class="bi bi-truck text-xl text-blue-700"
+                        ></i>
+
+                        <p
+                            class="mt-2 text-xs font-bold text-slate-700"
+                        >
+                            Delivery available
+                        </p>
+
+                    </div>
+
+
+                    <div
+                        class="rounded-2xl bg-slate-50 p-4"
+                        data-aos="fade-up"
+                        data-aos-delay="300"
+                    >
+
+                        <i
+                            class="bi bi-headset text-xl text-blue-700"
+                        ></i>
+
+                        <p
+                            class="mt-2 text-xs font-bold text-slate-700"
+                        >
+                            Customer support
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer
+    class="mt-12 bg-blue-950 py-8 text-center text-sm text-blue-200"
+>
+
+    <img
+        src="./images/logo2.png"
+        alt="Kanye Series"
+        class="mx-auto mb-3 h-10 w-10 object-contain"
+    >
+
+    &copy;
+
+    <span id="year"></span>
+
+    Kanye Series
+
+ <a href="policy.html" class="focus-ring hover:text-white font-semibold">Policies</a> </footer>
+
+
+<!-- =====================================================
+     AOS
+===================================================== -->
+
+<script
+    src="https://unpkg.com/aos@2.3.4/dist/aos.js"
+></script>
+
+
+<!-- =====================================================
+     FIREBASE
+===================================================== -->
+
+<script type="module">
+
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+
+
+import {
+    getAuth,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+
+import {
+    getDatabase,
+    ref,
+    get,
+    set,
+    remove,
+    onValue,
+    runTransaction
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
+
+
+/* =====================================================
+   FIREBASE CONFIG
+===================================================== */
+
+const firebaseConfig = {
+
+    apiKey: "AIzaSyBK-HHFid2F9SY1rtGsSO3boUFZihyOpTQ",
+
+    authDomain: "goldai-58550.firebaseapp.com",
+
+    databaseURL: "https://goldai-58550-default-rtdb.firebaseio.com",
+
+    projectId: "goldai-58550",
+
+    storageBucket: "goldai-58550.firebasestorage.app",
+
+    messagingSenderId: "726592521265",
+
+    appId: "1:726592521265:web:8aca7282b6b4aec8c9c110",
+
+    measurementId: "G-23MEZJVM6Z"
+
+};
+
+
+/* =====================================================
+   INITIALIZE
+===================================================== */
+
+const app =
+    initializeApp(firebaseConfig);
+
+const auth =
+    getAuth(app);
+
+const db =
+    getDatabase(app);
+
+
+/* =====================================================
+   GLOBAL STATE
+===================================================== */
+
+let user = null;
+
+let item = null;
+
+let wished = false;
+
+let images = [];
+
+let currentImageIndex = 0;
+let wishlistUnsubscribe = null;
+let cartUnsubscribe = null;
+let stockUnsubscribe = null;
+let productCartUnsubscribe = null;
+let productCartQuantity = 0;
+
+/* =========================================
+   NAVIGATION COUNTS
+========================================= */
+
+const wishlistCount = document.getElementById("wishlistCount");
+const cartCount = document.getElementById("cartCount");
+
+
+/* =========================================
+   UPDATE COUNT
+========================================= */
+
+function updateCount(element, count) {
+
+  count = Math.max(0, Number(count) || 0);
+
+    element.textContent = count > 99 ? "99+" : count;
+
+  if (count > 0) {
+    element.classList.remove("hidden");
+  } else {
+    element.classList.add("hidden");
+  }
+}
+
+
+/* =========================================
+   WISHLIST REALTIME COUNT
+========================================= */
+
+function startWishlistCount(uid) {
+
+  // Remove previous listener
+  if (wishlistUnsubscribe) {
+    wishlistUnsubscribe();
+    wishlistUnsubscribe = null;
+  }
+
+  const wishlistRef = ref(db, `wishlists/${uid}`);
+
+  wishlistUnsubscribe = onValue(
+    wishlistRef,
+
+    snapshot => {
+
+      const data = snapshot.val() || {};
+
+      const count = Object.values(data)
+        .filter(value => Boolean(value))
+        .length;
+
+      updateCount(wishlistCount, count);
+    },
+
+    error => {
+
+      console.error(
+        "Wishlist count error:",
+        error
+      );
+
+      updateCount(wishlistCount, 0);
+    }
+  );
+}
+
+
+/* =========================================
+   CART REALTIME COUNT
+========================================= */
+
+function startCartCount(uid) {
+
+  // Remove previous listener
+  if (cartUnsubscribe) {
+    cartUnsubscribe();
+    cartUnsubscribe = null;
+  }
+
+  const cartRef = ref(db, `carts/${uid}`);
+
+  cartUnsubscribe = onValue(
+    cartRef,
+
+    snapshot => {
+
+      const data = snapshot.val() || {};
+
+      let count = 0;
+
+      Object.values(data).forEach(item => {
+
+        const quantity =
+          Number(item?.quantity) || 0;
+
+        count += Math.max(0, quantity);
+
+      });
+
+      updateCount(cartCount, count);
+    },
+
+    error => {
+
+      console.error(
+        "Cart count error:",
+        error
+      );
+
+      updateCount(cartCount, 0);
+    }
+  );
+}
+
+
+/* =========================================
+   AUTHENTICATION
+========================================= */
+
+onAuthStateChanged(auth, userData => {
+
+  user = userData || null;
+
+  // User logged out
+  if (!user) {
+
+    if (wishlistUnsubscribe) {
+      wishlistUnsubscribe();
+      wishlistUnsubscribe = null;
+    }
+
+    if (cartUnsubscribe) {
+      cartUnsubscribe();
+      cartUnsubscribe = null;
+    }
+
+    updateCount(wishlistCount, 0);
+    updateCount(cartCount, 0);
+
+    return;
+  }
+
+
+  // User logged in
+  startWishlistCount(user.uid);
+  startCartCount(user.uid);
+
+});
+
+/* =====================================================
+   DOM HELPER
+===================================================== */
+
+const $ = id =>
+    document.getElementById(id);
+
+
+/* =====================================================
+   URL PRODUCT ID
+===================================================== */
+
+const id =
+    new URLSearchParams(
+        location.search
+    ).get("id");
+
+
+/* =====================================================
+   CURRENCY
+===================================================== */
+
+function money(value) {
+
+    const number =
+        Number(value) || 0;
+
+    return `UGX ${number.toLocaleString("en-UG")}`;
+}
+
+
+/* =====================================================
+   YEAR
+===================================================== */
+
+$("year").textContent =
+    new Date().getFullYear();
+
+
+/* =====================================================
+   ALERT
+===================================================== */
+
+function message(
+    title,
+    text = "",
+    icon = "info"
+) {
+
+    if (window.Swal) {
+
+        return Swal.fire({
+            title,
+            text,
+            icon,
+            confirmButtonColor:
+                "#1d4ed8"
+        });
+
+    }
+
+    alert(
+        text
+            ? `${title}\n${text}`
+            : title
+    );
+
+}
+
+
+/* =====================================================
+   GET PRODUCT IMAGES
+===================================================== */
+
+function getImages(product) {
+
+    const result = [];
+
+
+    /*
+       images: []
+    */
+
+    if (
+        Array.isArray(product?.images)
+    ) {
+
+        product.images.forEach(image => {
+
+            if (
+                typeof image === "string" &&
+                image.trim()
+            ) {
+
+                result.push(
+                    image.trim()
+                );
+
+            }
+
+        });
+
+    }
+
+
+    /*
+       images: {}
+    */
+
+    else if (
+        product?.images &&
+        typeof product.images === "object"
+    ) {
+
+        Object.values(
+            product.images
+        ).forEach(image => {
+
+            if (
+                typeof image === "string" &&
+                image.trim()
+            ) {
+
+                result.push(
+                    image.trim()
+                );
+
+            }
+
+        });
+
+    }
+
+
+    /*
+       image
+    */
+
+    if (
+        typeof product?.image === "string" &&
+        product.image.trim()
+    ) {
+
+        result.push(
+            product.image.trim()
+        );
+
+    }
+
+
+    /*
+       imageUrl
+    */
+
+    if (
+        typeof product?.imageUrl === "string" &&
+        product.imageUrl.trim()
+    ) {
+
+        result.push(
+            product.imageUrl.trim()
+        );
+
+    }
+
+
+    /*
+       Remove duplicates.
+    */
+
+    return [
+        ...new Set(result)
+    ];
+
+}
+
+
+/* =====================================================
+   UPDATE MAIN IMAGE
+===================================================== */
+
+function updateMainImage(index) {
+
+    if (!images.length) {
+        return;
+    }
+
+
+    currentImageIndex =
+        Math.max(
+            0,
+            Math.min(
+                index,
+                images.length - 1
+            )
+        );
+
+
+    const image =
+        $("image");
+
+
+    image.classList.add(
+        "fade"
+    );
+
+
+    setTimeout(() => {
+
+        image.src =
+            images[currentImageIndex];
+
+        image.alt =
+            item?.name ||
+            "Product";
+
+
+        image.onload = () => {
+
+            image.classList.remove(
+                "fade"
+            );
+
+        };
+
+    }, 120);
+
+
+    /*
+       Counter
+    */
+
+    $("imageCounter").textContent =
+        `${currentImageIndex + 1} / ${images.length}`;
+
+
+    /*
+       Update thumbnails.
+    */
+
+    document
+        .querySelectorAll(
+            ".product-thumbnail"
+        )
+        .forEach(
+            (thumbnail, thumbnailIndex) => {
+
+                thumbnail.classList.toggle(
+                    "active",
+                    thumbnailIndex ===
+                    currentImageIndex
+                );
+
+                thumbnail.setAttribute(
+                    "aria-current",
+                    thumbnailIndex ===
+                    currentImageIndex
+                        ? "true"
+                        : "false"
+                );
+
+            }
+        );
+
+
+    /*
+       Scroll active thumbnail
+       into view.
+    */
+
+    const activeThumbnail =
+        document.querySelector(
+            `.product-thumbnail[data-index="${currentImageIndex}"]`
+        );
+
+
+    activeThumbnail?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center"
+    });
+
+}
+
+
+/* =====================================================
+   RENDER THUMBNAILS
+===================================================== */
+
+function renderThumbnails() {
+
+    const container =
+        $("thumbnailContainer");
+
+
+    container.innerHTML = "";
+
+
+    if (!images.length) {
+
+        $("otherImagesSection")
+            .classList.add("hidden");
+
+        return;
+    }
+
+
+    /*
+       Hide "Other Images" if
+       there is only one image.
+    */
+
+    if (images.length <= 1) {
+
+        $("otherImagesSection")
+            .classList.add("hidden");
+
+    } else {
+
+        $("otherImagesSection")
+            .classList.remove("hidden");
+
+    }
+
+
+    $("imageCountText").textContent =
+        `${images.length} image${
+            images.length === 1
+                ? ""
+                : "s"
+        }`;
+
+
+    images.forEach(
+        (image, index) => {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.type =
+                "button";
+
+
+            button.className =
+                "product-thumbnail focus-ring active:scale-95 relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 border-transparent bg-slate-100 sm:h-24 sm:w-24";
+
+
+            button.dataset.index =
+                index;
+
+
+            button.setAttribute(
+                "aria-label",
+                `View product image ${index + 1}`
+            );
+
+
+            button.innerHTML = `
+
+                <img
+                    src="${escapeHTML(image)}"
+                    alt="${escapeHTML(item?.name || "Product")} image ${index + 1}"
+                    class="h-full w-full object-cover"
+                    loading="lazy"
+                    onerror="
+                        this.style.display='none';
+                    "
+                >
+
+            `;
+
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    updateMainImage(
+                        index
+                    );
+
+                }
+            );
+
+
+            container.appendChild(
+                button
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(value) {
+
+    return String(value ?? "")
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =====================================================
+   RENDER PRODUCT
+===================================================== */
+
+function updateStockDisplay() {
+
+    if (!item) {
+        return;
+    }
+
+
+    const stock =
+        Number(item.stock);
+
+
+    const remainingStock =
+        Number.isFinite(stock)
+            ? Math.max(0, stock - productCartQuantity)
+            : null;
+
+
+    const available =
+        Number.isFinite(remainingStock)
+            ? remainingStock > 0
+            : true;
+
+
+    $("stock").textContent =
+        Number.isFinite(remainingStock)
+            ? available
+                ? `${remainingStock} available`
+                : "Out of stock"
+            : "Availability varies";
+
+
+    $("stock").className =
+        `mt-3 text-sm font-bold ${
+            available
+                ? "text-emerald-700"
+                : "text-red-600"
+        }`;
+
+
+    $("cartButton").disabled =
+        !available;
+
+
+    $("cartButton").innerHTML =
+        available
+
+            ? `<i class="bi bi-cart-plus mr-2"></i>Add to cart`
+
+            : `<i class="bi bi-x-circle mr-2"></i>Out of stock`;
+
+}
+
+function render() {
+
+    $("loading")
+        .classList
+        .add("hidden");
+
+
+    if (!item) {
+
+        $("notFound")
+            .classList
+            .remove("hidden");
+
+        return;
+    }
+
+
+    $("product")
+        .classList
+        .remove("hidden");
+
+
+    /*
+       Images
+    */
+
+    images =
+        getImages(item);
+
+
+    if (!images.length) {
+
+        images = [
+            "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=900&auto=format&fit=crop&q=75"
+        ];
+
+    }
+
+
+    currentImageIndex = 0;
+
+
+    renderThumbnails();
+
+
+    $("image").src =
+        images[0];
+
+    $("image").alt =
+        item.name ||
+        "Product";
+
+
+    $("imageCounter").textContent =
+        `1 / ${images.length}`;
+
+
+    /*
+       Product information
+    */
+
+    $("name").textContent =
+        item.name ||
+        "Unnamed product";
+
+
+    $("category").textContent =
+        item.category ||
+        "Product";
+
+
+    $("price").textContent =
+        money(item.price);
+
+
+    updateStockDisplay();
+
+
+    $("description").textContent =
+        item.description ||
+        "No description has been provided for this product.";
+
+
+    /*
+       Wishlist button
+    */
+
+    updateWishlistButton();
+
+
+    /*
+       AOS refresh
+    */
+
+    if (window.AOS) {
+
+        AOS.refresh();
+
+    }
+
+}
+
+
+/* =====================================================
+   WISHLIST BUTTON
+===================================================== */
+
+function updateWishlistButton() {
+
+    $("wishlistButton").innerHTML =
+
+        wished
+
+            ? `
+                <i
+                    class="bi bi-heart-fill mr-2 text-red-600"
+                ></i>
+                Remove from wishlist
+              `
+
+            : `
+                <i
+                    class="bi bi-heart mr-2"
+                ></i>
+                Add to wishlist
+              `;
+
+}
+
+
+/* =====================================================
+   LOAD PRODUCT
+===================================================== */
+
+async function load() {
+
+    if (stockUnsubscribe) {
+        stockUnsubscribe();
+        stockUnsubscribe = null;
+    }
+
+    if (productCartUnsubscribe) {
+        productCartUnsubscribe();
+        productCartUnsubscribe = null;
+    }
+
+    productCartQuantity = 0;
+
+    if (!id) {
+
+        render();
+
+        return;
+    }
+
+
+    try {
+
+        console.log(
+            "Loading product:",
+            id
+        );
+
+
+        /*
+           Fetch product from:
+
+           products/PRODUCT_ID
+        */
+
+        const snapshot =
+            await get(
+                ref(
+                    db,
+                    `products/${id}`
+                )
+            );
+
+
+        if (
+            snapshot.exists()
+        ) {
+
+            item = {
+                id,
+                ...(snapshot.val() || {})
+            };
+
+        } else {
+
+            item = null;
+
+        }
+
+
+        if (item) {
+
+            stockUnsubscribe = onValue(
+                ref(db, `products/${id}/stock`),
+
+                stockSnapshot => {
+
+                    if (stockSnapshot.exists()) {
+                        item.stock = stockSnapshot.val();
+                    } else {
+                        delete item.stock;
+                    }
+
+                    updateStockDisplay();
+
+                },
+
+                error => {
+
+                    console.error(
+                        "Product stock error:",
+                        error
+                    );
+
+                }
+            );
+
+            if (user) {
+
+                productCartUnsubscribe = onValue(
+                    ref(db, `carts/${user.uid}`),
+
+                    cartSnapshot => {
+
+                        const cartItems = cartSnapshot.val() || {};
+                        const cartItem = cartItems[id] || {};
+
+                        productCartQuantity = Math.max(
+                            0,
+                            Math.floor(Number(cartItem.quantity) || 0)
+                        );
+
+                        updateStockDisplay();
+
+                    },
+
+                    error => {
+
+                        console.error(
+                            "Product cart quantity error:",
+                            error
+                        );
+
+                    }
+                );
+
+            }
+
+        }
+
+
+        /*
+           Load wishlist state
+           only when logged in.
+        */
+
+        if (
+            user &&
+            item
+        ) {
+
+            const wishlistSnapshot =
+                await get(
+                    ref(
+                        db,
+                        `wishlists/${user.uid}/${id}`
+                    )
+                );
+
+
+            wished =
+                wishlistSnapshot.exists() &&
+                Boolean(
+                    wishlistSnapshot.val()
+                );
+
+        }
+
+
+        render();
+
+
+    } catch (error) {
+
+        console.error(
+            "Product loading error:",
+            error
+        );
+
+
+        item = null;
+
+
+        render();
+
+    }
+
+}
+
+
+/* =====================================================
+   AUTH STATE
+===================================================== */
+
+onAuthStateChanged(
+    auth,
+    async authenticatedUser => {
+
+        user =
+            authenticatedUser || null;
+
+
+        await load();
+
+    }
+);
+
+
+/* =====================================================
+   CART
+===================================================== */
+
+$("cartButton")
+    .addEventListener(
+        "click",
+        async () => {
+
+            if (!user) {
+
+                location.href =
+                    "login.html";
+
+                return;
+            }
+
+
+            if (!item) {
+                return;
+            }
+
+
+            const stock =
+                Number(item.stock);
+
+
+            if (
+                Number.isFinite(stock) &&
+                stock <= 0
+            ) {
+
+                message(
+                    "Out of stock",
+                    "This product is currently unavailable.",
+                    "warning"
+                );
+
+                return;
+            }
+
+
+            if (
+                Number.isFinite(stock) &&
+                productCartQuantity + 1 > stock
+            ) {
+
+                message(
+                    "Stock limit reached",
+                    `Only ${stock} item${stock === 1 ? "" : "s"} available.`,
+                    "info"
+                );
+
+                return;
+            }
+
+
+            const button =
+                $("cartButton");
+
+
+            button.disabled = true;
+
+
+            try {
+
+                const cartRef =
+                    ref(
+                        db,
+                        `carts/${user.uid}/${id}`
+                    );
+
+
+                const snapshot =
+                    await get(cartRef);
+
+
+                const old =
+                    snapshot.val() || {};
+
+
+                const oldQuantity =
+                    Math.max(
+                        0,
+                        Number(
+                            old.quantity
+                        ) || 0
+                    );
+
+
+                const quantity =
+                    oldQuantity + 1;
+
+
+                await set(
+                    cartRef,
+                    {
+
+                        productId:
+                            String(id),
+
+                        name:
+                            item.name ||
+                            "Unnamed product",
+
+                        price:
+                            Number(item.price) ||
+                            0,
+
+                        image:
+                            images[0] || "",
+
+                        quantity,
+
+                        addedAt:
+                            old.addedAt ||
+                            Date.now()
+
+                    }
+                );
+
+
+                await message(
+                    "Added to cart",
+                    `${item.name || "Product"} was added to your cart.`,
+                    "success"
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Add to cart error:",
+                    error
+                );
+
+
+                await message(
+                    "Could not add to cart",
+                    "Please try again.",
+                    "error"
+                );
+
+            } finally {
+
+                button.disabled =
+                    false;
+
+            }
+
+        }
+    );
+
+
+/* =====================================================
+   WISHLIST
+===================================================== */
+
+$("wishlistButton")
+    .addEventListener(
+        "click",
+        async () => {
+
+            if (!user) {
+
+                location.href =
+                    "login.html";
+
+                return;
+            }
+
+
+            if (!item) {
+                return;
+            }
+
+
+            const button =
+                $("wishlistButton");
+
+
+            button.disabled =
+                true;
+
+
+            try {
+
+                const wishlistRef =
+                    ref(
+                        db,
+                        `wishlists/${user.uid}/${id}`
+                    );
+
+
+                if (wished) {
+
+                    await remove(
+                        wishlistRef
+                    );
+
+
+                    wished =
+                        false;
+
+
+                    await message(
+                        "Removed from wishlist",
+                        "The product has been removed from your wishlist.",
+                        "success"
+                    );
+
+                } else {
+
+                    await set(
+                        wishlistRef,
+                        true
+                    );
+
+
+                    wished =
+                        true;
+
+
+                    await message(
+                        "Added to wishlist",
+                        "The product has been saved to your wishlist.",
+                        "success"
+                    );
+
+                }
+
+
+                updateWishlistButton();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Wishlist error:",
+                    error
+                );
+
+
+                await message(
+                    "Wishlist update failed",
+                    "Please try again.",
+                    "error"
+                );
+
+            } finally {
+
+                button.disabled =
+                    false;
+
+            }
+
+        }
+    );
+
+
+/* =====================================================
+   IMAGE NAVIGATION
+===================================================== */
+
+$("previousImage")
+    .addEventListener(
+        "click",
+        () => {
+
+            if (
+                images.length <= 1
+            ) {
+                return;
+            }
+
+
+            const nextIndex =
+                currentImageIndex <= 0
+
+                    ? images.length - 1
+
+                    : currentImageIndex - 1;
+
+
+            updateMainImage(
+                nextIndex
+            );
+
+        }
+    );
+
+
+$("nextImage")
+    .addEventListener(
+        "click",
+        () => {
+
+            if (
+                images.length <= 1
+            ) {
+                return;
+            }
+
+
+            const nextIndex =
+                currentImageIndex >=
+                images.length - 1
+
+                    ? 0
+
+                    : currentImageIndex + 1;
+
+
+            updateMainImage(
+                nextIndex
+            );
+
+        }
+    );
+
+
+/* =====================================================
+   KEYBOARD IMAGE NAVIGATION
+===================================================== */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        /*
+           Don't interfere with
+           form inputs.
+        */
+
+        if (
+            ["INPUT", "TEXTAREA", "SELECT"]
+                .includes(
+                    document.activeElement?.tagName
+                )
+        ) {
+            return;
+        }
+
+
+        if (
+            event.key === "ArrowLeft"
+        ) {
+
+            $("previousImage")
+                .click();
+
+        }
+
+
+        if (
+            event.key === "ArrowRight"
+        ) {
+
+            $("nextImage")
+                .click();
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   AOS INITIALIZATION
+===================================================== */
+
+if (window.AOS) {
+
+    AOS.init({
+
+        duration: 700,
+
+        easing:
+            "ease-out-cubic",
+
+        once: true,
+
+        offset: 70,
+
+        delay: 50
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>
+

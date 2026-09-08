@@ -1,55 +1,97 @@
-# Gold AI
+# Kanye Series
 
-Ask naturally. Learn intelligently.
+Kanye Series is a lightweight, mobile-first Progressive Web App (PWA) storefront for browsing and requesting premium shoes, electronics, secondary science books, and special-order items. The project is built with static HTML/CSS and a small amount of JavaScript to provide a polished, offline-capable demo storefront and PWA experience.
 
-Gold AI is a mobile-first assistant for learning, research, writing, and creating. The current implementation includes the Phase 1 branded UI, Phase 2 Firebase Authentication foundation, Phase 3 profiles, Phase 4 server-side AI foundation, Phase 5 chat, and Phase 6 credits.
+## Features
 
-## Development
+- Responsive, mobile-first UI using Tailwind CSS and utility-first design
+- Progressive Web App support: manifest, service worker, install prompt, offline fallback
+- Interactive UI elements using Swiper (carousel), AOS (scroll animations), and SweetAlert2
+- Product listing pages with categories (shoes, electronics, books) and special orders
+- Admin-styled pages included for demonstration (admin-*.html)
+- Lightweight client-side scripts in `js/pwa.js` that manage install UX, network status, splash screen, and service worker lifecycle
 
-```bash
-npm install
-npm run dev
+## Stack
+
+- Language: HTML (primary), JavaScript (client-side, small)
+- Libraries / integrations: Tailwind CSS (via CDN), Bootstrap Icons, Swiper, AOS, SweetAlert2
+- PWA: manifest.json, service-worker.js, client PWA bootstrap in `js/pwa.js`
+
+## Repository structure
+
+```
+index.html              # Home / storefront landing page (PWA-enabled)
+products.html           # Product listing
+product.html            # Product detail
+cart.html               # Cart UI
+checkout.html           # Checkout UI (static)
+orders.html             # Orders page
+profile.html            # User profile page
+login.html              # Login page
+signup.html             # Signup page
+forgot-password.html    # Password recovery (static)
+special-orders.html     # Special order request page
+wishlist.html           # Wishlist UI
+
+admin-*.html            # Admin demo pages (admin dashboard, products, orders, users...)
+
+js/
+  pwa.js                # Client PWA script: install prompt, splash, network status, SW registration
+  p                     # small placeholder file (empty)
+
+images/                 # Brand logos and assets
+screenshots/            # App screenshots referenced by manifest
+manifest.json           # Web app manifest (PWA metadata)
+service-worker.js       # Service worker (offline support)
+
+README.md               # (this file)
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+## How to run locally
 
-## Firebase setup
+This is a static site. To serve it locally you only need a static HTTP server. The PWA service worker requires serving over HTTPS or localhost.
 
-1. Copy `.env.example` to `.env.local`.
-2. Fill in the Firebase Web App values for the project.
-3. Enable Email/Password in Firebase Authentication.
-4. Create or select a Firebase Realtime Database.
-5. Apply the ownership rules in `database.rules.json`.
+Using Python (3.x):
 
-The app validates Firebase configuration before initializing Auth or Realtime Database. Without `.env.local`, the UI remains available but authentication actions show a friendly configuration message.
-
-Private environment files are ignored by Git. Never place real provider secrets in `.env.example` or source files.
-
-## Routes
-
-- `/` public Gold AI home
-- `/login` email/password login
-- `/signup` account creation
-- `/reset-password` password reset request
-- `/api/ai` authenticated AI service endpoint
-- `/credits` authenticated balance, usage, and transaction summary
-- `/chat`, `/study`, `/create`, `/profile` authenticated areas
-
-## Checks
-
-```bash
-npm run lint
-npm run build
+```
+# from the repository root
+python -m http.server 8000
+# then open http://localhost:8000
 ```
 
-## AI service
+Using Node (http-server):
 
-The `POST /api/ai` endpoint requires an authenticated Firebase ID token:
-
-```text
-Authorization: Bearer <Firebase ID token>
+```
+npm install -g http-server
+http-server -c-1 . -p 8000
+# then open http://localhost:8000
 ```
 
-The JSON body accepts a non-empty `message` and an optional `language`. The server verifies the token, loads only useful profile context, routes through the configured OpenAI or Gemini provider, and returns normalized provider usage metadata. Provider keys remain server-side.
+Notes:
+- For the install prompt and service worker to work reliably, test on localhost or a secure (HTTPS) host.
+- The site is static: product data and ordering flows are demo-only. To make this a working store you'll need to connect the frontend to a backend/API and implement authentication, cart persistence, and payment processing.
 
-Set `AI_DEFAULT_PROVIDER`, `AI_FALLBACK_PROVIDER`, `OPENAI_MODEL`, and `GEMINI_MODEL` in `.env.local` when testing the AI service. Phase 6 also requires Firebase Admin server credentials (`FIREBASE_ADMIN_PROJECT_ID`, `FIREBASE_ADMIN_CLIENT_EMAIL`, and `FIREBASE_ADMIN_PRIVATE_KEY`) for trusted credit mutations. Phase 7 payment initiation requires server-only `PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET`, `PESAPAL_BASE_URL`, and `PESAPAL_IPN_URL`. For local testing, set `PESAPAL_IPN_URL` to a public HTTPS ngrok URL ending in `/api/payments/pesapal/ipn`; for Vercel, use the deployed HTTPS domain. Never commit `.env.local` or provider secrets.
+## Development notes
+
+- UI is built with Tailwind via CDN; you can migrate to a build step (Tailwind CLI / PostCSS) if you want to customize utilities or purge unused styles.
+- The PWA script is in `js/pwa.js` and reads `manifest.json` for splash metadata. Service worker registration is handled there.
+- Images and screenshots are stored in `images/` and `screenshots/` respectively.
+
+## To do / suggestions
+
+- Add a real product API and replace client-side placeholders with real requests
+- Add tests and CI (linting for HTML/CSS/JS)
+- Add a CONTRIBUTING.md with branching / PR guidelines
+- Add a LICENSE (MIT recommended) if you want this project to be open-source
+
+## Contributing
+
+Contributions are welcome. Open an issue to discuss changes or send a pull request. For local dev, run a static server and update HTML/CSS/JS, then submit a PR.
+
+## License
+
+Add a license file (e.g., MIT) if you intend to publish this project. Currently none is included in the repository.
+
+## Contact
+
+Project owner: kanyeseries (GitHub)

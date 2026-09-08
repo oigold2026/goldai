@@ -1,0 +1,2878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Kanye Series - Premium Shoes, Electronics &amp; Books</title>
+    <meta
+        name="description"
+        content="Discover premium shoes, electronics, secondary science books and special orders at Kanye Series."
+    >
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kanye Series">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./images/logo.png">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Bootstrap Icons -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+    >
+
+    <!-- Swiper -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+    >
+
+    <!-- AOS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/aos@2.3.4/dist/aos.css"
+    >
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script defer src="./js/pwa.js"></script>
+
+    <style>
+        :root {
+            --royal-blue: #1e3a8a;
+            --royal-blue-dark: #172554;
+            --royal-blue-light: #2563eb;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.94);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+        }
+
+        .hero-overlay {
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(15, 23, 42, 0.94) 0%,
+                    rgba(30, 58, 138, 0.65) 45%,
+                    rgba(15, 23, 42, 0.05) 100%
+                );
+        }
+
+        .desktop-sidebar {
+            width: 5rem;
+        }
+
+        .main-with-sidebar {
+            margin-left: 5rem;
+        }
+
+        .product-card {
+            transition:
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+        }
+
+        .product-image {
+            transition: transform 0.35s ease;
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.04);
+        }
+
+        .category-card {
+            transition:
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 18px 35px rgba(15, 23, 42, 0.12);
+        }
+
+        .category-card img {
+            transition: transform 0.4s ease;
+        }
+
+        .category-card:hover img {
+            transform: scale(1.06);
+        }
+
+        .nav-link {
+            transition:
+                background 0.2s ease,
+                color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .icon-button {
+            transition:
+                background 0.2s ease,
+                color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        .icon-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .skeleton {
+            background:
+                linear-gradient(
+                    90deg,
+                    #f1f5f9 25%,
+                    #e2e8f0 50%,
+                    #f1f5f9 75%
+                );
+            background-size: 200% 100%;
+            animation: skeleton 1.4s infinite;
+        }
+
+        @keyframes skeleton {
+            from {
+                background-position: 200% 0;
+            }
+
+            to {
+                background-position: -200% 0;
+            }
+        }
+
+        .swiper-pagination-bullet-active {
+            background: white !important;
+        }
+
+        .swiper-button-prev,
+        .swiper-button-next {
+            color: white;
+        }
+
+        .swiper-button-prev::after,
+        .swiper-button-next::after {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .bottom-nav {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .bottom-safe {
+            padding-bottom: 86px;
+        }
+
+        .focus-ring:focus-visible {
+            outline: 3px solid rgba(37, 99, 235, 0.35);
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 1023px) {
+            .desktop-sidebar {
+                display: none;
+            }
+
+            .main-with-sidebar {
+                margin-left: 0;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .bottom-safe {
+                padding-bottom: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-slate-900">
+
+    <!-- ========================================================= -->
+    <!-- DESKTOP SIDEBAR -->
+    <!-- ========================================================= -->
+
+    <aside class="desktop-sidebar fixed inset-y-0 left-0 z-50 hidden w-20 flex-col items-center bg-gradient-to-b from-blue-950 via-blue-900 to-blue-950 shadow-xl lg:flex">
+        <a href="index.html"
+           class="mt-6 mb-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-blue-950 shadow-lg focus-ring"
+           aria-label="Kanye Series home">
+            <img src="./images/logo.png" alt="">
+        </a>
+
+        <nav class="flex w-full flex-1 flex-col gap-2 px-2" aria-label="Primary navigation">
+            <a href="index.html"
+               class="flex flex-col items-center gap-1 rounded-xl bg-white/15 px-2 py-3 text-white focus-ring"
+               aria-current="page">
+                <i class="bi bi-house-door text-xl"></i>
+                <span class="text-[11px] font-bold">Home</span>
+            </a>
+
+            <a href="products.html"
+               class="flex flex-col items-center gap-1 rounded-xl px-2 py-3 text-slate-300 hover:bg-white/10 hover:text-white focus-ring">
+                <i class="bi bi-grid-fill text-xl"></i>
+                <span class="text-[11px] font-semibold">Products</span>
+            </a>
+
+            <a href="orders.html"
+               class="flex flex-col items-center gap-1 rounded-xl px-2 py-3 text-slate-300 hover:bg-white/10 hover:text-white focus-ring">
+                <i class="bi bi-bag-check text-xl"></i>
+                <span class="text-[11px] font-semibold">Orders</span>
+            </a>
+
+            <a href="profile.html"
+               class="flex flex-col items-center gap-1 rounded-xl px-2 py-3 text-slate-300 hover:bg-white/10 hover:text-white focus-ring">
+                <i class="bi bi-person-circle text-xl"></i>
+                <span class="text-[11px] font-semibold">Profile</span>
+            </a>
+        </nav>
+
+    </aside>
+
+
+    <!-- ========================================================= -->
+    <!-- MAIN APPLICATION -->
+    <!-- ========================================================= -->
+
+    <main class="main-with-sidebar bottom-safe min-h-screen">
+
+        <!-- ===================================================== -->
+        <!-- HEADER -->
+        <!-- ===================================================== -->
+
+        <header
+            class="fixed left-0 right-0 top-0 z-40 border-b border-slate-200 glass shadow-sm lg:left-20"
+        >
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+                <div class="flex h-20 items-center justify-between gap-3">
+
+                    <!-- Branding -->
+                    <a
+                        href="index.html"
+                        class="flex min-w-0 items-center gap-2 focus-ring"
+                        aria-label="Kanye Series home"
+                    >
+                        <div
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-900 text-white shadow-md lg:hidden"
+                        >
+                            <img src="./images/logo2.png" alt="">
+                        </div>
+
+                        <div class="min-w-0">
+                            <p class="truncate text-lg font-black tracking-wide text-blue-950 sm:text-xl">
+                                KANYE SERIES
+                            </p>
+                            <p class="hidden text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500 sm:block">
+                                Shop With Confidence
+                            </p>
+                        </div>
+                    </a>
+
+                    <!-- Header actions -->
+                    <div class="flex shrink-0 items-center gap-1 sm:gap-2">
+
+                        <button
+                            id="searchBtn"
+                            type="button"
+                            class="icon-button focus-ring flex h-10 w-10 items-center justify-center rounded-xl text-blue-950 hover:bg-blue-50"
+                            aria-label="Search products"
+                            aria-expanded="false"
+                        >
+                            <i class="bi bi-search text-lg"></i>
+                        </button>
+
+                        <div class="ml-auto flex items-center gap-1 sm:gap-2">
+                    <a href="wishlist.html"
+                       class="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-600 hover:bg-blue-50 hover:text-blue-900"
+                       aria-label="Wishlist">
+                        <i class="bi bi-heart text-lg"></i>
+                        <span id="wishlistCount"
+                              class="absolute -right-0.5 -top-0.5 hidden min-w-4 rounded-full bg-red-600 px-1 text-center text-[10px] font-bold leading-4 text-white">0</span>
+                    </a>
+
+                    <a href="cart.html"
+                              class="relative flex h-10 w-10 items-center justify-center rounded-full text-blue-800 hover:bg-blue-50 hover:text-blue-900"
+                       aria-label="Shopping cart">
+                        <i class="bi bi-cart3 text-lg"></i>
+                        <span id="cartCount"
+                              class="absolute -right-0.5 -top-0.5 hidden min-w-4 rounded-full bg-blue-700 px-1 text-center text-[10px] font-bold leading-4 text-white">0</span>
+                    </a>
+
+                    
+
+                </div>
+
+                    </div>
+                </div>
+            </div>
+        </header>
+
+
+        <!-- ===================================================== -->
+        <!-- SEARCH PANEL -->
+        <!-- ===================================================== -->
+
+        <section
+            id="searchPanel"
+            class="fixed left-0 right-0 top-20 z-30 hidden border-b border-slate-200 bg-white shadow-lg lg:left-20"
+        >
+            <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+
+                <div class="relative">
+
+                    <label
+                        for="searchInput"
+                        class="sr-only"
+                    >
+                        Search products
+                    </label>
+
+                    <i
+                        class="bi bi-search pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    ></i>
+
+                    <input
+                        id="searchInput"
+                        type="search"
+                        autocomplete="off"
+                        placeholder="Search shoes, electronics, books..."
+                        class="focus-ring w-full rounded-2xl border-2 border-slate-200 bg-slate-50 py-3 pl-11 pr-12 text-sm text-slate-800 outline-none focus:border-blue-700"
+                    >
+
+                    <button
+                        id="clearSearchBtn"
+                        type="button"
+                        class="focus-ring absolute right-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 rounded-lg text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                        aria-label="Clear search"
+                    >
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+
+                </div>
+
+                <div
+                    id="searchResults"
+                    class="hidden pt-4"
+                ></div>
+
+            </div>
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- HEADER SPACER -->
+        <!-- ===================================================== -->
+
+        <div class="h-20"></div>
+
+
+        <!-- ===================================================== -->
+        <!-- HERO -->
+        <!-- ===================================================== -->
+
+        <section class="px-4 pb-12 pt-4 sm:px-6 lg:px-8 lg:pt-7">
+
+            <div class="mx-auto max-w-7xl">
+
+                <div class="swiper heroSwiper overflow-hidden rounded-3xl shadow-2xl">
+
+                    <div class="swiper-wrapper">
+
+                        <!-- Slide 1 -->
+                        <div class="swiper-slide">
+
+                            <div class="relative h-[440px] overflow-hidden bg-blue-950 sm:h-[500px] lg:h-[570px]">
+
+                                <img
+                                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1600&auto=format&fit=crop&q=80"
+                                    alt="Premium shoes collection"
+                                    class="h-full w-full object-cover"
+                                >
+
+                                <div class="hero-overlay absolute inset-0"></div>
+
+                                <div class="absolute inset-0 flex items-center">
+
+                                    <div class="max-w-2xl px-6 sm:px-10 lg:px-16">
+
+                                        <span
+                                            class="mb-3 inline-flex rounded-full border border-blue-300/40 bg-blue-900/30 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-200"
+                                            data-aos="fade-up"
+                                        >
+                                            Premium Collection
+                                        </span>
+
+                                        <h1
+                                            class="text-4xl font-black leading-tight text-white sm:text-5xl lg:text-7xl"
+                                            data-aos="fade-up"
+                                            data-aos-delay="100"
+                                        >
+                                            Walk In Luxury.
+                                        </h1>
+
+                                        <p
+                                            class="mt-4 max-w-xl text-sm leading-7 text-slate-200 sm:text-base lg:text-lg"
+                                            data-aos="fade-up"
+                                            data-aos-delay="200"
+                                        >
+                                            Discover premium footwear selected for modern style,
+                                            comfort and everyday confidence.
+                                        </p>
+
+                                        <div
+                                            class="mt-7 flex flex-col gap-3 sm:flex-row"
+                                            data-aos="fade-up"
+                                            data-aos-delay="300"
+                                        >
+                                            <a
+                                                href="products.html?category=shoes"
+                                                class="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-blue-950 shadow-lg hover:bg-blue-50"
+                                            >
+                                                Shop Shoes
+                                                <i class="bi bi-arrow-right"></i>
+                                            </a>
+
+                                            <a
+                                                href="products.html"
+                                                class="focus-ring inline-flex items-center justify-center gap-2 rounded-xl border border-white/50 bg-white/10 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-sm hover:bg-white/20"
+                                            >
+                                                Explore Products
+                                            </a>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                        <!-- Slide 2 -->
+                        <div class="swiper-slide">
+
+                            <div class="relative h-[440px] overflow-hidden bg-blue-950 sm:h-[500px] lg:h-[570px]">
+
+                                <img
+                                    src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1600&auto=format&fit=crop&q=80"
+                                    alt="Modern electronics"
+                                    class="h-full w-full object-cover"
+                                >
+
+                                <div class="hero-overlay absolute inset-0"></div>
+
+                                <div class="absolute inset-0 flex items-center">
+
+                                    <div class="max-w-2xl px-6 sm:px-10 lg:px-16">
+
+                                        <span
+                                            class="mb-3 inline-flex rounded-full border border-blue-300/40 bg-blue-900/30 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-200"
+                                            data-aos="fade-up"
+                                        >
+                                            Smart Technology
+                                        </span>
+
+                                        <h2
+                                            class="text-4xl font-black leading-tight text-white sm:text-5xl lg:text-7xl"
+                                            data-aos="fade-up"
+                                            data-aos-delay="100"
+                                        >
+                                            Future Starts Here.
+                                        </h2>
+
+                                        <p
+                                            class="mt-4 max-w-xl text-sm leading-7 text-slate-200 sm:text-base lg:text-lg"
+                                            data-aos="fade-up"
+                                            data-aos-delay="200"
+                                        >
+                                            Find useful electronics designed for modern living,
+                                            productivity and entertainment.
+                                        </p>
+
+                                        <div
+                                            class="mt-7"
+                                            data-aos="fade-up"
+                                            data-aos-delay="300"
+                                        >
+                                            <a
+                                                href="products.html?category=electronics"
+                                                class="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-blue-950 shadow-lg hover:bg-blue-50"
+                                            >
+                                                Shop Electronics
+                                                <i class="bi bi-arrow-right"></i>
+                                            </a>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                        <!-- Slide 3 -->
+                        <div class="swiper-slide">
+
+                            <div class="relative h-[440px] overflow-hidden bg-blue-950 sm:h-[500px] lg:h-[570px]">
+
+                                <img
+                                    src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1600&auto=format&fit=crop&q=80"
+                                    alt="Secondary science books"
+                                    class="h-full w-full object-cover"
+                                >
+
+                                <div class="hero-overlay absolute inset-0"></div>
+
+                                <div class="absolute inset-0 flex items-center">
+
+                                    <div class="max-w-2xl px-6 sm:px-10 lg:px-16">
+
+                                        <span
+                                            class="mb-3 inline-flex rounded-full border border-blue-300/40 bg-blue-900/30 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-200"
+                                            data-aos="fade-up"
+                                        >
+                                            Knowledge Hub
+                                        </span>
+
+                                        <h2
+                                            class="text-4xl font-black leading-tight text-white sm:text-5xl lg:text-7xl"
+                                            data-aos="fade-up"
+                                            data-aos-delay="100"
+                                        >
+                                            Read. Learn. Grow.
+                                        </h2>
+
+                                        <p
+                                            class="mt-4 max-w-xl text-sm leading-7 text-slate-200 sm:text-base lg:text-lg"
+                                            data-aos="fade-up"
+                                            data-aos-delay="200"
+                                        >
+                                            Explore secondary science books that support learning,
+                                            revision and academic growth.
+                                        </p>
+
+                                        <div
+                                            class="mt-7"
+                                            data-aos="fade-up"
+                                            data-aos-delay="300"
+                                        >
+                                            <a
+                                                href="products.html?category=books"
+                                                class="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-blue-950 shadow-lg hover:bg-blue-50"
+                                            >
+                                                Shop Books
+                                                <i class="bi bi-arrow-right"></i>
+                                            </a>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="swiper-pagination"></div>
+
+                    <div class="swiper-button-prev hidden sm:flex"></div>
+                    <div class="swiper-button-next hidden sm:flex"></div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- CATEGORIES -->
+        <!-- ===================================================== -->
+
+        <section class="px-4 pb-14 sm:px-6 lg:px-8">
+
+            <div class="mx-auto max-w-7xl">
+
+                <div
+                    class="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"
+                    data-aos="fade-up"
+                >
+                    <div>
+                        <p class="text-sm font-bold uppercase tracking-[0.2em] text-blue-700">
+                            Explore
+                        </p>
+
+                        <h2 class="mt-1 text-3xl font-black text-blue-950 sm:text-4xl">
+                            Shop By Category
+                        </h2>
+
+                        <p class="mt-2 text-sm text-slate-500">
+                            Find what you need from our main collections.
+                        </p>
+                    </div>
+                </div>
+
+
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+
+                    <a
+                        href="products.html?category=shoes"
+                        class="category-card focus-ring group relative h-48 overflow-hidden rounded-2xl bg-blue-950 sm:h-56 lg:h-64"
+                        data-aos="zoom-in"
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1000&auto=format&fit=crop&q=80"
+                            alt="Shoes category"
+                            class="h-full w-full object-cover"
+                            loading="lazy"
+                        >
+
+                        <div class="absolute inset-0 bg-gradient-to-t from-blue-950/95 via-blue-950/20 to-transparent"></div>
+
+                        <div class="absolute bottom-4 left-4 right-4">
+                            <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm">
+                                <i class="bi bi-bag-heart text-lg"></i>
+                            </div>
+
+                            <h3 class="text-lg font-bold text-white">
+                                Shoes
+                            </h3>
+
+                            <p class="text-xs text-slate-200">
+                                Style & comfort
+                            </p>
+                        </div>
+                    </a>
+
+
+                    <a
+                        href="products.html?category=electronics"
+                        class="category-card focus-ring group relative h-48 overflow-hidden rounded-2xl bg-blue-950 sm:h-56 lg:h-64"
+                        data-aos="zoom-in"
+                        data-aos-delay="80"
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=1000&auto=format&fit=crop&q=80"
+                            alt="Electronics category"
+                            class="h-full w-full object-cover"
+                            loading="lazy"
+                        >
+
+                        <div class="absolute inset-0 bg-gradient-to-t from-blue-950/95 via-blue-950/20 to-transparent"></div>
+
+                        <div class="absolute bottom-4 left-4 right-4">
+                            <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm">
+                                <i class="bi bi-phone text-lg"></i>
+                            </div>
+
+                            <h3 class="text-lg font-bold text-white">
+                                Electronics
+                            </h3>
+
+                            <p class="text-xs text-slate-200">
+                                Smart technology
+                            </p>
+                        </div>
+                    </a>
+
+
+                    <a
+                        href="products.html?category=books"
+                        class="category-card focus-ring group relative h-48 overflow-hidden rounded-2xl bg-blue-950 sm:h-56 lg:h-64"
+                        data-aos="zoom-in"
+                        data-aos-delay="160"
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1600&auto=format&fit=crop&q=80"
+                            alt="Books category"
+                            class="h-full w-full object-cover"
+                            loading="lazy"
+                        >
+
+                        <div class="absolute inset-0 bg-gradient-to-t from-blue-950/95 via-blue-950/20 to-transparent"></div>
+
+                        <div class="absolute bottom-4 left-4 right-4">
+                            <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm">
+                                <i class="bi bi-book text-lg"></i>
+                            </div>
+
+                            <h3 class="text-lg font-bold text-white">
+                                Books
+                            </h3>
+
+                            <p class="text-xs text-slate-200">
+                                Learn & grow
+                            </p>
+                        </div>
+                    </a>
+
+
+                    <a
+                        href="special-orders.html"
+                        class="category-card focus-ring group relative h-48 overflow-hidden rounded-2xl bg-blue-950 sm:h-56 lg:h-64"
+                        data-aos="zoom-in"
+                        data-aos-delay="240"
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1000&auto=format&fit=crop&q=80"
+                            alt="Special orders"
+                            class="h-full w-full object-cover"
+                            loading="lazy"
+                        >
+
+                        <div class="absolute inset-0 bg-gradient-to-t from-blue-950/95 via-blue-950/20 to-transparent"></div>
+
+                        <div class="absolute bottom-4 left-4 right-4">
+                            <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm">
+                                <i class="bi bi-stars text-lg"></i>
+                            </div>
+
+                            <h3 class="text-lg font-bold text-white">
+                                Special Orders
+                            </h3>
+
+                            <p class="text-xs text-slate-200">
+                                Find what you need
+                            </p>
+                        </div>
+                    </a>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- FEATURED PRODUCTS -->
+        <!-- ===================================================== -->
+
+        <section class="px-4 pb-14 sm:px-6 lg:px-8">
+
+            <div class="mx-auto max-w-7xl">
+
+                <div
+                    class="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"
+                    data-aos="fade-up"
+                >
+                    <div>
+                        <p class="text-sm font-bold uppercase tracking-[0.2em] text-blue-700">
+                            Selected For You
+                        </p>
+
+                        <h2 class="mt-1 text-3xl font-black text-blue-950 sm:text-4xl">
+                            Featured Products
+                        </h2>
+
+                        <p class="mt-2 text-sm text-slate-500">
+                            Discover products currently highlighted by Kanye Series.
+                        </p>
+                    </div>
+
+                    <a
+                        href="products.html"
+                        class="focus-ring inline-flex items-center gap-2 text-sm font-bold text-blue-700 hover:text-blue-950"
+                    >
+                        View All
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+
+                <!-- Loading -->
+                <div
+                    id="featuredLoading"
+                    class="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                >
+                    <div class="skeleton h-80 rounded-2xl"></div>
+                    <div class="skeleton h-80 rounded-2xl"></div>
+                    <div class="skeleton hidden h-80 rounded-2xl md:block"></div>
+                    <div class="skeleton hidden h-80 rounded-2xl lg:block"></div>
+                    <div class="skeleton hidden h-80 rounded-2xl lg:block"></div>
+                    <div class="skeleton hidden h-80 rounded-2xl lg:block"></div>
+                </div>
+
+
+                <!-- Products -->
+                <div
+                    id="featuredProducts"
+                    class="hidden grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                ></div>
+
+
+                <!-- Empty -->
+                <div
+                    id="featuredEmpty"
+                    class="hidden rounded-2xl border border-slate-200 bg-white p-10 text-center"
+                >
+                    <i class="bi bi-box-seam text-4xl text-slate-300"></i>
+                    <p class="mt-3 font-semibold text-slate-700">
+                        No featured products available right now.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- SPECIAL ORDERS -->
+        <!-- ===================================================== -->
+
+        <section class="px-4 pb-14 sm:px-6 lg:px-8">
+
+            <div class="mx-auto max-w-7xl">
+
+                <div
+                    class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-950 via-blue-900 to-blue-700 px-6 py-10 shadow-xl sm:px-10 lg:px-14 lg:py-14"
+                    data-aos="fade-up"
+                >
+
+                    <div class="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-blue-400/20 blur-3xl"></div>
+                    <div class="absolute -bottom-20 -left-20 h-60 w-60 rounded-full bg-blue-300/10 blur-3xl"></div>
+
+                    <div class="relative grid items-center gap-8 lg:grid-cols-[1fr_auto]">
+
+                        <div class="max-w-2xl">
+
+                            <span class="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-blue-200">
+                                Special Orders
+                            </span>
+
+                            <h2 class="mt-4 text-3xl font-black text-white sm:text-4xl">
+                                Can't find what you're looking for?
+                            </h2>
+
+                            <p class="mt-4 text-sm leading-7 text-blue-100 sm:text-base">
+                                Request a product that is not currently listed and let Kanye Series
+                                help you find it.
+                            </p>
+
+                        </div>
+
+                        <a
+                            href="special-orders.html"
+                            class="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-blue-950 shadow-lg hover:bg-blue-50"
+                        >
+                            Request Special Order
+                            <i class="bi bi-arrow-up-right"></i>
+                        </a>
+
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- LATEST PRODUCTS -->
+        <!-- ===================================================== -->
+
+        <section class="px-4 pb-14 sm:px-6 lg:px-8">
+
+            <div class="mx-auto max-w-7xl">
+
+                <div
+                    class="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"
+                    data-aos="fade-up"
+                >
+                    <div>
+                        <p class="text-sm font-bold uppercase tracking-[0.2em] text-blue-700">
+                            Fresh Arrivals
+                        </p>
+
+                        <h2 class="mt-1 text-3xl font-black text-blue-950 sm:text-4xl">
+                            Latest Products
+                        </h2>
+
+                        <p class="mt-2 text-sm text-slate-500">
+                            Fresh products recently added to our collection.
+                        </p>
+                    </div>
+
+                    <a
+                        href="products.html"
+                        class="focus-ring inline-flex items-center gap-2 text-sm font-bold text-blue-700 hover:text-blue-950"
+                    >
+                        View All
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+
+                <div
+                    id="latestLoading"
+                    class="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                >
+                    <div class="skeleton h-80 rounded-2xl"></div>
+                    <div class="skeleton h-80 rounded-2xl"></div>
+                    <div class="skeleton hidden h-80 rounded-2xl md:block"></div>
+                    <div class="skeleton hidden h-80 rounded-2xl lg:block"></div>
+                </div>
+
+
+                <div
+                    id="latestProducts"
+                    class="hidden grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                ></div>
+
+
+                <div
+                    id="latestEmpty"
+                    class="hidden rounded-2xl border border-slate-200 bg-white p-10 text-center"
+                >
+                    <i class="bi bi-box-seam text-4xl text-slate-300"></i>
+                    <p class="mt-3 font-semibold text-slate-700">
+                        No products available yet.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- WHY CHOOSE US -->
+        <!-- ===================================================== -->
+
+        <section class="border-y border-slate-200 bg-white px-4 py-14 sm:px-6 lg:px-8">
+
+            <div class="mx-auto max-w-7xl">
+
+                <div
+                    class="mx-auto max-w-2xl text-center"
+                    data-aos="fade-up"
+                >
+                    <p class="text-sm font-bold uppercase tracking-[0.2em] text-blue-700">
+                        Kanye Series
+                    </p>
+
+                    <h2 class="mt-2 text-3xl font-black text-blue-950 sm:text-4xl">
+                        Shopping Made Simple
+                    </h2>
+
+                    <p class="mt-3 text-sm leading-7 text-slate-500">
+                        A focused shopping experience built around quality products,
+                        reliable service and straightforward ordering.
+                    </p>
+                </div>
+
+
+                <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+                    <div
+                        class="rounded-2xl border border-slate-200 bg-slate-50 p-6"
+                        data-aos="fade-up"
+                    >
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-800">
+                            <i class="bi bi-award text-xl"></i>
+                        </div>
+
+                        <h3 class="mt-5 font-bold text-blue-950">
+                            Quality Products
+                        </h3>
+
+                        <p class="mt-2 text-sm leading-6 text-slate-500">
+                            Carefully selected products for everyday needs.
+                        </p>
+                    </div>
+
+
+                    <div
+                        class="rounded-2xl border border-slate-200 bg-slate-50 p-6"
+                        data-aos="fade-up"
+                        data-aos-delay="80"
+                    >
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-800">
+                            <i class="bi bi-wallet2 text-xl"></i>
+                        </div>
+
+                        <h3 class="mt-5 font-bold text-blue-950">
+                            Fair Prices
+                        </h3>
+
+                        <p class="mt-2 text-sm leading-6 text-slate-500">
+                            Straightforward pricing without unnecessary fees.
+                        </p>
+                    </div>
+
+
+                    <div
+                        class="rounded-2xl border border-slate-200 bg-slate-50 p-6"
+                        data-aos="fade-up"
+                        data-aos-delay="160"
+                    >
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-800">
+                            <i class="bi bi-headset text-xl"></i>
+                        </div>
+
+                        <h3 class="mt-5 font-bold text-blue-950">
+                            Reliable Service
+                        </h3>
+
+                        <p class="mt-2 text-sm leading-6 text-slate-500">
+                            Clear communication throughout your shopping journey.
+                        </p>
+                    </div>
+
+
+                    <div
+                        class="rounded-2xl border border-slate-200 bg-slate-50 p-6"
+                        data-aos="fade-up"
+                        data-aos-delay="240"
+                    >
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-800">
+                            <i class="bi bi-shield-check text-xl"></i>
+                        </div>
+
+                        <h3 class="mt-5 font-bold text-blue-950">
+                            Secure Accounts
+                        </h3>
+
+                        <p class="mt-2 text-sm leading-6 text-slate-500">
+                            Customer authentication is handled through Firebase Authentication.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- CONTACT -->
+        <!-- ===================================================== -->
+
+        <section class="px-4 py-14 sm:px-6 lg:px-8">
+
+            <div class="mx-auto max-w-7xl">
+
+                <div
+                    class="overflow-hidden rounded-3xl bg-blue-950 shadow-xl"
+                    data-aos="fade-up"
+                >
+
+                    <div class="grid lg:grid-cols-2">
+
+                        <div class="p-7 sm:p-10 lg:p-14">
+
+                            <p class="text-sm font-bold uppercase tracking-[0.2em] text-blue-300">
+                                Need Help?
+                            </p>
+
+                            <h2 class="mt-2 text-3xl font-black text-white sm:text-4xl">
+                                Contact Kanye Series
+                            </h2>
+
+                            <p class="mt-4 max-w-xl text-sm leading-7 text-blue-100">
+                                Have a question about a product or need assistance?
+                                Contact us using the available channels.
+                            </p>
+
+                            <div class="mt-8 grid gap-3 sm:grid-cols-3">
+
+                                <a
+                                    href="mailto:kanyeseries@gmail.com"
+                                    class="focus-ring rounded-2xl bg-white/10 p-4 text-white hover:bg-white/15"
+                                >
+                                    <i class="bi bi-envelope text-xl text-blue-300"></i>
+                                    <p class="mt-3 text-sm font-bold">Email</p>
+                                    <p class="mt-1 break-all text-xs text-blue-200">
+                                        kanyeseries@gmail.com
+                                    </p>
+                                </a>
+
+                                <a
+                                    href="https://wa.me/256776150476"
+                                    class="focus-ring rounded-2xl bg-white/10 p-4 text-white hover:bg-white/15"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <i class="bi bi-whatsapp text-xl text-blue-300"></i>
+                                    <p class="mt-3 text-sm font-bold">WhatsApp</p>
+                                    <p class="mt-1 text-xs text-blue-200">
+                                        Chat with us
+                                    </p>
+                                </a>
+
+                                <a
+                                    href="tel:+256776150476"
+                                    class="focus-ring rounded-2xl bg-white/10 p-4 text-white hover:bg-white/15"
+                                >
+                                    <i class="bi bi-telephone text-xl text-blue-300"></i>
+                                    <p class="mt-3 text-sm font-bold">Call</p>
+                                    <p class="mt-1 text-xs text-blue-200">
+                                        0776 150 476
+                                    </p>
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                        <div class="hidden min-h-full lg:block">
+                            <img
+                                src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&auto=format&fit=crop&q=80"
+                                alt="Kanye Series shopping experience"
+                                class="h-full w-full object-cover"
+                                loading="lazy"
+                            >
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- FOOTER -->
+        <!-- ===================================================== -->
+
+        <footer class="bg-slate-950 px-4 pb-28 pt-12 text-slate-300 sm:px-6 lg:px-8 lg:pb-12">
+
+            <div class="mx-auto max-w-7xl">
+
+                <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+
+                    <!-- Brand -->
+                    <div>
+
+                        <a
+                            href="index.html"
+                            class="flex items-center gap-3 text-white"
+                        >
+                            <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-700">
+                                <img src="./images/logo2.png" alt="Kanye Series" class="h-9 w-9 object-contain">
+                            </span>
+
+                            <span class="text-lg font-black tracking-wide">
+                                KANYE SERIES
+                            </span>
+                        </a>
+
+                        <p class="mt-4 max-w-sm text-sm leading-7 text-slate-400">
+                            A modern e-commerce platform for shoes, electronics,
+                            secondary science books and special orders.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Quick Links -->
+                    <div>
+
+                        <h3 class="font-bold text-white">
+                            Quick Links
+                        </h3>
+
+                        <ul class="mt-4 space-y-3 text-sm">
+
+                            <li>
+                                <a href="index.html" class="hover:text-white">
+                                    Home
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="products.html" class="hover:text-white">
+                                    Products
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="orders.html" class="hover:text-white">
+                                    Orders
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="profile.html" class="hover:text-white">
+                                    Profile
+                                </a>
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+
+                    <!-- Categories -->
+                    <div>
+
+                        <h3 class="font-bold text-white">
+                            Categories
+                        </h3>
+
+                        <ul class="mt-4 space-y-3 text-sm">
+
+                            <li>
+                                <a
+                                    href="products.html?category=shoes"
+                                    class="hover:text-white"
+                                >
+                                    Shoes
+                                </a>
+                            </li>
+
+                            <li>
+                                <a
+                                    href="products.html?category=electronics"
+                                    class="hover:text-white"
+                                >
+                                    Electronics
+                                </a>
+                            </li>
+
+                            <li>
+                                <a
+                                    href="products.html?category=books"
+                                    class="hover:text-white"
+                                >
+                                    Books
+                                </a>
+                            </li>
+
+                            <li>
+                                <a
+                                    href="special-orders.html"
+                                    class="hover:text-white"
+                                >
+                                    Special Orders
+                                </a>
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+
+                    <!-- Account -->
+                    <div>
+
+                        <h3 class="font-bold text-white">
+                            Account
+                        </h3>
+
+                        <ul class="mt-4 space-y-3 text-sm">
+
+                            <li>
+                                <a
+                                    href="login.html"
+                                    id="footerLoginLink"
+                                    class="hover:text-white"
+                                >
+                                    Login
+                                </a>
+                            </li>
+
+                            <li>
+                                <a
+                                    href="wishlist.html"
+                                    class="hover:text-white"
+                                >
+                                    Wishlist
+                                </a>
+                            </li>
+
+                            <li>
+                                <a
+                                    href="cart.html"
+                                    class="hover:text-white"
+                                >
+                                    Cart
+                                </a>
+                            </li>
+
+                            <li>
+                                <a
+                                    href="profile.html"
+                                    class="hover:text-white"
+                                >
+                                    Profile
+                                </a>
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                </div>
+
+
+                <div class="mt-10 border-t border-slate-800 pt-6">
+
+                    <div class="flex flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+
+                        <p>
+                            &copy; <span id="currentYear"></span> Kanye Series. All rights reserved.
+                        </p>
+
+                        <p>
+                            Built for simple, modern shopping.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+         <a href="policy.html" class="focus-ring hover:text-white font-semibold">Policies</a> </footer>
+
+    </main>
+
+
+    <!-- ========================================================= -->
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <!-- ========================================================= -->
+
+     <nav class="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 shadow-2xl backdrop-blur md:block lg:hidden"
+         aria-label="Mobile and tablet navigation">
+        <div class="mx-auto grid max-w-lg grid-cols-4">
+            <a href="index.html" class="flex flex-col items-center gap-1 px-2 py-3 text-blue-800 hover:text-blue-800" aria-label="Home">
+                <i class="bi bi-house-door-fill text-lg"></i>
+                <span class="text-[11px] font-semibold">Home</span>
+            </a>
+            <a href="products.html" class="flex flex-col items-center gap-1 px-2 py-3 text-slate-500 hover:text-blue-800" aria-label="Products">
+                <i class="bi bi-grid text-lg"></i>
+                <span class="text-[11px] font-semibold">Products</span>
+            </a>
+            <a href="orders.html" class="flex flex-col items-center gap-1 px-2 py-3 text-slate-500 hover:text-blue-800" aria-label="Orders">
+                <i class="bi bi-bag-check text-lg"></i>
+                <span class="text-[11px] font-semibold">Orders</span>
+            </a>
+            <a href="profile.html" class="flex flex-col items-center gap-1 px-2 py-3 text-slate-500 hover:text-blue-800" aria-label="Profile">
+                <i class="bi bi-person text-lg"></i>
+                <span class="text-[11px] font-semibold">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+
+    <!-- ========================================================= -->
+    <!-- LIBRARIES -->
+    <!-- ========================================================= -->
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+
+
+    <!-- ========================================================= -->
+    <!-- FIREBASE + HOME PAGE JAVASCRIPT -->
+    <!-- ========================================================= -->
+
+    <script type="module">
+
+        // ========================================
+        // FIREBASE IMPORTS
+        // ========================================
+
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+
+        import {
+            getAuth,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+        import {
+            getDatabase,
+            ref,
+            get,
+            set,
+            update,
+            onValue,
+            runTransaction
+        } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
+
+
+        // ========================================
+        // FIREBASE CONFIGURATION
+        // ========================================
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBK-HHFid2F9SY1rtGsSO3boUFZihyOpTQ",
+            authDomain: "goldai-58550.firebaseapp.com",
+            projectId: "goldai-58550",databaseURL:"https://goldai-58550-default-rtdb.firebaseio.com",
+            storageBucket: "goldai-58550.firebasestorage.app",
+            messagingSenderId: "726592521265",
+            appId: "1:726592521265:web:8aca7282b6b4aec8c9c110",
+            measurementId: "G-23MEZJVM6Z"
+        };
+
+
+        // ========================================
+        // FIREBASE INITIALIZATION
+        // ========================================
+
+        const app = initializeApp(firebaseConfig);
+
+        const auth = getAuth(app);
+
+        const db = getDatabase(app);
+
+
+        // ========================================
+        // CLOUDINARY CONFIGURATION
+        // ========================================
+
+        const cloudinaryCloudName = "garfgnqe";
+        const cloudinaryUploadPreset = "kanyeseries";
+        const cloudinaryUploadUrl =
+            "https://api.cloudinary.com/v1_1/garfgnqe/image/upload";
+
+
+        // The home page only reads Cloudinary URLs.
+        // No image upload is performed here.
+
+
+        // ========================================
+        // DOM ELEMENTS
+        // ========================================
+
+        const searchBtn =
+            document.getElementById("searchBtn");
+
+        const searchPanel =
+            document.getElementById("searchPanel");
+
+        const searchInput =
+            document.getElementById("searchInput");
+
+        const clearSearchBtn =
+            document.getElementById("clearSearchBtn");
+
+        const searchResults =
+            document.getElementById("searchResults");
+
+        const featuredLoading =
+            document.getElementById("featuredLoading");
+
+        const featuredProducts =
+            document.getElementById("featuredProducts");
+
+        const featuredEmpty =
+            document.getElementById("featuredEmpty");
+
+        const latestLoading =
+            document.getElementById("latestLoading");
+
+        const latestProducts =
+            document.getElementById("latestProducts");
+
+        const latestEmpty =
+            document.getElementById("latestEmpty");
+
+        const cartCount =
+            document.getElementById("cartCount");
+
+        const wishlistCount =
+            document.getElementById("wishlistCount");
+
+        const footerLoginLink =
+            document.getElementById("footerLoginLink");
+
+
+        // ========================================
+        // APPLICATION STATE
+        // ========================================
+
+        let allProducts = [];
+
+        let currentUser = null;
+
+        let wishlistItems = {};
+
+        let cartItems = {};
+
+        let wishlistListenerCleanup = null;
+
+        let searchTimeout = null;
+
+
+        // ========================================
+        // HELPERS
+        // ========================================
+
+        function escapeHtml(value) {
+
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+
+        function normalizeCategory(category) {
+
+            return String(category || "")
+                .trim()
+                .toLowerCase();
+        }
+
+
+        function formatCurrency(value) {
+
+            const amount =
+                Number(value) || 0;
+
+            return `UGX ${amount.toLocaleString("en-UG")}`;
+        }
+
+
+        function getProductImage(product) {
+
+            if (
+                Array.isArray(product.images) &&
+                product.images.length > 0
+            ) {
+                return product.images[0];
+            }
+
+            if (
+                product.images &&
+                typeof product.images === "object"
+            ) {
+                const firstImage =
+                    Object.values(product.images)[0];
+
+                if (firstImage) {
+                    return firstImage;
+                }
+            }
+
+            if (product.image) {
+                return product.image;
+            }
+
+            return "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=700&auto=format&fit=crop&q=75";
+        }
+
+
+        function getProductId(product) {
+
+            return String(
+                product.id ??
+                product.productId ??
+                ""
+            );
+        }
+
+
+        function getRemainingStock(product) {
+
+            const baseStock = Number(product?.stock ?? 0);
+
+            if (!Number.isFinite(baseStock)) {
+                return null;
+            }
+
+            const cartQuantity = Number(
+                cartItems[getProductId(product)]?.quantity || 0
+            );
+
+            return Math.max(0, baseStock - cartQuantity);
+        }
+
+
+        function isProductAvailable(product) {
+
+            const remainingStock = getRemainingStock(product);
+
+            return remainingStock === null ? true : remainingStock > 0;
+        }
+
+
+        function productDetailsUrl(productId) {
+
+            return `product.html?id=${encodeURIComponent(productId)}`;
+        }
+
+
+        function showMessage(
+            title,
+            text,
+            icon = "info"
+        ) {
+
+            if (window.Swal) {
+
+                Swal.fire({
+                    title,
+                    text,
+                    icon,
+                    confirmButtonColor: "#1e3a8a",
+                    confirmButtonText: "OK"
+                });
+
+                return;
+            }
+
+            alert(`${title}\n\n${text}`);
+        }
+
+
+        // ========================================
+        // AUTHENTICATION STATE
+        // ========================================
+
+        onAuthStateChanged(auth, async (user) => {
+
+            currentUser = user;
+
+            if (!user) {
+
+                wishlistItems = {};
+                cartItems = {};
+
+                updateWishlistCount();
+                updateCartCount();
+
+                footerLoginLink.textContent =
+                    "Login";
+
+                footerLoginLink.href =
+                    "login.html";
+
+                return;
+            }
+
+
+            footerLoginLink.textContent =
+                "Profile";
+
+            footerLoginLink.href =
+                "profile.html";
+
+
+            await loadUserShoppingData(user.uid);
+
+        });
+
+
+        // ========================================
+        // LOAD USER SHOPPING DATA
+        // ========================================
+
+        function attachWishlistListener(uid) {
+
+            if (wishlistListenerCleanup) {
+                wishlistListenerCleanup();
+                wishlistListenerCleanup = null;
+            }
+
+            const wishlistRef = ref(db, `wishlists/${uid}`);
+
+            wishlistListenerCleanup = onValue(
+                wishlistRef,
+                (snapshot) => {
+                    wishlistItems = snapshot.exists()
+                        ? snapshot.val() || {}
+                        : {};
+
+                    updateWishlistCount();
+                    refreshProductCardStates();
+                },
+                (error) => {
+                    console.error("Wishlist listener error:", error);
+                    wishlistItems = {};
+                    updateWishlistCount();
+                    refreshProductCardStates();
+                }
+            );
+        }
+
+
+        async function loadUserShoppingData(uid) {
+
+            try {
+
+                const cartSnapshot = await get(
+                    ref(
+                        db,
+                        `carts/${uid}`
+                    )
+                );
+
+                cartItems =
+                    cartSnapshot.exists()
+                        ? cartSnapshot.val() || {}
+                        : {};
+
+                attachWishlistListener(uid);
+                updateCartCount();
+                renderFeaturedProducts();
+                renderLatestProducts();
+
+            } catch (error) {
+
+                console.error(
+                    "Unable to load user shopping data:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        // ========================================
+        // CART COUNT
+        // ========================================
+
+        function updateCartCount() {
+
+            const count =
+                Object.values(cartItems)
+                    .reduce(
+                        (total, item) =>
+                            total +
+                            Number(item?.quantity || 0),
+                        0
+                    );
+
+            cartCount.textContent =
+                count.toLocaleString();
+
+            cartCount.classList.toggle(
+                "hidden",
+                count <= 0
+            );
+
+        }
+
+
+        // ========================================
+        // WISHLIST COUNT
+        // ========================================
+
+        function updateWishlistCount() {
+
+            const count =
+                Object.values(wishlistItems)
+                    .filter(Boolean)
+                    .length;
+
+            wishlistCount.textContent =
+                count.toLocaleString();
+
+            wishlistCount.classList.toggle(
+                "hidden",
+                count <= 0
+            );
+
+        }
+
+
+        // ========================================
+        // LOAD PRODUCTS
+        // ========================================
+
+        async function loadProducts() {
+
+            try {
+
+                const snapshot =
+                    await get(
+                        ref(db, "products")
+                    );
+
+
+                if (!snapshot.exists()) {
+
+                    allProducts = [];
+
+                } else {
+
+                    const data =
+                        snapshot.val() || {};
+
+                    allProducts =
+                        Object.entries(data)
+                            .map(
+                                ([id, product]) => ({
+                                    id,
+                                    ...(product || {})
+                                })
+                            )
+                            .filter(
+                                product =>
+                                    product &&
+                                    product.name
+                            );
+
+                }
+
+
+                renderFeaturedProducts();
+
+                renderLatestProducts();
+
+            } catch (error) {
+
+                console.error(
+                    "Error loading products:",
+                    error
+                );
+
+                showProductErrorStates();
+
+            }
+
+        }
+
+
+        // ========================================
+        // FEATURED PRODUCTS
+        // ========================================
+
+        function renderFeaturedProducts() {
+
+            featuredLoading.classList.add("hidden");
+
+            const featured =
+                allProducts
+                    .filter(
+                        product =>
+                            product.featured === true ||
+                            product.featured === "true"
+                    )
+                    .filter(
+                        product =>
+                            isProductAvailable(product)
+                    )
+                    .slice(0, 6);
+
+
+            if (featured.length === 0) {
+
+                featuredProducts.classList.add("hidden");
+                featuredEmpty.classList.remove("hidden");
+
+                return;
+            }
+
+
+            featuredEmpty.classList.add("hidden");
+            featuredProducts.classList.remove("hidden");
+
+            featuredProducts.innerHTML =
+                featured
+                    .map(createProductCard)
+                    .join("");
+
+
+            attachProductActions(
+                featuredProducts
+            );
+
+            if (window.AOS) {
+                AOS.refresh();
+            }
+
+        }
+
+
+        // ========================================
+        // LATEST PRODUCTS
+        // ========================================
+
+        function renderLatestProducts() {
+
+            latestLoading.classList.add("hidden");
+
+            const latest =
+                [...allProducts]
+                    .filter(
+                        product =>
+                            isProductAvailable(product)
+                    )
+                    .sort(
+                        (a, b) =>
+                            Number(b.createdAt || 0) -
+                            Number(a.createdAt || 0)
+                    )
+                    .slice(0, 4);
+
+
+            if (latest.length === 0) {
+
+                latestProducts.classList.add("hidden");
+                latestEmpty.classList.remove("hidden");
+
+                return;
+            }
+
+
+            latestEmpty.classList.add("hidden");
+            latestProducts.classList.remove("hidden");
+
+            latestProducts.innerHTML =
+                latest
+                    .map(createProductCard)
+                    .join("");
+
+
+            attachProductActions(
+                latestProducts
+            );
+
+            if (window.AOS) {
+                AOS.refresh();
+            }
+
+        }
+
+
+        // ========================================
+        // PRODUCT CARD
+        // ========================================
+
+        function createProductCard(product) {
+
+            const productId =
+                getProductId(product);
+
+            const image =
+                getProductImage(product);
+
+            const name =
+                escapeHtml(product.name);
+
+            const category =
+                escapeHtml(product.category || "Product");
+
+            const price =
+                formatCurrency(product.price);
+
+            const remainingStock =
+                getRemainingStock(product);
+
+            const isWishlisted =
+                Boolean(
+                    wishlistItems[productId]
+                );
+
+            const stockLabel =
+                remainingStock === null
+                    ? "In stock"
+                    : remainingStock <= 0
+                        ? "Out of stock"
+                        : remainingStock <= 5
+                            ? `Only ${remainingStock} left`
+                            : `${remainingStock} in stock`;
+
+            const stockClass =
+                remainingStock === null || remainingStock > 0
+                    ? "text-emerald-600"
+                    : "text-red-500";
+
+
+            return `
+                <article
+                    class="product-card overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                    data-aos="fade-up"
+                >
+
+                    <div class="relative aspect-square overflow-hidden bg-slate-100">
+
+                        <a
+                            href="${productDetailsUrl(productId)}"
+                            class="focus-ring block h-full w-full"
+                            aria-label="View ${name}"
+                        >
+                            <img
+                                src="${escapeHtml(image)}"
+                                alt="${name}"
+                                class="product-image h-full w-full object-cover"
+                                loading="lazy"
+                                decoding="async"
+                            >
+                        </a>
+
+
+                        ${
+                            product.featured === true ||
+                            product.featured === "true"
+                                ? `
+                                    <span class="absolute left-2 top-2 rounded-full bg-blue-900 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                                        Featured
+                                    </span>
+                                `
+                                : ""
+                        }
+
+
+                        <button
+                            type="button"
+                            class="wishlist-action focus-ring absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full ${
+                                isWishlisted
+                                    ? ">bg-red-500 text-white"
+                                    : "bg-white/90 text-slate-700"
+                            } shadow-md backdrop-blur-sm hover:scale-105"
+                            data-product-id="${escapeHtml(productId)}"
+                            aria-label="${
+                                isWishlisted
+                                    ? "Remove from wishlist"
+                                    : "Add to wishlist"
+                            }"
+                        >
+                            <i class="bi ${
+                                isWishlisted
+                                    ? "bi-heart-fill"
+                                    : "bi-heart"
+                            }"></i>
+                        </button>
+
+                    </div>
+
+
+                    <div class="p-3.5 sm:p-4">
+
+                        <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-600">
+                            ${category}
+                        </p>
+
+                        <a
+                            href="${productDetailsUrl(productId)}"
+                            class="focus-ring mt-1 block"
+                        >
+                            <h3 class="line-clamp-2 min-h-[40px] text-sm font-bold leading-5 text-blue-950 sm:text-base">
+                                ${name}
+                            </h3>
+                        </a>
+
+
+                        <div class="mt-3">
+
+                            <p class="text-base font-black text-blue-800 sm:text-lg">
+                                ${price}
+                            </p>
+
+                            <p class="mt-1 text-[11px] ${stockClass}">
+                                ${stockLabel}
+                            </p>
+
+                        </div>
+
+
+                        <div class="mt-3 flex gap-2">
+
+                            <button
+                                type="button"
+                                data-product-id="${escapeHtml(productId)}"
+                                ${remainingStock !== null && remainingStock <= 0 ? "disabled" : ""}
+                                aria-label="Add ${name} to cart"
+                                class="cart-action focus-ring flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-blue-900 px-2 py-2.5 text-xs font-bold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-300">
+                                <i class="bi bi-cart-plus"></i>
+                                <span>Add</span>
+                            </button>
+
+                            <a
+                                href="${productDetailsUrl(productId)}"
+                                class="focus-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-blue-900 hover:bg-blue-50"
+                                aria-label="View ${name}"
+                            >
+                                <i class="bi bi-arrow-up-right"></i>
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </article>
+            `;
+
+        }
+
+
+        // ========================================
+        // PRODUCT ACTIONS
+        // ========================================
+
+        function attachProductActions(container) {
+
+            container
+                .querySelectorAll(".cart-action")
+                .forEach(button => {
+
+                    button.addEventListener(
+                        "click",
+                        async event => {
+
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            const productId =
+                                button.dataset.productId;
+
+                            await addToCart(
+                                productId,
+                                button
+                            );
+
+                        }
+                    );
+
+                });
+
+
+            container
+                .querySelectorAll(".wishlist-action")
+                .forEach(button => {
+
+                    button.addEventListener(
+                        "click",
+                        async event => {
+
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            const productId =
+                                button.dataset.productId;
+
+                            await toggleWishlist(
+                                productId,
+                                button
+                            );
+
+                        }
+                    );
+
+                });
+
+        }
+
+
+        // ========================================
+        // ADD TO CART
+        // ========================================
+
+        async function addToCart(
+            productId,
+            button
+        ) {
+
+            if (!currentUser) {
+
+                showMessage(
+                    "Login required",
+                    "Please log in to add products to your cart.",
+                    "info"
+                );
+
+                setTimeout(
+                    () => {
+                        window.location.href =
+                            "login.html";
+                    },
+                    1200
+                );
+
+                return;
+            }
+
+
+            const product =
+                allProducts.find(
+                    item =>
+                        getProductId(item) ===
+                        String(productId)
+                );
+
+
+            if (!product) {
+
+                showMessage(
+                    "Product unavailable",
+                    "This product could not be found.",
+                    "error"
+                );
+
+                return;
+            }
+
+
+            if (!isProductAvailable(product)) {
+
+                showMessage(
+                    "Out of stock",
+                    "This product is currently unavailable.",
+                    "warning"
+                );
+
+                return;
+            }
+
+
+            const originalText =
+                button.innerHTML;
+
+            button.disabled = true;
+
+            button.innerHTML =
+                `<i class="bi bi-arrow-repeat animate-spin"></i>`;
+
+
+            try {
+
+                const existing =
+                    cartItems[productId] || null;
+
+                const currentQuantity =
+                    Number(
+                        existing?.quantity || 0
+                    );
+
+                const availableStock = getRemainingStock(product);
+
+                if (availableStock !== null && availableStock <= 0) {
+                    showMessage(
+                        "Out of stock",
+                        "This product is currently unavailable.",
+                        "warning"
+                    );
+                    return;
+                }
+
+                const cartItem = {
+
+                    productId,
+
+                    name: product.name,
+
+                    price: Number(
+                        product.price || 0
+                    ),
+
+                    image: getProductImage(
+                        product
+                    ),
+
+                    quantity:
+                        currentQuantity + 1,
+
+                    addedAt:
+                        existing?.addedAt ||
+                        Date.now()
+
+                };
+
+
+                await set(
+                    ref(
+                        db,
+                        `carts/${currentUser.uid}/${productId}`
+                    ),
+                    cartItem
+                );
+
+
+                cartItems[productId] =
+                    cartItem;
+
+
+                updateCartCount();
+                renderFeaturedProducts();
+                renderLatestProducts();
+
+
+                showMessage(
+                    "Added to cart",
+                    `${product.name} has been added to your cart.`,
+                    "success"
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Error adding product to cart:",
+                    error
+                );
+
+                showMessage(
+                    "Unable to add product",
+                    "Please try again.",
+                    "error"
+                );
+
+            } finally {
+
+                button.disabled = false;
+
+                button.innerHTML =
+                    originalText;
+
+            }
+
+        }
+
+
+        // ========================================
+        // WISHLIST
+        // ========================================
+
+        async function toggleWishlist(
+            productId,
+            button
+        ) {
+
+            if (!currentUser) {
+
+                showMessage(
+                    "Login required",
+                    "Please log in to manage your wishlist.",
+                    "info"
+                );
+
+                setTimeout(
+                    () => {
+                        window.location.href =
+                            "login.html";
+                    },
+                    1200
+                );
+
+                return;
+            }
+
+
+            const isActive =
+                Boolean(
+                    wishlistItems[productId]
+                );
+
+
+            try {
+
+                if (isActive) {
+
+                    await update(
+                        ref(
+                            db,
+                            `wishlists/${currentUser.uid}`
+                        ),
+                        {
+                            [productId]: null
+                        }
+                    );
+
+                    delete wishlistItems[
+                        productId
+                    ];
+
+                } else {
+
+                    await set(
+                        ref(
+                            db,
+                            `wishlists/${currentUser.uid}/${productId}`
+                        ),
+                        true
+                    );
+
+                    wishlistItems[
+                        productId
+                    ] = true;
+
+                }
+
+
+                updateWishlistCount();
+
+                refreshProductCardStates();
+
+            } catch (error) {
+
+                console.error(
+                    "Error updating wishlist:",
+                    error
+                );
+
+                showMessage(
+                    "Unable to update wishlist",
+                    "Please try again.",
+                    "error"
+                );
+
+            }
+
+        }
+
+
+        // ========================================
+        // REFRESH PRODUCT CARD WISHLIST STATES
+        // ========================================
+
+        function refreshProductCardStates() {
+
+            document
+                .querySelectorAll(
+                    ".wishlist-action"
+                )
+                .forEach(button => {
+
+                    const productId =
+                        button.dataset.productId;
+
+                    const active =
+                        Boolean(
+                            wishlistItems[
+                                productId
+                            ]
+                        );
+
+                    button.classList.toggle(
+                        "bg-red-500",
+                        active
+                    );
+
+                    button.classList.toggle(
+                        "text-white",
+                        active
+                    );
+
+                    button.classList.toggle(
+                        "bg-white/90",
+                        !active
+                    );
+
+                    button.classList.toggle(
+                        "text-slate-700",
+                        !active
+                    );
+
+                    button.innerHTML =
+                        `<i class="bi ${
+                            active
+                                ? "bi-heart-fill"
+                                : "bi-heart"
+                        }"></i>`;
+
+                    button.setAttribute(
+                        "aria-label",
+                        active
+                            ? "Remove from wishlist"
+                            : "Add to wishlist"
+                    );
+
+                });
+
+        }
+
+
+        // ========================================
+        // SEARCH
+        // ========================================
+
+        searchBtn.addEventListener(
+            "click",
+            () => {
+
+                const isHidden =
+                    searchPanel.classList.contains(
+                        "hidden"
+                    );
+
+
+                searchPanel.classList.toggle(
+                    "hidden"
+                );
+
+                searchBtn.setAttribute(
+                    "aria-expanded",
+                    String(isHidden)
+                );
+
+
+                if (isHidden) {
+
+                    setTimeout(
+                        () => searchInput.focus(),
+                        50
+                    );
+
+                } else {
+
+                    searchInput.value = "";
+
+                    searchResults.classList.add(
+                        "hidden"
+                    );
+
+                    searchResults.innerHTML = "";
+
+                }
+
+            }
+        );
+
+
+        clearSearchBtn.addEventListener(
+            "click",
+            () => {
+
+                searchInput.value = "";
+
+                clearSearchBtn.classList.add(
+                    "hidden"
+                );
+
+                searchResults.classList.add(
+                    "hidden"
+                );
+
+                searchResults.innerHTML = "";
+
+                searchInput.focus();
+
+            }
+        );
+
+
+        searchInput.addEventListener(
+            "input",
+            () => {
+
+                const query =
+                    searchInput.value
+                        .trim()
+                        .toLowerCase();
+
+
+                clearSearchBtn.classList.toggle(
+                    "hidden",
+                    query.length === 0
+                );
+
+
+                clearTimeout(
+                    searchTimeout
+                );
+
+
+                searchTimeout =
+                    setTimeout(
+                        () => {
+
+                            if (!query) {
+
+                                searchResults.classList.add(
+                                    "hidden"
+                                );
+
+                                searchResults.innerHTML =
+                                    "";
+
+                                return;
+                            }
+
+
+                            const matches =
+                                allProducts
+                                    .filter(
+                                        product => {
+
+                                            const name =
+                                                String(
+                                                    product.name ||
+                                                    ""
+                                                ).toLowerCase();
+
+                                            const category =
+                                                String(
+                                                    product.category ||
+                                                    ""
+                                                ).toLowerCase();
+
+                                            return (
+                                                name.includes(
+                                                    query
+                                                ) ||
+                                                category.includes(
+                                                    query
+                                                )
+                                            );
+
+                                        }
+                                    )
+                                    .slice(0, 6);
+
+
+                            renderSearchResults(
+                                matches,
+                                query
+                            );
+
+                        },
+                        250
+                    );
+
+            }
+        );
+
+
+        // ========================================
+        // SEARCH RESULTS
+        // ========================================
+
+        function renderSearchResults(
+            matches,
+            query
+        ) {
+
+            searchResults.classList.remove(
+                "hidden"
+            );
+
+
+            if (matches.length === 0) {
+
+                searchResults.innerHTML = `
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-5 text-center">
+                        <i class="bi bi-search text-2xl text-slate-300"></i>
+                        <p class="mt-2 text-sm font-semibold text-slate-700">
+                            No products found for "${escapeHtml(query)}".
+                        </p>
+                        <a
+                            href="products.html"
+                            class="mt-3 inline-flex text-xs font-bold text-blue-700 hover:text-blue-950"
+                        >
+                            Browse all products
+                        </a>
+                    </div>
+                `;
+
+                return;
+            }
+
+
+            searchResults.innerHTML = `
+                <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+
+                    <div class="mb-3 flex items-center justify-between px-2">
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
+                            Search Results
+                        </p>
+
+                        <a
+                            href="products.html"
+                            class="text-xs font-bold text-blue-700 hover:text-blue-950"
+                        >
+                            View All
+                        </a>
+                    </div>
+
+                    <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+
+                        ${matches.map(product => {
+
+                            const id =
+                                getProductId(
+                                    product
+                                );
+
+                            return `
+                                <a
+                                    href="${productDetailsUrl(id)}"
+                                    class="focus-ring flex items-center gap-3 rounded-xl p-2 hover:bg-slate-50"
+                                >
+                                    <img
+                                        src="${escapeHtml(
+                                            getProductImage(
+                                                product
+                                            )
+                                        )}"
+                                        alt="${escapeHtml(product.name)}"
+                                        class="h-14 w-14 rounded-lg object-cover"
+                                        loading="lazy"
+                                    >
+
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-bold text-blue-950">
+                                            ${escapeHtml(product.name)}
+                                        </p>
+
+                                        <p class="text-xs text-slate-500">
+                                            ${escapeHtml(product.category || "Product")}
+                                        </p>
+
+                                        <p class="mt-1 text-xs font-bold text-blue-700">
+                                            ${formatCurrency(product.price)}
+                                        </p>
+                                    </div>
+                                </a>
+                            `;
+
+                        }).join("")}
+
+                    </div>
+
+                </div>
+            `;
+
+        }
+
+
+        // ========================================
+        // PRODUCT ERROR STATES
+        // ========================================
+
+        function showProductErrorStates() {
+
+            featuredLoading.classList.add("hidden");
+            latestLoading.classList.add("hidden");
+
+            featuredProducts.classList.add("hidden");
+            latestProducts.classList.add("hidden");
+
+            featuredEmpty.classList.remove("hidden");
+            latestEmpty.classList.remove("hidden");
+
+            featuredEmpty.innerHTML = `
+                <i class="bi bi-exclamation-circle text-4xl text-red-300"></i>
+                <p class="mt-3 font-semibold text-slate-700">
+                    Unable to load products right now.
+                </p>
+                <button
+                    type="button"
+                    id="retryProductsBtn"
+                    class="mt-4 rounded-xl bg-blue-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-800">
+                >
+                    Try Again
+                </button>
+            `;
+
+            latestEmpty.innerHTML = `
+                <i class="bi bi-exclamation-circle text-4xl text-red-300"></i>
+                <p class="mt-3 font-semibold text-slate-700">
+                    Please try again later.
+                </p>
+            `;
+
+
+            document
+                .getElementById(
+                    "retryProductsBtn"
+                )
+                ?.addEventListener(
+                    "click",
+                    loadProducts
+                );
+
+        }
+
+
+        // ========================================
+        // SWIPER
+        // ========================================
+
+        const heroSwiper =
+            new Swiper(
+                ".heroSwiper",
+                {
+                    loop: true,
+
+                    speed: 650,
+
+                    autoplay: {
+                        delay: 4500,
+                        disableOnInteraction: false
+                    },
+
+                    pagination: {
+                        el: ".swiper-pagination",
+                        clickable: true
+                    },
+
+                    navigation: {
+                        nextEl: ".swiper-button-next",
+                        prevEl: ".swiper-button-prev"
+                    },
+
+                    keyboard: {
+                        enabled: true
+                    },
+
+                    a11y: {
+                        enabled: true
+                    }
+                }
+            );
+
+
+        // ========================================
+        // AOS
+        // ========================================
+
+        if (window.AOS) {
+
+            AOS.init({
+                duration: 650,
+                easing: "ease-out-cubic",
+                once: true,
+                offset: 60
+            });
+
+        }
+
+
+        // ========================================
+        // INITIALIZE HOME PAGE
+        // ========================================
+
+        document.getElementById(
+            "currentYear"
+        ).textContent =
+            new Date().getFullYear();
+
+
+        loadProducts();
+
+    </script>
+
+</body>
+</html>

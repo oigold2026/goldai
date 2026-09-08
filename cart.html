@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart | Kanye Series</title>
+    <meta name="description" content="Review your Kanye Series shopping cart before checkout.">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kanye Series">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Bootstrap Icons - existing Kanye Series icon system -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- AOS -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script defer src="./js/pwa.js"></script>
+
+    <style>
+        html { scroll-behavior: smooth; }
+        body { background: #f8fafc; }
+
+        .desktop-sidebar { width: 84px; }
+        .main-with-sidebar { margin-left: 84px; }
+
+        .sidebar-link {
+            color: #cbd5e1;
+            transition: .2s ease;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255,255,255,.08);
+            color: #fff;
+        }
+
+        .sidebar-link.active {
+            color: #fff;
+            background: rgba(255,255,255,.10);
+            box-shadow: inset 3px 0 #60a5fa;
+        }
+
+        .focus-ring:focus-visible {
+            outline: 3px solid rgba(96,165,250,.7);
+            outline-offset: 3px;
+        }
+
+        .bottom-safe { padding-bottom: 88px; }
+
+        .cart-item {
+            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        }
+
+        .cart-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(15,23,42,.08);
+        }
+
+        .product-image-wrap {
+            aspect-ratio: 1 / 1;
+            background: #f1f5f9;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                #e5e7eb 25%,
+                #f8fafc 50%,
+                #e5e7eb 75%
+            );
+            background-size: 200% 100%;
+            animation: skeleton 1.3s infinite;
+        }
+
+        @keyframes skeleton {
+            from { background-position: 200% 0; }
+            to { background-position: -200% 0; }
+        }
+
+        @media (max-width: 1023px) {
+            .desktop-sidebar { display: none; }
+            .main-with-sidebar { margin-left: 0; }
+        }
+
+        @media (min-width: 768px) {
+            .bottom-safe { padding-bottom: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-slate-900">
+<div class="min-h-screen">
+
+    <!-- =========================================================
+         DESKTOP SIDEBAR
+         ========================================================= -->
+    <aside class="desktop-sidebar fixed inset-y-0 left-0 z-50 hidden flex-col items-center
+                  bg-gradient-to-b from-blue-950 via-blue-900 to-blue-950 shadow-xl lg:flex">
+
+        <a href="index.html"
+           class="mt-6 mb-10 flex h-14 w-14 items-center justify-center rounded-2xl
+                  bg-white text-blue-900 shadow-lg focus-ring"
+           aria-label="Kanye Series home">
+            <img src="./images/logo.png" alt="">
+        </a>
+
+        <nav class="flex w-full flex-1 flex-col gap-2 px-2" aria-label="Primary navigation">
+            <a href="index.html"
+               class="sidebar-link flex flex-col items-center gap-1 rounded-xl px-2 py-3 text-center focus-ring"
+               aria-label="Home">
+                <i class="bi bi-house-door text-xl"></i>
+                <span class="text-[11px] font-semibold">Home</span>
+            </a>
+
+            <a href="products.html"
+               class="sidebar-link flex flex-col items-center gap-1 rounded-xl px-2 py-3 text-center focus-ring"
+               aria-label="Products">
+                <i class="bi bi-grid-fill text-xl"></i>
+                <span class="text-[11px] font-semibold">Products</span>
+            </a>
+
+            <a href="orders.html"
+               class="sidebar-link flex flex-col items-center gap-1 rounded-xl px-2 py-3 text-center focus-ring"
+               aria-label="Orders">
+                <i class="bi bi-bag-check text-xl"></i>
+                <span class="text-[11px] font-semibold">Orders</span>
+            </a>
+
+            <a href="profile.html"
+               class="sidebar-link flex flex-col items-center gap-1 rounded-xl px-2 py-3 text-center focus-ring"
+               aria-label="Profile">
+                <i class="bi bi-person-circle text-xl"></i>
+                <span class="text-[11px] font-semibold">Profile</span>
+            </a>
+        </nav>
+
+    </aside>
+
+    <!-- =========================================================
+         MAIN
+         ========================================================= -->
+    <div class="main-with-sidebar">
+
+        <!-- TOP HEADER -->
+        <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+            <div class="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+
+                <!-- Mobile/tablet brand -->
+                <a href="index.html"
+                   class="flex min-w-0 items-center gap-2 lg:hidden"
+                   aria-label="Kanye Series home">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl
+                                 bg-blue-900 text-white">
+                        <img src="./images/logo2.png" alt="">
+                    </span>
+                    <span class="truncate text-base font-black tracking-tight text-blue-950">
+                        KANYE SERIES
+                    </span>
+                </a>
+
+                <!-- Desktop brand -->
+                <a href="index.html"
+                   class="hidden min-w-0 items-center gap-2 lg:flex"
+                   aria-label="Kanye Series home">
+                    <span class="truncate text-lg font-black tracking-tight text-blue-950">
+                        KANYE SERIES
+                    </span>
+                </a>
+
+                <div class="ml-auto flex items-center gap-1 sm:gap-2">
+
+                    <a href="wishlist.html"
+                       class="focus-ring relative flex h-10 w-10 items-center justify-center rounded-full
+                              text-slate-600 hover:bg-blue-50 hover:text-blue-900"
+                       aria-label="Wishlist">
+                        <i class="bi bi-heart text-lg"></i>
+                        <span id="wishlistCount"
+                              class="absolute -right-0.5 -top-0.5 hidden min-w-4 rounded-full
+                                     bg-red-600 px-1 text-center text-[10px] font-bold leading-4 text-white">
+                            0
+                        </span>
+                    </a>
+
+                    <a href="cart.html"
+                       class="focus-ring relative flex h-10 w-10 items-center justify-center rounded-full
+                          bg-blue-50 text-blue-800"
+                       aria-label="Shopping cart"
+                       aria-current="page">
+                        <i class="bi bi-cart-fill text-lg"></i>
+                        <span id="cartCount"
+                              class="absolute -right-0.5 -top-0.5 hidden min-w-4 rounded-full
+                                  bg-blue-700 px-1 text-center text-[10px] font-bold leading-4 text-white">
+                            0
+                        </span>
+                    </a>
+
+                   
+                </div>
+            </div>
+        </header>
+
+        <!-- =====================================================
+             PAGE CONTENT
+             ===================================================== -->
+        <main class="bottom-safe">
+
+            <section class="mx-auto max-w-7xl px-4 pb-5 pt-8 sm:px-6 lg:px-8"
+                     data-aos="fade-up">
+
+                <nav class="text-sm text-slate-500" aria-label="Breadcrumb">
+                    <a href="index.html" class="font-semibold hover:text-blue-800">Home</a>
+                    <span class="mx-2">/</span>
+                    <span aria-current="page">Cart</span>
+                </nav>
+
+                <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-[.18em] text-blue-700">
+                            Shopping Cart
+                        </p>
+                        <h1 class="mt-1 text-3xl font-black tracking-tight text-blue-950 sm:text-4xl">
+                            Review your items
+                        </h1>
+                        <p class="mt-2 max-w-2xl text-sm text-slate-500 sm:text-base">
+                            Review your items before checkout.
+                        </p>
+                    </div>
+
+                    <a href="products.html"
+                       class="focus-ring inline-flex min-h-11 items-center justify-center gap-2
+                              rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm
+                              font-bold text-slate-700 shadow-sm hover:border-blue-200
+                              hover:bg-blue-50 hover:text-blue-900">
+                        <i class="bi bi-arrow-left"></i>
+                        Continue Shopping
+                    </a>
+                </div>
+            </section>
+
+            <!-- LOGIN STATE -->
+            <section id="loginState"
+                     class="mx-auto hidden max-w-3xl px-4 py-10 sm:px-6 lg:px-8"
+                     aria-labelledby="loginTitle">
+                <div class="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-12">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl
+                                bg-blue-50 text-blue-800">
+                        <i class="bi bi-person-lock text-2xl"></i>
+                    </div>
+                    <h2 id="loginTitle" class="mt-5 text-2xl font-black text-blue-950">
+                        Sign in to view your cart
+                    </h2>
+                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                        Your cart is saved securely to your Kanye Series account.
+                    </p>
+                    <a href="login.html"
+                       class="focus-ring mt-6 inline-flex min-h-11 items-center justify-center gap-2
+                              rounded-xl bg-blue-800 px-6 py-3 text-sm font-bold text-white
+                              hover:bg-blue-900">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        Login
+                    </a>
+                </div>
+            </section>
+
+            <!-- LOADING STATE -->
+            <section id="loadingState"
+                     class="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8"
+                     aria-label="Loading cart">
+                <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+                    <div class="space-y-4">
+                        <div class="skeleton h-28 rounded-2xl"></div>
+                        <div class="skeleton h-28 rounded-2xl"></div>
+                        <div class="skeleton h-28 rounded-2xl"></div>
+                    </div>
+                    <div class="skeleton h-64 rounded-2xl"></div>
+                </div>
+            </section>
+
+            <!-- ERROR STATE -->
+            <section id="errorState"
+                     class="mx-auto hidden max-w-3xl px-4 py-10 sm:px-6 lg:px-8"
+                     aria-labelledby="errorTitle">
+                <div class="rounded-3xl border border-red-100 bg-white p-8 text-center shadow-sm sm:p-12">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl
+                                bg-red-50 text-red-600">
+                        <i class="bi bi-wifi-off text-2xl"></i>
+                    </div>
+                    <h2 id="errorTitle" class="mt-5 text-2xl font-black text-slate-900">
+                        Unable to load your cart
+                    </h2>
+                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                        Unable to load your cart right now. Please try again.
+                    </p>
+                    <button id="retryBtn"
+                            type="button"
+                            class="focus-ring mt-6 inline-flex min-h-11 items-center justify-center gap-2
+                                   rounded-xl bg-blue-800 px-6 py-3 text-sm font-bold text-white
+                                   hover:bg-blue-900">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Try Again
+                    </button>
+                </div>
+            </section>
+
+            <!-- EMPTY STATE -->
+            <section id="emptyState"
+                     class="mx-auto hidden max-w-3xl px-4 py-10 sm:px-6 lg:px-8"
+                     aria-labelledby="emptyTitle">
+                <div class="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-12">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl
+                                bg-blue-50 text-blue-800">
+                        <i class="bi bi-cart3 text-2xl"></i>
+                    </div>
+                    <h2 id="emptyTitle" class="mt-5 text-2xl font-black text-blue-950">
+                        Your Cart is Empty
+                    </h2>
+                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                        Looks like you haven't added anything yet.
+                    </p>
+                    <a href="products.html"
+                       class="focus-ring mt-6 inline-flex min-h-11 items-center justify-center gap-2
+                              rounded-xl bg-blue-800 px-6 py-3 text-sm font-bold text-white
+                              hover:bg-blue-900">
+                        <i class="bi bi-shop"></i>
+                        Continue Shopping
+                    </a>
+                </div>
+            </section>
+
+            <!-- CART CONTENT -->
+            <section id="cartContent"
+                     class="mx-auto hidden max-w-7xl px-4 pb-12 sm:px-6 lg:px-8"
+                     aria-label="Shopping cart">
+
+                <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+
+                    <!-- CART ITEMS -->
+                    <div>
+                        <div class="mb-4 flex items-center justify-between gap-3">
+                            <div>
+                                <h2 class="text-xl font-black text-blue-950">
+                                    Cart Items
+                                </h2>
+                                <p id="cartItemsSummary" class="mt-1 text-xs text-slate-500">
+                                    0 items
+                                </p>
+                            </div>
+                        </div>
+
+                        <div id="cartList" class="space-y-4"></div>
+                    </div>
+
+                    <!-- ORDER SUMMARY -->
+                    <aside class="lg:sticky lg:top-24"
+                           data-aos="fade-up"
+                           aria-labelledby="summaryTitle">
+                        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 items-center justify-center rounded-xl
+                                             bg-blue-50 text-blue-800">
+                                    <i class="bi bi-receipt"></i>
+                                </span>
+                                <div>
+                                    <h2 id="summaryTitle" class="text-lg font-black text-blue-950">
+                                        Order Summary
+                                    </h2>
+                                    <p class="text-xs text-slate-500">
+                                        Your current cart total
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 space-y-3 border-b border-slate-200 pb-5">
+                                <div class="flex items-center justify-between gap-4 text-sm">
+                                    <span class="text-slate-500">Items</span>
+                                    <span id="summaryItems" class="font-bold text-slate-800">0</span>
+                                </div>
+
+                                <div class="flex items-center justify-between gap-4 text-sm">
+                                    <span class="text-slate-500">Subtotal</span>
+                                    <span id="summarySubtotal" class="font-bold text-slate-800">
+                                        UGX 0
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between gap-4 pt-5">
+                                <span class="text-base font-black text-slate-900">Total</span>
+                                <span id="summaryTotal"
+                                      class="text-xl font-black text-blue-800">
+                                    UGX 0
+                                </span>
+                            </div>
+
+                            <button id="checkoutBtn"
+                                    type="button"
+                                    class="focus-ring mt-6 flex min-h-12 w-full items-center
+                                           justify-center gap-2 rounded-xl bg-blue-800 px-5 py-3
+                                           text-sm font-black text-white hover:bg-blue-900
+                                           disabled:cursor-not-allowed disabled:bg-slate-300">
+                                Proceed to Checkout
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+
+                            <p class="mt-3 text-center text-[11px] leading-5 text-slate-400">
+                                Checkout and order confirmation are handled by the project's
+                                checkout flow.
+                            </p>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- =========================================================
+         MOBILE / TABLET BOTTOM NAVIGATION
+         ========================================================= -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white shadow-2xl lg:hidden"
+         aria-label="Mobile navigation">
+        <div class="mx-auto flex max-w-lg justify-around">
+
+            <a href="index.html"
+               class="focus-ring flex flex-1 flex-col items-center gap-1 py-3 text-slate-500
+                      hover:text-blue-800"
+               aria-label="Home">
+                <i class="bi bi-house-door text-lg"></i>
+                <span class="text-[11px] font-semibold">Home</span>
+            </a>
+
+            <a href="products.html"
+               class="focus-ring flex flex-1 flex-col items-center gap-1 py-3 text-slate-500
+                      hover:text-blue-800"
+               aria-label="Products">
+                <i class="bi bi-grid text-lg"></i>
+                <span class="text-[11px] font-semibold">Products</span>
+            </a>
+
+            <a href="orders.html"
+               class="focus-ring flex flex-1 flex-col items-center gap-1 py-3 text-slate-500
+                      hover:text-blue-800"
+               aria-label="Orders">
+                <i class="bi bi-bag-check text-lg"></i>
+                <span class="text-[11px] font-semibold">Orders</span>
+            </a>
+
+            <a href="profile.html"
+               class="focus-ring flex flex-1 flex-col items-center gap-1 py-3 text-slate-500
+                      hover:text-blue-800"
+               aria-label="Profile">
+                <i class="bi bi-person text-lg"></i>
+                <span class="text-[11px] font-semibold">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- =========================================================
+         SCRIPTS
+         ========================================================= -->
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+
+    <script type="module">
+        // ========================================
+        // FIREBASE IMPORTS
+        // ========================================
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+
+        import {
+            getAuth,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+        import {
+            getDatabase,
+            ref,
+            get,
+            set,
+            update,
+            remove,
+            onValue,
+            runTransaction
+        } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
+
+        // ========================================
+        // FIREBASE CONFIGURATION
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBK-HHFid2F9SY1rtGsSO3boUFZihyOpTQ",
+            authDomain: "goldai-58550.firebaseapp.com",
+            projectId: "goldai-58550",databaseURL:"https://goldai-58550-default-rtdb.firebaseio.com",
+            storageBucket: "goldai-58550.firebasestorage.app",
+            messagingSenderId: "726592521265",
+            appId: "1:726592521265:web:8aca7282b6b4aec8c9c110",
+            measurementId: "G-23MEZJVM6Z"
+        };
+
+        // ========================================
+        // FIREBASE INITIALIZATION
+        // ========================================
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // ========================================
+        // CLOUDINARY CONFIGURATION
+        // ========================================
+        const CLOUDINARY_CLOUD_NAME = "garfgnqe";
+        const CLOUDINARY_UPLOAD_PRESET = "kanyeseries";
+        const CLOUDINARY_UPLOAD_URL =
+            "https://api.cloudinary.com/v1_1/garfgnqe/image/upload";
+
+        // This customer page does not upload images.
+        // Product image URLs are read from products/ and originate from Cloudinary.
+
+        // ========================================
+        // GLOBAL STATE
+        // ========================================
+        let currentUser = null;
+        let cartItems = {};
+        let allProducts = [];
+        let productsLoaded = false;
+        let productsLoadPromise = null;
+        let cartListenerCleanup = null;
+        let wishlistListenerCleanup = null;
+        let productsMap = new Map();
+
+        // ========================================
+        // DOM ELEMENTS
+        // ========================================
+        const loginState = document.getElementById("loginState");
+        const loadingState = document.getElementById("loadingState");
+        const errorState = document.getElementById("errorState");
+        const emptyState = document.getElementById("emptyState");
+        const cartContent = document.getElementById("cartContent");
+        const cartList = document.getElementById("cartList");
+
+        const cartCount = document.getElementById("cartCount");
+        const wishlistCount = document.getElementById("wishlistCount");
+        const profileLink = document.getElementById("profileLink");
+        const cartItemsSummary = document.getElementById("cartItemsSummary");
+        const summaryItems = document.getElementById("summaryItems");
+        const summarySubtotal = document.getElementById("summarySubtotal");
+        const summaryTotal = document.getElementById("summaryTotal");
+        const checkoutBtn = document.getElementById("checkoutBtn");
+
+        // ========================================
+        // HELPERS
+        // ========================================
+        function escapeHTML(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function formatCurrency(value) {
+            const number = Number(value);
+
+            if (!Number.isFinite(number) || number < 0) {
+                return "UGX 0";
+            }
+
+            return `UGX ${Math.round(number).toLocaleString("en-UG")}`;
+        }
+
+        function setCount(element, count) {
+            const safeCount = Math.max(0, Number(count) || 0);
+
+            element.textContent = safeCount > 99 ? "99+" : String(safeCount);
+            element.classList.toggle("hidden", safeCount === 0);
+        }
+
+        function getProductId(product) {
+            return String(product?.id || product?.key || "");
+        }
+
+        function getProductImage(product) {
+            if (Array.isArray(product?.images)) {
+                const first = product.images.find(
+                    image => typeof image === "string" && image.trim()
+                );
+
+                if (first) return first;
+            }
+
+            if (product?.images && typeof product.images === "object") {
+                const first = Object.values(product.images).find(
+                    image => typeof image === "string" && image.trim()
+                );
+
+                if (first) return first;
+            }
+
+            if (typeof product?.image === "string" && product.image.trim()) {
+                return product.image;
+            }
+
+            return "";
+        }
+
+        function getStock(product) {
+            const stock = Number(product?.stock);
+
+            return Number.isFinite(stock) ? stock : null;
+        }
+
+        function isAvailable(product) {
+            const stock = getStock(product);
+
+            return stock === null ? true : stock > 0;
+        }
+
+        function showAlert(title, text, icon = "info") {
+            if (window.Swal) {
+                return Swal.fire({
+                    title,
+                    text,
+                    icon,
+                    confirmButtonColor: "#1e3a8a"
+                });
+            }
+
+            return Promise.resolve();
+        }
+
+        function showState(state) {
+            [
+                loginState,
+                loadingState,
+                errorState,
+                emptyState,
+                cartContent
+            ].forEach(element => element.classList.add("hidden"));
+
+            if (state === "login") loginState.classList.remove("hidden");
+            if (state === "loading") loadingState.classList.remove("hidden");
+            if (state === "error") errorState.classList.remove("hidden");
+            if (state === "empty") emptyState.classList.remove("hidden");
+            if (state === "cart") cartContent.classList.remove("hidden");
+        }
+
+        // ========================================
+        // AUTHENTICATION
+        // ========================================
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user || null;
+
+            cleanupUserListeners();
+
+            if (!currentUser) {
+                cartItems = {};
+                setCount(cartCount, 0);
+                setCount(wishlistCount, 0);
+
+                if (profileLink) {
+                    profileLink.href = "login.html";
+                    profileLink.setAttribute("aria-label", "Login");
+                }
+
+                showState("login");
+                return;
+            }
+
+            if (profileLink) {
+                profileLink.href = "profile.html";
+                profileLink.setAttribute("aria-label", "Profile");
+            }
+
+            showState("loading");
+
+            try {
+                await loadProducts();
+                startCartListener(currentUser.uid);
+                startWishlistListener(currentUser.uid);
+            } catch (error) {
+                console.error("Cart initialization error:", error);
+                showState("error");
+            }
+        });
+
+        // ========================================
+        // LOAD PRODUCTS
+        // ========================================
+        async function loadProducts() {
+            if (productsLoaded) return allProducts;
+            if (productsLoadPromise) return productsLoadPromise;
+
+            productsLoadPromise = (async () => {
+                try {
+                    const snapshot = await get(ref(db, "products"));
+
+                    const data = snapshot.exists()
+                        ? snapshot.val() || {}
+                        : {};
+
+                    allProducts = Object.entries(data).map(([id, product]) => ({
+                        id,
+                        ...(product || {})
+                    }));
+
+                    productsMap = new Map(
+                        allProducts.map(product => [
+                            getProductId(product),
+                            product
+                        ])
+                    );
+
+                    productsLoaded = true;
+
+                    return allProducts;
+                } catch (error) {
+                    productsLoadPromise = null;
+                    console.error("Products loading error:", error);
+                    throw error;
+                }
+            })();
+
+            return productsLoadPromise;
+        }
+
+        // ========================================
+        // LOAD CART
+        // ========================================
+        function startCartListener(uid) {
+            if (cartListenerCleanup) {
+                cartListenerCleanup();
+                cartListenerCleanup = null;
+            }
+
+            const cartRef = ref(db, `carts/${uid}`);
+
+            cartListenerCleanup = onValue(
+                cartRef,
+                (snapshot) => {
+                    cartItems = snapshot.val() || {};
+                    renderCart();
+                },
+                (error) => {
+                    console.error("Cart loading error:", error);
+                    showState("error");
+                }
+            );
+        }
+
+        // ========================================
+        // LOAD WISHLIST
+        // ========================================
+        function startWishlistListener(uid) {
+            if (wishlistListenerCleanup) {
+                wishlistListenerCleanup();
+                wishlistListenerCleanup = null;
+            }
+
+            const wishlistRef = ref(db, `wishlists/${uid}`);
+
+            wishlistListenerCleanup = onValue(
+                wishlistRef,
+                (snapshot) => {
+                    const data = snapshot.val() || {};
+
+                    const count = Object.values(data).filter(Boolean).length;
+
+                    setCount(wishlistCount, count);
+                },
+                (error) => {
+                    console.error("Wishlist count error:", error);
+                    setCount(wishlistCount, 0);
+                }
+            );
+        }
+
+        // ========================================
+        // RENDER CART
+        // ========================================
+        function renderCart() {
+            const entries = Object.entries(cartItems)
+                .map(([id, item]) => ({
+                    id: String(id),
+                    item: item || {}
+                }))
+                .filter(({ id }) => id);
+
+            const validEntries = entries.filter(({ item }) => {
+                const quantity = Number(item?.quantity);
+                return Number.isFinite(quantity) && quantity > 0;
+            });
+
+            const totalQuantity = validEntries.reduce(
+                (total, { item }) =>
+                    total + Math.max(0, Number(item.quantity) || 0),
+                0
+            );
+
+            setCount(cartCount, totalQuantity);
+
+            if (!validEntries.length) {
+                cartList.innerHTML = "";
+                updateSummary([]);
+                showState("empty");
+                return;
+            }
+
+            cartList.innerHTML = validEntries
+                .map(({ id, item }) => createCartItem(id, item))
+                .join("");
+
+            updateSummary(validEntries);
+            showState("cart");
+
+            if (window.AOS) AOS.refresh();
+        }
+
+        function createCartItem(id, item) {
+            const product = productsMap.get(String(id));
+
+            const name = String(
+                product?.name ||
+                item?.name ||
+                "Product"
+            );
+
+            const category = String(
+                product?.category ||
+                item?.category ||
+                "Product"
+            );
+
+            const image = getProductImage(product) || (
+                typeof item?.image === "string" ? item.image : ""
+            );
+
+            const rawPrice = product?.price ?? item?.price;
+            const price = Number(rawPrice);
+            const safePrice = Number.isFinite(price) && price >= 0
+                ? price
+                : 0;
+
+            const quantity = Math.max(
+                1,
+                Math.floor(Number(item?.quantity) || 1)
+            );
+
+            const stock = getStock(product);
+            const remainingStock = Number.isFinite(stock)
+                ? Math.max(0, stock - quantity)
+                : null;
+            const available = remainingStock === null ? true : remainingStock > 0;
+            const maxReached =
+                Number.isFinite(stock) && quantity >= stock;
+
+            const subtotal = safePrice * quantity;
+
+            const safeId = escapeHTML(id);
+            const safeName = escapeHTML(name);
+            const safeCategory = escapeHTML(category);
+            const safeImage = escapeHTML(image);
+
+            const imageMarkup = image
+                ? `<img src="${safeImage}"
+                        alt="${safeName}"
+                        class="product-image"
+                        loading="lazy"
+                        decoding="async"
+                        onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">`
+                : "";
+
+            const unavailableMarkup = product
+                ? ""
+                : `<p class="mt-2 text-xs font-bold text-amber-600">
+                        <i class="bi bi-exclamation-circle mr-1"></i>
+                        Product unavailable
+                   </p>`;
+
+            const stockMarkup = product
+                ? (
+                    available
+                        ? `<p class="mt-1 text-xs font-semibold ${
+                            maxReached
+                                ? "text-amber-600"
+                                : "text-emerald-600"
+                          }">
+                              <i class="bi bi-check-circle mr-1"></i>
+                              ${
+                                  Number.isFinite(stock)
+                                      ? `${remainingStock} available`
+                                      : "In stock"
+                              }
+                           </p>`
+                        : `<p class="mt-1 text-xs font-bold text-red-600">
+                              <i class="bi bi-x-circle mr-1"></i>
+                              Out of stock
+                           </p>`
+                  )
+                : "";
+
+            return `
+                <article
+                    class="cart-item overflow-hidden rounded-2xl border border-slate-200
+                           bg-white p-3 shadow-sm sm:p-4"
+                    data-aos="fade-up">
+
+                    <div class="flex gap-3 sm:gap-4">
+
+                        <!-- PRODUCT IMAGE -->
+                        <a href="product.html?id=${encodeURIComponent(id)}"
+                           class="product-image-wrap block w-24 shrink-0 overflow-hidden rounded-xl
+                                  sm:w-32"
+                           aria-label="View details for ${safeName}">
+                            ${imageMarkup}
+
+                            <div class="${
+                                image ? "hidden " : ""
+                            }flex h-full w-full items-center justify-center
+                              bg-slate-100 text-slate-400">
+                                <div class="text-center">
+                                    <i class="bi bi-image text-2xl"></i>
+                                    <p class="mt-1 text-[10px] font-semibold">No image</p>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- PRODUCT DETAILS -->
+                        <div class="min-w-0 flex-1">
+
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0">
+                                    <p class="text-[10px] font-black uppercase tracking-wide text-blue-700">
+                                        ${safeCategory}
+                                    </p>
+
+                                    <a href="product.html?id=${encodeURIComponent(id)}"
+                                       class="focus-ring mt-1 block">
+                                        <h3 class="line-clamp-2 text-sm font-black leading-5
+                                                   text-blue-950 sm:text-base">
+                                            ${safeName}
+                                        </h3>
+                                    </a>
+                                </div>
+
+                                    <button
+                                     type="button"
+                                     data-product-id="${safeId}"
+                                     aria-label="Remove ${safeName} from cart"
+                                     class="remove-cart-btn focus-ring flex h-9 w-9 shrink-0
+                                         items-center justify-center rounded-full text-slate-400
+                                         hover:bg-red-50 hover:text-red-600">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+
+                            <div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <span class="text-sm font-black text-blue-800 sm:text-base">
+                                    ${formatCurrency(safePrice)}
+                                </span>
+                            </div>
+
+                            ${stockMarkup}
+                            ${unavailableMarkup}
+
+                            <div class="mt-4 flex flex-wrap items-end justify-between gap-3">
+
+                                <!-- QUANTITY -->
+                                <div>
+                                    <span class="mb-1 block text-[10px] font-bold uppercase
+                                                 tracking-wide text-slate-400">
+                                        Quantity
+                                    </span>
+
+                                    <div class="flex h-10 items-center overflow-hidden rounded-xl
+                                                border border-slate-200 bg-white">
+
+                                             <button
+                                              type="button"
+                                              data-action="decrease"
+                                              data-product-id="${safeId}"
+                                              aria-label="Decrease quantity of ${safeName}"
+                                              ${quantity <= 1 ? "disabled" : ""}
+                                              class="quantity-btn focus-ring flex h-10 w-10 items-center
+                                                  justify-center text-slate-600 hover:bg-slate-50
+                                                  disabled:cursor-not-allowed disabled:opacity-40">
+                                            <i class="bi bi-dash-lg"></i>
+                                        </button>
+
+                                        <span class="flex h-10 min-w-10 items-center justify-center
+                                                     border-x border-slate-200 px-2 text-sm font-black
+                                                     text-slate-800"
+                                              aria-label="Quantity">
+                                            ${quantity}
+                                        </span>
+
+                                        <button
+                                            type="button"
+                                            data-action="increase"
+                                            data-product-id="${safeId}"
+                                            aria-label="Increase quantity of ${safeName}"
+                                            ${
+                                                maxReached || !available
+                                                    ? "disabled"
+                                                    : ""
+                                            }
+                                            class="quantity-btn focus-ring flex h-10 w-10 items-center
+                                                   justify-center text-slate-600 hover:bg-slate-50
+                                                   disabled:cursor-not-allowed disabled:opacity-40">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- SUBTOTAL -->
+                                <div class="text-right">
+                                    <span class="block text-[10px] font-bold uppercase tracking-wide
+                                                 text-slate-400">
+                                        Subtotal
+                                    </span>
+                                    <span class="text-base font-black text-slate-900 sm:text-lg">
+                                        ${formatCurrency(subtotal)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 flex flex-wrap items-center gap-3">
+                                <a href="product.html?id=${encodeURIComponent(id)}"
+                                   class="focus-ring inline-flex min-h-9 items-center gap-1 rounded-lg
+                                          px-2 py-1 text-xs font-bold text-blue-800
+                                          hover:bg-blue-50">
+                                    View Product
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+
+                                    <button
+                                     type="button"
+                                     data-product-id="${safeId}"
+                                     aria-label="Move ${safeName} to wishlist"
+                                     class="move-wishlist-btn focus-ring inline-flex min-h-9
+                                         items-center gap-1 rounded-lg px-2 py-1 text-xs
+                                         font-bold text-slate-600 hover:bg-red-50 hover:text-red-700">
+                                    <i class="bi bi-heart"></i>
+                                    Move to Wishlist
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        // ========================================
+        // CALCULATE TOTALS
+        // ========================================
+        function updateSummary(entries) {
+            let totalQuantity = 0;
+            let subtotal = 0;
+
+            entries.forEach(({ id, item }) => {
+                const product = productsMap.get(String(id));
+
+                const price = Number(product?.price ?? item?.price);
+
+                const safePrice =
+                    Number.isFinite(price) && price >= 0
+                        ? price
+                        : 0;
+
+                const quantity = Math.max(
+                    1,
+                    Math.floor(Number(item?.quantity) || 1)
+                );
+
+                totalQuantity += quantity;
+                subtotal += safePrice * quantity;
+            });
+
+            cartItemsSummary.textContent =
+                `${totalQuantity} item${totalQuantity === 1 ? "" : "s"}`;
+
+            summaryItems.textContent = String(totalQuantity);
+            summarySubtotal.textContent = formatCurrency(subtotal);
+            summaryTotal.textContent = formatCurrency(subtotal);
+
+            checkoutBtn.disabled = totalQuantity === 0;
+        }
+
+        // ========================================
+        // UPDATE QUANTITY
+        // ========================================
+        async function updateQuantity(productId, action) {
+            if (!currentUser) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            const id = String(productId);
+            const item = cartItems[id];
+
+            if (!item) return;
+
+            const currentQuantity = Math.max(
+                1,
+                Math.floor(Number(item.quantity) || 1)
+            );
+
+            let nextQuantity = currentQuantity;
+
+            if (action === "increase") {
+                nextQuantity += 1;
+            } else if (action === "decrease") {
+                nextQuantity -= 1;
+            }
+
+            if (nextQuantity < 1) {
+                nextQuantity = 1;
+            }
+
+            const product = productsMap.get(id);
+            const stock = getStock(product);
+
+            if (
+                action === "increase" &&
+                Number.isFinite(stock) &&
+                nextQuantity > stock
+            ) {
+                await showAlert(
+                    "Stock limit reached",
+                    `Only ${stock} item${stock === 1 ? "" : "s"} available.`,
+                    "info"
+                );
+                return;
+            }
+
+            const itemRef = ref(db, `carts/${currentUser.uid}/${id}`);
+
+            try {
+                await update(itemRef, {
+                    quantity: nextQuantity,});
+            } catch (error) {
+                console.error("Quantity update error:", error);
+                await showAlert(
+                    "Unable to update quantity",
+                    "Please try again.",
+                    "error"
+                );
+            }
+        }
+
+        // ========================================
+        // REMOVE FROM CART
+        // ========================================
+        async function removeFromCart(productId, button) {
+            if (!currentUser) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            const id = String(productId);
+
+            if (button) button.disabled = true;
+
+            try {
+                await remove(
+                    ref(db, `carts/${currentUser.uid}/${id}`)
+                );
+
+                await showAlert(
+                    "Removed from cart",
+                    "The product has been removed from your cart.",
+                    "success"
+                );
+            } catch (error) {
+                console.error("Remove cart item error:", error);
+
+                await showAlert(
+                    "Could not remove product",
+                    "Please try again.",
+                    "error"
+                );
+            } finally {
+                if (button) button.disabled = false;
+            }
+        }
+
+        // ========================================
+        // MOVE TO WISHLIST
+        // ========================================
+        async function moveToWishlist(productId, button) {
+            if (!currentUser) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            const id = String(productId);
+            const item = cartItems[id];
+
+            if (!item) return;
+
+            const product = productsMap.get(id);
+
+            const name =
+                product?.name ||
+                item?.name ||
+                "Product";
+
+            const image =
+                getProductImage(product) ||
+                (typeof item?.image === "string" ? item.image : "");
+
+            const price = Number(product?.price ?? item?.price) || 0;
+
+            if (button) button.disabled = true;
+
+            try {
+                await set(
+                    ref(db, `wishlists/${currentUser.uid}/${id}`),
+                    {
+                        productId: id,
+                        name,
+                        price,
+                        image,
+                        addedAt: Date.now()
+                    }
+                );
+
+                await remove(
+                    ref(db, `carts/${currentUser.uid}/${id}`)
+                );
+
+                await showAlert(
+                    "Moved to wishlist",
+                    "The product has been saved to your wishlist.",
+                    "success"
+                );
+            } catch (error) {
+                console.error("Move to wishlist error:", error);
+
+                await showAlert(
+                    "Could not move product",
+                    "Please try again.",
+                    "error"
+                );
+            } finally {
+                if (button) button.disabled = false;
+            }
+        }
+
+        // ========================================
+        // CHECKOUT
+        // ========================================
+        async function proceedToCheckout() {
+            if (!currentUser) {
+                await showAlert(
+                    "Login required",
+                    "Please log in before proceeding to checkout.",
+                    "info"
+                );
+                window.location.href = "login.html";
+                return;
+            }
+
+            const entries = Object.entries(cartItems)
+                .filter(([, item]) => Number(item?.quantity) > 0);
+
+            if (!entries.length) {
+                await showAlert(
+                    "Your cart is empty",
+                    "Add products to your cart before checkout.",
+                    "info"
+                );
+                return;
+            }
+
+            // Validate products and stock against the currently loaded product data.
+            for (const [id, item] of entries) {
+                const product = productsMap.get(String(id));
+
+                if (!product) {
+                    await showAlert(
+                        "Product unavailable",
+                        "One of the products in your cart is no longer available.",
+                        "error"
+                    );
+                    return;
+                }
+
+                const stock = getStock(product);
+                const quantity = Math.max(
+                    1,
+                    Math.floor(Number(item.quantity) || 1)
+                );
+
+                if (Number.isFinite(stock) && stock <= 0) {
+                    await showAlert(
+                        "Product unavailable",
+                        `${product.name || "A product"} is out of stock.`,
+                        "error"
+                    );
+                    return;
+                }
+
+                if (
+                    Number.isFinite(stock) &&
+                    quantity > stock
+                ) {
+                    await showAlert(
+                        "Stock updated",
+                        `${product.name || "A product"} only has ${stock} available. Please adjust your cart.`,
+                        "info"
+                    );
+                    return;
+                }
+
+                const price = Number(product.price);
+
+                if (!Number.isFinite(price) || price < 0) {
+                    await showAlert(
+                        "Product price unavailable",
+                        "One of the products in your cart has an invalid price.",
+                        "error"
+                    );
+                    return;
+                }
+            }
+
+            window.location.href = "checkout.html";
+        }
+
+        // ========================================
+        // CART EVENTS
+        // ========================================
+        document.addEventListener("click", (event) => {
+            const quantityButton =
+                event.target.closest(".quantity-btn");
+
+            if (quantityButton) {
+                event.preventDefault();
+
+                updateQuantity(
+                    quantityButton.dataset.productId,
+                    quantityButton.dataset.action
+                );
+
+                return;
+            }
+
+            const removeButton =
+                event.target.closest(".remove-cart-btn");
+
+            if (removeButton) {
+                event.preventDefault();
+
+                removeFromCart(
+                    removeButton.dataset.productId,
+                    removeButton
+                );
+
+                return;
+            }
+
+            const wishlistButton =
+                event.target.closest(".move-wishlist-btn");
+
+            if (wishlistButton) {
+                event.preventDefault();
+
+                moveToWishlist(
+                    wishlistButton.dataset.productId,
+                    wishlistButton
+                );
+            }
+        });
+
+        checkoutBtn.addEventListener(
+            "click",
+            proceedToCheckout
+        );
+
+        // ========================================
+        // RETRY
+        // ========================================
+        document.getElementById("retryBtn")
+            .addEventListener("click", async () => {
+                if (!currentUser) {
+                    showState("login");
+                    return;
+                }
+
+                showState("loading");
+
+                try {
+                    productsLoaded = false;
+                    productsLoadPromise = null;
+                    allProducts = [];
+                    productsMap = new Map();
+
+                    await loadProducts();
+
+                    startCartListener(currentUser.uid);
+                    startWishlistListener(currentUser.uid);
+                } catch (error) {
+                    console.error("Cart retry error:", error);
+                    showState("error");
+                }
+            });
+
+        // ========================================
+        // CLEANUP LISTENERS
+        // ========================================
+        function cleanupUserListeners() {
+            if (cartListenerCleanup) {
+                cartListenerCleanup();
+                cartListenerCleanup = null;
+            }
+
+            if (wishlistListenerCleanup) {
+                wishlistListenerCleanup();
+                wishlistListenerCleanup = null;
+            }
+        }
+
+        // ========================================
+        // AOS INITIALIZATION
+        // ========================================
+        if (window.AOS) {
+            AOS.init({
+                duration: 550,
+                easing: "ease-out",
+                once: true,
+                offset: 50,
+                disable: window.matchMedia(
+                    "(prefers-reduced-motion: reduce)"
+                ).matches
+            });
+        }
+    </script>
+<footer class="mt-10 bg-blue-950 text-slate-300">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <div class="flex items-center gap-2 text-white"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white"><img src="./images/logo2.png" alt="" class="h-7 w-7 object-contain"></span><span class="font-black tracking-tight">KANYE SERIES</span></div>
+        <p class="mt-2 text-xs text-blue-200">Shoes, electronics, books and special orders.</p>
+      </div>
+      <nav class="flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold" aria-label="Footer navigation">
+        <a href="index.html" class="focus-ring hover:text-white">Home</a>
+        <a href="products.html" class="focus-ring hover:text-white">Products</a>
+        <a href="orders.html" class="focus-ring hover:text-white">Orders</a>
+        <a href="special-orders.html" class="focus-ring hover:text-white">Special Orders</a>
+        <a href="policy.html" class="focus-ring hover:text-white">Policies</a>
+      </nav>
+    </div>
+    <div class="mt-6 border-t border-blue-900 pt-5 text-xs text-blue-300">&copy; <span data-footer-year></span> Kanye Series. All rights reserved.</div>
+  </div>
+</footer>
+<script>document.querySelectorAll("[data-footer-year]").forEach(el => el.textContent = new Date().getFullYear());</script>
+
+</body>
+</html>

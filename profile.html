@@ -1,0 +1,2486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="Manage your Kanye Series customer profile.">
+<meta name="theme-color" content="#1e3a8a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kanye Series">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./images/logo.png">
+<title>Profile | Kanye Series</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+<link rel="stylesheet"
+      href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+
+<style>
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  font-family:Inter,system-ui,sans-serif;
+}
+
+.focus-ring:focus-visible{
+  outline:3px solid #93c5fd;
+  outline-offset:3px;
+}
+
+.skeleton{
+  background:linear-gradient(
+    90deg,
+    #e5e7eb 25%,
+    #f8fafc 50%,
+    #e5e7eb 75%
+  );
+  background-size:200% 100%;
+  animation:skeleton 1.3s infinite;
+}
+
+@keyframes skeleton{
+  from{
+    background-position:200%;
+  }
+  to{
+    background-position:-200%;
+  }
+}
+
+.bottom-safe{
+  padding-bottom:92px;
+}
+
+@media(min-width:1024px){
+  .bottom-safe{
+    padding-bottom:0;
+  }
+}
+
+@media(max-width:1023px){
+  .desktop-sidebar{
+    display:none;
+  }
+
+  .main-with-sidebar{
+    margin-left:0!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  html{
+    scroll-behavior:auto;
+  }
+
+  *,
+  *::before,
+  *::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+}
+</style>
+</head>
+
+<body class="bg-slate-50 text-slate-900">
+
+<div class="min-h-screen">
+
+<!-- =========================================================
+     DESKTOP SIDEBAR
+========================================================= -->
+<aside
+  class="desktop-sidebar fixed inset-y-0 left-0 z-50 hidden w-20 flex-col
+         items-center bg-gradient-to-b from-blue-950 via-blue-900 to-blue-950
+         shadow-xl lg:flex">
+
+  <a
+    href="index.html"
+    class="mt-6 mb-10 flex h-14 w-14 items-center justify-center
+           rounded-2xl bg-white text-blue-950 shadow-lg focus-ring"
+    aria-label="Kanye Series home">
+
+    <img src="./images/logo.png" alt="">
+  </a>
+
+  <nav
+    class="flex w-full flex-1 flex-col gap-2 px-2"
+    aria-label="Primary navigation">
+
+    <a
+      href="index.html"
+      class="flex flex-col items-center gap-1 rounded-xl px-2 py-3
+             text-slate-300 hover:bg-white/10 hover:text-white focus-ring">
+
+      <i class="bi bi-house-door text-xl"></i>
+      <span class="text-[11px] font-semibold">Home</span>
+    </a>
+
+    <a
+      href="products.html"
+      class="flex flex-col items-center gap-1 rounded-xl px-2 py-3
+             text-slate-300 hover:bg-white/10 hover:text-white focus-ring">
+
+      <i class="bi bi-grid-fill text-xl"></i>
+      <span class="text-[11px] font-semibold">Products</span>
+    </a>
+
+    <a
+      href="orders.html"
+      class="flex flex-col items-center gap-1 rounded-xl px-2 py-3
+             text-slate-300 hover:bg-white/10 hover:text-white focus-ring">
+
+      <i class="bi bi-bag-check text-xl"></i>
+      <span class="text-[11px] font-semibold">Orders</span>
+    </a>
+
+    <a
+      href="profile.html"
+      aria-current="page"
+      class="flex flex-col items-center gap-1 rounded-xl bg-white/15
+             px-2 py-3 text-white focus-ring">
+
+      <i class="bi bi-person-circle text-xl"></i>
+      <span class="text-[11px] font-bold">Profile</span>
+    </a>
+
+  </nav>
+
+</aside>
+
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+<div class="main-with-sidebar ml-20">
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+<header
+  class="sticky top-0 z-40 border-b border-slate-200
+         bg-white/95 backdrop-blur">
+
+  <div
+    class="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4
+           sm:px-6 lg:px-8">
+
+    <!-- Mobile logo -->
+    <a
+      href="index.html"
+      class="flex items-center gap-2 rounded-xl focus-ring lg:hidden"
+      aria-label="Kanye Series home">
+
+      <span
+        class="flex h-10 w-10 items-center justify-center
+               rounded-xl bg-blue-950 text-white">
+
+        <img src="./images/logo2.png" alt="">
+
+      </span>
+    </a>
+
+    <!-- Desktop logo -->
+    <a
+      href="index.html"
+      class="hidden items-center rounded-xl focus-ring lg:flex">
+
+      <span
+        class="text-lg font-black tracking-tight text-blue-950">
+
+        KANYE SERIES
+
+      </span>
+    </a>
+
+  </div>
+
+</header>
+
+
+<!-- =========================================================
+     SEARCH PANEL
+========================================================= -->
+<div
+  id="searchPanel"
+  class="hidden border-b border-slate-200 bg-white px-4 py-4 shadow-sm">
+
+  <div class="mx-auto max-w-7xl">
+
+    <div class="relative">
+
+      <label
+        for="searchInput"
+        class="sr-only">
+
+        Search products
+
+      </label>
+
+      <input
+        id="searchInput"
+        type="search"
+        placeholder="Search products..."
+        class="w-full rounded-2xl border-2 border-slate-200
+               bg-slate-50 py-3 pl-11 pr-12 text-sm outline-none
+               focus:border-blue-700 focus:bg-white"
+        aria-label="Search products">
+
+      <i
+        class="bi bi-search absolute left-4 top-3.5 text-slate-400">
+      </i>
+
+      <button
+        id="clearSearchBtn"
+        type="button"
+        class="focus-ring absolute right-3 top-2.5 hidden h-8 w-8
+               rounded-lg text-slate-400 hover:bg-slate-100"
+        aria-label="Clear search">
+
+        <i class="bi bi-x-lg"></i>
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+<main class="bottom-safe">
+
+<!-- =========================================================
+     PAGE INTRO
+========================================================= -->
+<section
+  class="border-b border-slate-200 bg-white px-4 pb-7 pt-6
+         sm:px-6 lg:px-8 lg:pt-8">
+
+  <div class="mx-auto max-w-7xl">
+
+    <div
+      class="flex items-center gap-2 text-sm text-slate-500">
+
+      <a
+        href="index.html"
+        class="focus-ring rounded hover:text-blue-800">
+
+        Home
+
+      </a>
+
+      <i class="bi bi-chevron-right text-[10px]"></i>
+
+      <span class="font-semibold text-blue-800">
+        Profile
+      </span>
+
+    </div>
+
+    <div
+      class="mt-5"
+      data-aos="fade-up">
+
+      <p
+        class="text-sm font-bold uppercase tracking-[0.18em]
+               text-blue-700">
+
+        Account
+
+      </p>
+
+      <h1
+        class="mt-1 text-3xl font-black tracking-tight
+               text-slate-950 sm:text-4xl">
+
+        My Profile
+
+      </h1>
+
+      <p
+        class="mt-2 max-w-xl text-sm leading-6 text-slate-500">
+
+        Manage your account information and access your Kanye Series activity.
+
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     AUTH LOADING
+========================================================= -->
+<section
+  id="authLoading"
+  class="px-4 py-16 sm:px-6 lg:px-8">
+
+  <div
+    class="mx-auto max-w-7xl text-center">
+
+    <div
+      class="mx-auto h-12 w-12 animate-spin rounded-full border-4
+             border-blue-100 border-t-blue-800">
+    </div>
+
+    <p
+      class="mt-4 text-sm font-semibold text-slate-500">
+
+      Loading your profile...
+
+    </p>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     NOT LOGGED IN
+========================================================= -->
+<section
+  id="loginState"
+  class="hidden px-4 py-12 sm:px-6 lg:px-8">
+
+  <div
+    class="mx-auto max-w-2xl rounded-3xl border border-slate-200
+           bg-white px-5 py-14 text-center shadow-sm">
+
+    <div
+      class="mx-auto flex h-16 w-16 items-center justify-center
+             rounded-2xl bg-blue-50 text-blue-800">
+
+      <i class="bi bi-person-lock text-3xl"></i>
+
+    </div>
+
+    <h2
+      class="mt-5 text-2xl font-black text-slate-950">
+
+      You're not signed in.
+
+    </h2>
+
+    <p
+      class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+
+      Sign in to view and manage your profile.
+
+    </p>
+
+    <a
+      href="login.html"
+      class="focus-ring mt-6 inline-flex items-center gap-2
+             rounded-xl bg-blue-800 px-6 py-3 text-sm font-bold
+             text-white hover:bg-blue-900">
+
+      <i class="bi bi-box-arrow-in-right"></i>
+
+      Sign In
+
+    </a>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     ERROR STATE
+========================================================= -->
+<section
+  id="errorState"
+  class="hidden px-4 py-12 sm:px-6 lg:px-8">
+
+  <div
+    class="mx-auto max-w-2xl rounded-3xl border border-red-200
+           bg-red-50 px-5 py-12 text-center"
+    role="alert">
+
+    <i
+      class="bi bi-exclamation-circle text-4xl text-red-600">
+    </i>
+
+    <h2
+      class="mt-4 text-xl font-black text-red-900">
+
+      We couldn't load your profile right now.
+
+    </h2>
+
+    <p
+      id="errorMessage"
+      class="mt-2 text-sm text-red-700">
+
+      Please try again.
+
+    </p>
+
+    <button
+      id="retryBtn"
+      type="button"
+      class="focus-ring mt-6 rounded-xl bg-blue-800 px-5 py-3
+             text-sm font-bold text-white hover:bg-blue-900">
+
+      <i class="bi bi-arrow-clockwise mr-1"></i>
+
+      Try Again
+
+    </button>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     PROFILE CONTENT
+========================================================= -->
+<section
+  id="profileContent"
+  class="hidden px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
+
+  <div class="mx-auto max-w-7xl">
+
+<!-- =========================================================
+     PROFILE HEADER
+========================================================= -->
+<div
+  class="overflow-hidden rounded-3xl border border-slate-200
+         bg-white shadow-sm"
+  data-aos="fade-up">
+
+  <div
+    class="h-24 bg-gradient-to-r from-blue-950 via-blue-800
+           to-blue-600 sm:h-32">
+  </div>
+
+  <div class="px-5 pb-6 sm:px-8">
+
+    <div
+      class="-mt-12 flex flex-col gap-5 sm:-mt-16 sm:flex-row
+             sm:items-end sm:justify-between">
+
+      <div
+        class="flex flex-col items-center gap-4 sm:flex-row
+               sm:items-end">
+
+        <!-- Profile photo -->
+        <div class="relative">
+
+          <img
+            id="profilePhoto"
+            src=""
+            alt="Profile photo"
+            class="h-24 w-24 rounded-full border-4 border-white
+                   bg-slate-100 object-cover shadow-lg sm:h-32 sm:w-32">
+
+          <label
+            for="photoInput"
+            class="focus-ring absolute bottom-0 right-0 flex h-9 w-9
+                   cursor-pointer items-center justify-center
+                   rounded-full border-2 border-white bg-blue-800
+                   text-white shadow-md hover:bg-blue-900"
+            aria-label="Change profile photo">
+
+            <i class="bi bi-camera-fill text-sm"></i>
+
+          </label>
+
+          <input
+            id="photoInput"
+            type="file"
+            class="sr-only"
+            accept="image/jpeg,image/png,image/webp">
+
+        </div>
+
+        <div
+          class="pb-1 text-center sm:text-left">
+
+          <p
+            class="text-xs font-bold uppercase tracking-[0.18em]
+                   text-blue-700">
+
+            Welcome back
+
+          </p>
+
+          <h2
+            id="displayName"
+            class="mt-1 text-2xl font-black text-slate-950
+                   sm:text-3xl">
+
+            Customer
+
+          </h2>
+
+          <p
+            id="displayEmail"
+            class="mt-1 text-sm text-slate-500">
+
+            Email not available
+
+          </p>
+
+        </div>
+
+      </div>
+
+      <span
+        class="inline-flex items-center justify-center gap-2
+               self-center rounded-full bg-emerald-50 px-4 py-2
+               text-xs font-bold text-emerald-700 sm:self-end">
+
+        <span
+          class="h-2 w-2 rounded-full bg-emerald-500">
+        </span>
+
+        Active account
+
+      </span>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     ACCOUNT SUMMARY
+========================================================= -->
+<div
+  class="mt-6 grid grid-cols-3 gap-3 sm:gap-5">
+
+  <!-- Orders -->
+  <a
+    href="orders.html"
+    class="focus-ring rounded-2xl border border-slate-200
+           bg-white p-4 text-center shadow-sm
+           hover:border-blue-200 hover:shadow-md">
+
+    <span
+      class="mx-auto flex h-10 w-10 items-center justify-center
+             rounded-xl bg-blue-50 text-blue-800">
+
+      <i class="bi bi-bag-check"></i>
+
+    </span>
+
+    <p
+      id="ordersCount"
+      class="mt-3 text-xl font-black">
+
+      0
+
+    </p>
+
+    <p
+      class="text-xs font-semibold text-slate-500">
+
+      Orders
+
+    </p>
+
+  </a>
+
+
+  <!-- Wishlist -->
+  <a
+    href="wishlist.html"
+    class="focus-ring rounded-2xl border border-slate-200
+           bg-white p-4 text-center shadow-sm
+           hover:border-blue-200 hover:shadow-md">
+
+    <span
+      class="mx-auto flex h-10 w-10 items-center justify-center
+             rounded-xl bg-red-50 text-red-600">
+
+      <i class="bi bi-heart"></i>
+
+    </span>
+
+    <p
+      id="wishlistSummary"
+      class="mt-3 text-xl font-black">
+
+      0
+
+    </p>
+
+    <p
+      class="text-xs font-semibold text-slate-500">
+
+      Wishlist
+
+    </p>
+
+  </a>
+
+
+  <!-- Cart -->
+  <a
+    href="cart.html"
+    class="focus-ring rounded-2xl border border-slate-200
+           bg-white p-4 text-center shadow-sm
+           hover:border-blue-200 hover:shadow-md">
+
+    <span
+      class="mx-auto flex h-10 w-10 items-center justify-center
+             rounded-xl bg-blue-50 text-blue-800">
+
+      <i class="bi bi-cart3"></i>
+
+    </span>
+
+    <p
+      id="cartSummary"
+      class="mt-3 text-xl font-black">
+
+      0
+
+    </p>
+
+    <p
+      class="text-xs font-semibold text-slate-500">
+
+      Cart items
+
+    </p>
+
+  </a>
+
+</div>
+
+
+<!-- =========================================================
+     ACCOUNT INFORMATION + QUICK ACCESS
+========================================================= -->
+<div
+  class="mt-6 grid gap-6 lg:grid-cols-[1.4fr_.6fr]">
+
+
+<!-- =========================================================
+     ACCOUNT INFORMATION
+========================================================= -->
+<section
+  class="rounded-3xl border border-slate-200 bg-white p-5
+         shadow-sm sm:p-7"
+  data-aos="fade-up">
+
+  <div
+    class="flex items-start justify-between gap-4">
+
+    <div>
+
+      <p
+        class="text-xs font-bold uppercase tracking-[0.18em]
+               text-blue-700">
+
+        Account
+
+      </p>
+
+      <h2
+        class="mt-1 text-xl font-black">
+
+        Account Information
+
+      </h2>
+
+    </div>
+
+    <button
+      id="editProfileBtn"
+      type="button"
+      class="focus-ring inline-flex shrink-0 items-center gap-2
+             rounded-xl border border-blue-200 bg-white px-4 py-2.5
+             text-sm font-bold text-blue-800 hover:bg-blue-50">
+
+      <i class="bi bi-pencil-square"></i>
+
+      Edit Profile
+
+    </button>
+
+  </div>
+
+
+  <form
+    id="profileForm"
+    class="mt-7 space-y-5">
+
+    <!-- Name -->
+    <div>
+
+      <label
+        for="nameInput"
+        class="mb-2 block text-sm font-bold text-slate-700">
+
+        Full Name
+
+      </label>
+
+      <input
+        id="nameInput"
+        type="text"
+        maxlength="100"
+        autocomplete="name"
+        class="w-full rounded-xl border border-slate-200
+               bg-slate-50 px-4 py-3 text-sm outline-none
+               focus:border-blue-700 focus:bg-white disabled:opacity-70"
+        disabled>
+
+    </div>
+
+
+    <!-- Email -->
+    <div>
+
+      <label
+        for="emailInput"
+        class="mb-2 block text-sm font-bold text-slate-700">
+
+        Email
+
+      </label>
+
+      <input
+        id="emailInput"
+        type="email"
+        autocomplete="email"
+        class="w-full rounded-xl border border-slate-200
+               bg-slate-100 px-4 py-3 text-sm text-slate-600
+               outline-none"
+        readonly>
+
+      <p
+        class="mt-1.5 text-xs text-slate-400">
+
+        Email is managed through your authentication account.
+
+      </p>
+
+    </div>
+
+
+    <!-- Phone -->
+    <div>
+
+      <label
+        for="phoneInput"
+        class="mb-2 block text-sm font-bold text-slate-700">
+
+        Phone Number
+
+      </label>
+
+      <input
+        id="phoneInput"
+        type="tel"
+        maxlength="30"
+        autocomplete="tel"
+        placeholder="Not provided"
+        class="w-full rounded-xl border border-slate-200
+               bg-slate-50 px-4 py-3 text-sm outline-none
+               focus:border-blue-700 focus:bg-white disabled:opacity-70"
+        disabled>
+
+    </div>
+
+
+    <!-- Address -->
+    <div>
+
+      <label
+        for="addressInput"
+        class="mb-2 block text-sm font-bold text-slate-700">
+
+        Address
+
+      </label>
+
+      <textarea
+        id="addressInput"
+        rows="3"
+        maxlength="300"
+        placeholder="Not provided"
+        class="w-full resize-y rounded-xl border border-slate-200
+               bg-slate-50 px-4 py-3 text-sm outline-none
+               focus:border-blue-700 focus:bg-white disabled:opacity-70"
+        disabled></textarea>
+
+    </div>
+
+
+    <!-- Form buttons -->
+    <div
+      id="formActions"
+      class="hidden flex-col-reverse gap-3 pt-1 sm:flex-row
+             sm:justify-end">
+
+      <button
+        id="cancelEditBtn"
+        type="button"
+        class="focus-ring rounded-xl border border-slate-200
+               bg-white px-5 py-3 text-sm font-bold text-slate-700
+               hover:bg-slate-50">
+
+        Cancel
+
+      </button>
+
+      <button
+        id="saveProfileBtn"
+        type="submit"
+        class="focus-ring rounded-xl bg-blue-800 px-5 py-3
+               text-sm font-bold text-white hover:bg-blue-900
+               disabled:opacity-60">
+
+        <i class="bi bi-check2-circle mr-1"></i>
+
+        Save Changes
+
+      </button>
+
+    </div>
+
+  </form>
+
+</section>
+
+
+<!-- =========================================================
+     QUICK ACCESS
+========================================================= -->
+<aside
+  class="rounded-3xl border border-slate-200 bg-white p-5
+         shadow-sm sm:p-7"
+  data-aos="fade-up">
+
+  <p
+    class="text-xs font-bold uppercase tracking-[0.18em]
+           text-blue-700">
+
+    Quick access
+
+  </p>
+
+  <h2
+    class="mt-1 text-xl font-black">
+
+    Account Actions
+
+  </h2>
+
+
+  <div class="mt-6 space-y-2">
+
+    <a
+      href="orders.html"
+      class="focus-ring flex items-center gap-3 rounded-xl p-3
+             text-sm font-bold hover:bg-blue-50 hover:text-blue-800">
+
+      <span
+        class="flex h-9 w-9 items-center justify-center
+               rounded-lg bg-blue-50 text-blue-800">
+
+        <i class="bi bi-bag-check"></i>
+
+      </span>
+
+      My Orders
+
+      <i class="bi bi-chevron-right ml-auto text-xs"></i>
+
+    </a>
+
+
+    <a
+      href="wishlist.html"
+      class="focus-ring flex items-center gap-3 rounded-xl p-3
+             text-sm font-bold hover:bg-blue-50 hover:text-blue-800">
+
+      <span
+        class="flex h-9 w-9 items-center justify-center
+               rounded-lg bg-red-50 text-red-600">
+
+        <i class="bi bi-heart"></i>
+
+      </span>
+
+      Wishlist
+
+      <i class="bi bi-chevron-right ml-auto text-xs"></i>
+
+    </a>
+
+
+    <a
+      href="cart.html"
+      class="focus-ring flex items-center gap-3 rounded-xl p-3
+             text-sm font-bold hover:bg-blue-50 hover:text-blue-800">
+
+      <span
+        class="flex h-9 w-9 items-center justify-center
+               rounded-lg bg-blue-50 text-blue-800">
+
+        <i class="bi bi-cart3"></i>
+
+      </span>
+
+      Cart
+
+      <i class="bi bi-chevron-right ml-auto text-xs"></i>
+
+    </a>
+
+  </div>
+
+
+  <div class="my-6 border-t border-slate-100"></div>
+
+
+  <!-- Sign out -->
+  <button
+    id="signOutBtn"
+    type="button"
+    class="focus-ring flex w-full items-center gap-3 rounded-xl p-3
+           text-sm font-bold text-red-600 hover:bg-red-50"
+    aria-label="Sign out">
+
+    <span
+      class="flex h-9 w-9 items-center justify-center
+             rounded-lg bg-red-50">
+
+      <i class="bi bi-box-arrow-right"></i>
+
+    </span>
+
+    Sign Out
+
+  </button>
+
+</aside>
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+<footer class="bg-blue-950 text-slate-300">
+
+  <div
+    class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+
+    <div class="grid gap-8 md:grid-cols-3">
+
+      <div>
+
+        <div class="flex items-center gap-2 text-white">
+
+          <span
+            class="flex h-10 w-10 items-center justify-center
+                   rounded-xl bg-white text-blue-950">
+
+            <img src="./images/logo2.png" alt="Kanye Series" class="h-8 w-8 object-contain">
+
+          </span>
+
+          <span class="text-lg font-black">
+            KANYE SERIES
+          </span>
+
+        </div>
+
+        <p
+          class="mt-4 max-w-md text-sm leading-6 text-blue-200">
+
+          A modern marketplace for shoes, electronics, secondary
+          science books and special orders.
+
+        </p>
+
+      </div>
+
+
+      <div>
+
+        <h3 class="font-bold text-white">
+          Navigation
+        </h3>
+
+        <ul class="mt-4 space-y-3 text-sm">
+
+          <li>
+            <a href="index.html" class="hover:text-white">
+              Home
+            </a>
+          </li>
+
+          <li>
+            <a href="products.html" class="hover:text-white">
+              Products
+            </a>
+          </li>
+
+          <li>
+            <a href="orders.html" class="hover:text-white">
+              Orders
+            </a>
+          </li>
+
+          <li>
+            <a href="profile.html" class="hover:text-white">
+              Profile
+            </a>
+          </li>
+
+        </ul>
+
+      </div>
+
+
+      <div>
+
+        <h3 class="font-bold text-white">
+          Account
+        </h3>
+
+        <ul class="mt-4 space-y-3 text-sm">
+
+          <li>
+            <a href="wishlist.html" class="hover:text-white">
+              Wishlist
+            </a>
+          </li>
+
+          <li>
+            <a href="cart.html" class="hover:text-white">
+              Cart
+            </a>
+          </li>
+
+          <li>
+            <a href="login.html" class="hover:text-white">
+              Login
+            </a>
+          </li>
+
+        </ul>
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="mt-10 border-t border-blue-900 pt-6 text-xs text-blue-300">
+
+      &copy;
+
+      <span id="copyrightYear"></span>
+
+      Kanye Series. All rights reserved.
+
+    </div>
+
+  </div>
+
+ <a href="policy.html" class="focus-ring hover:text-white font-semibold">Policies</a> </footer>
+
+</div>
+
+
+<!-- =========================================================
+     MOBILE / TABLET BOTTOM NAVIGATION
+========================================================= -->
+<nav
+  class="fixed bottom-0 left-0 right-0 z-50 border-t
+         border-slate-200 bg-white/95 shadow-2xl backdrop-blur
+         md:block lg:hidden"
+  aria-label="Mobile and tablet navigation">
+
+  <div
+    class="mx-auto grid max-w-lg grid-cols-4">
+
+    <a
+      href="index.html"
+      class="flex flex-col items-center gap-1 px-2 py-3
+             text-slate-500 hover:text-blue-800"
+      aria-label="Home">
+
+      <i class="bi bi-house-door text-lg"></i>
+
+      <span class="text-[11px] font-semibold">
+        Home
+      </span>
+
+    </a>
+
+
+    <a
+      href="products.html"
+      class="flex flex-col items-center gap-1 px-2 py-3
+             text-slate-500 hover:text-blue-800"
+      aria-label="Products">
+
+      <i class="bi bi-grid text-lg"></i>
+
+      <span class="text-[11px] font-semibold">
+        Products
+      </span>
+
+    </a>
+
+
+    <a
+      href="orders.html"
+      class="flex flex-col items-center gap-1 px-2 py-3
+             text-slate-500 hover:text-blue-800"
+      aria-label="Orders">
+
+      <i class="bi bi-bag-check text-lg"></i>
+
+      <span class="text-[11px] font-semibold">
+        Orders
+      </span>
+
+    </a>
+
+
+    <a
+      href="profile.html"
+      class="flex flex-col items-center gap-1 px-2 py-3
+             text-blue-800"
+      aria-current="page"
+      aria-label="Profile">
+
+      <i class="bi bi-person-fill text-lg"></i>
+
+      <span class="text-[11px] font-semibold">
+        Profile
+      </span>
+
+    </a>
+
+  </div>
+
+</nav>
+
+
+<!-- =========================================================
+     LIBRARIES
+========================================================= -->
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<!-- =========================================================
+     FIREBASE APPLICATION
+========================================================= -->
+<script type="module">
+
+/* =========================================================
+   FIREBASE IMPORTS
+========================================================= */
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+import {
+  getDatabase,
+  ref,
+  get,
+  update,
+  onValue
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
+
+
+/* =========================================================
+   FIREBASE CONFIGURATION
+========================================================= */
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyBK-HHFid2F9SY1rtGsSO3boUFZihyOpTQ",
+
+  authDomain: "goldai-58550.firebaseapp.com",
+
+  projectId: "goldai-58550",databaseURL:"https://goldai-58550-default-rtdb.firebaseio.com",
+
+  storageBucket: "goldai-58550.firebasestorage.app",
+
+  messagingSenderId: "726592521265",
+
+  appId: "1:726592521265:web:8aca7282b6b4aec8c9c110",
+
+  measurementId: "G-23MEZJVM6Z"
+
+};
+
+
+/* =========================================================
+   FIREBASE INITIALIZATION
+========================================================= */
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+const db = getDatabase(app);
+
+
+/* =========================================================
+   CLOUDINARY CONFIGURATION
+========================================================= */
+
+const cloudinaryUrl =
+  "https://api.cloudinary.com/v1_1/garfgnqe/image/upload";
+
+const uploadPreset =
+  "kanyeseries";
+
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+
+let currentUser = null;
+
+let currentProfile = null;
+let ordersListenerCleanup = null;
+
+
+/* =========================================================
+   DOM ELEMENTS
+========================================================= */
+
+const $ = id => document.getElementById(id);
+
+const authLoading = $("authLoading");
+
+const loginState = $("loginState");
+
+const errorState = $("errorState");
+
+const profileContent = $("profileContent");
+
+const errorMessage = $("errorMessage");
+
+const profilePhoto = $("profilePhoto");
+
+const photoInput = $("photoInput");
+
+const displayName = $("displayName");
+
+const displayEmail = $("displayEmail");
+
+const nameInput = $("nameInput");
+
+const emailInput = $("emailInput");
+
+const phoneInput = $("phoneInput");
+
+const addressInput = $("addressInput");
+
+const profileForm = $("profileForm");
+
+const editProfileBtn = $("editProfileBtn");
+
+const cancelEditBtn = $("cancelEditBtn");
+
+const formActions = $("formActions");
+
+const saveProfileBtn = $("saveProfileBtn");
+
+const signOutBtn = $("signOutBtn");
+
+const retryBtn = $("retryBtn");
+
+const cartSummary = $("cartSummary");
+
+const wishlistSummary = $("wishlistSummary");
+
+const ordersCount = $("ordersCount");
+
+/* =========================================================
+   BASIC HELPERS
+========================================================= */
+
+function only(element){
+
+  [
+    authLoading,
+    loginState,
+    errorState,
+    profileContent
+  ].forEach(x => {
+
+    if(x){
+      x.classList.add("hidden");
+    }
+
+  });
+
+  if(element){
+    element.classList.remove("hidden");
+  }
+
+}
+
+
+function text(value, fallback = ""){
+
+  const result =
+    value == null
+      ? ""
+      : String(value).trim();
+
+  return result || fallback;
+
+}
+
+
+function alertBox(
+  title,
+  message,
+  icon = "info"
+){
+
+  if(window.Swal){
+
+    return Swal.fire({
+
+      title,
+
+      text: message,
+
+      icon,
+
+      confirmButtonColor:"#1e3a8a"
+
+    });
+
+  }
+
+  alert(message);
+
+  return Promise.resolve();
+
+}
+
+
+function avatar(){
+
+  return "data:image/svg+xml;charset=UTF-8," +
+    encodeURIComponent(`
+
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 200 200">
+
+        <rect
+          width="200"
+          height="200"
+          rx="100"
+          fill="#eff6ff"/>
+
+        <circle
+          cx="100"
+          cy="78"
+          r="38"
+          fill="#1e3a8a"/>
+
+        <path
+          d="M36 174c8-34 32-54 64-54s56 20 64 54"
+          fill="#1e3a8a"/>
+
+      </svg>
+
+    `);
+
+}
+
+
+/* =========================================================
+   AUTHENTICATION
+========================================================= */
+
+onAuthStateChanged(
+  auth,
+  async user => {
+
+    currentUser = user || null;
+
+    if(ordersListenerCleanup){
+      ordersListenerCleanup();
+      ordersListenerCleanup = null;
+    }
+
+    ordersCount.textContent = "0";
+
+    cartSummary.textContent = "0";
+
+    wishlistSummary.textContent = "0";
+
+
+    /* User not logged in */
+    if(!user?.uid){
+
+      only(loginState);
+
+      return;
+
+    }
+
+
+    /* User logged in */
+    only(authLoading);
+
+
+    try{
+
+      await loadProfile(user.uid);
+
+      startOrdersListener(user.uid);
+
+      startCartListener(user.uid);
+
+      startWishlistListener(user.uid);
+
+      only(profileContent);
+
+    }catch(error){
+
+      console.error(
+        "Profile loading error:",
+        error
+      );
+
+      errorMessage.textContent =
+        navigator.onLine === false
+
+          ? "You're currently offline. Please check your internet connection and try again."
+
+          : "Please try again.";
+
+      only(errorState);
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   LOAD PROFILE
+========================================================= */
+
+async function loadProfile(uid){
+
+  if(!currentUser?.uid){
+    return;
+  }
+
+
+  const snapshot =
+    await get(
+      ref(db, `users/${uid}`)
+    );
+
+
+  const data =
+    snapshot.exists()
+      ? snapshot.val() || {}
+      : {};
+
+
+  currentProfile = {
+
+    ...data,
+
+    name:
+      text(
+        data.name,
+        text(
+          currentUser.displayName,
+          "Kanye Series Customer"
+        )
+      ),
+
+    email:
+      text(
+        currentUser.email,
+        text(
+          data.email,
+          "Email not available"
+        )
+      ),
+
+    phone:
+      text(
+        data.phone,
+        text(
+          currentUser.phoneNumber,
+          ""
+        )
+      ),
+
+    address:
+      text(
+        data.address,
+        ""
+      ),
+
+    photoURL:
+      text(
+        data.photoURL,
+        text(
+          currentUser.photoURL,
+          ""
+        )
+      )
+
+  };
+
+
+  renderProfile();
+
+}
+
+
+/* =========================================================
+   RENDER PROFILE
+========================================================= */
+
+function renderProfile(){
+
+  const profile =
+    currentProfile || {};
+
+
+  displayName.textContent =
+    text(
+      profile.name,
+      "Kanye Series Customer"
+    );
+
+
+  displayEmail.textContent =
+    text(
+      profile.email,
+      "Email not available"
+    );
+
+
+  nameInput.value =
+    text(
+      profile.name,
+      "Kanye Series Customer"
+    );
+
+
+  emailInput.value =
+    text(
+      profile.email,
+      "Email not available"
+    );
+
+
+  phoneInput.value =
+    text(
+      profile.phone,
+      ""
+    );
+
+
+  addressInput.value =
+    text(
+      profile.address,
+      ""
+    );
+
+
+  profilePhoto.src =
+    text(
+      profile.photoURL,
+      ""
+    ) || avatar();
+
+
+  profilePhoto.onerror = () => {
+
+    profilePhoto.onerror = null;
+
+    profilePhoto.src = avatar();
+
+  };
+
+
+  setEditing(false);
+
+}
+
+
+/* =========================================================
+   EDIT PROFILE
+========================================================= */
+
+function setEditing(enabled){
+
+  [
+    nameInput,
+    phoneInput,
+    addressInput
+  ].forEach(input => {
+
+    input.disabled = !enabled;
+
+  });
+
+
+  formActions.classList.toggle(
+    "hidden",
+    !enabled
+  );
+
+
+  formActions.classList.toggle(
+    "flex",
+    enabled
+  );
+
+
+  editProfileBtn.classList.toggle(
+    "hidden",
+    enabled
+  );
+
+}
+
+
+editProfileBtn.onclick = () => {
+
+  setEditing(true);
+
+  nameInput.focus();
+
+};
+
+
+cancelEditBtn.onclick = () => {
+
+  renderProfile();
+
+};
+
+
+/* =========================================================
+   SAVE PROFILE
+========================================================= */
+
+profileForm.onsubmit =
+  async event => {
+
+    event.preventDefault();
+
+
+    if(!currentUser?.uid){
+      return;
+    }
+
+
+    const name =
+      nameInput.value.trim();
+
+    const phone =
+      phoneInput.value.trim();
+
+    const address =
+      addressInput.value.trim();
+
+
+    if(!name){
+
+      await alertBox(
+        "Name required",
+        "Please enter your full name.",
+        "warning"
+      );
+
+      return;
+
+    }
+
+
+    saveProfileBtn.disabled = true;
+
+
+    try{
+
+      await update(
+        ref(
+          db,
+          `users/${currentUser.uid}`
+        ),
+        {
+
+          name,
+
+          phone,
+
+          address,
+
+          email:
+            currentUser.email ||
+            currentProfile?.email ||
+            "",
+
+          updatedAt:
+            Date.now()
+
+        }
+      );
+
+
+      await updateProfile(
+        currentUser,
+        {
+          displayName:name,
+
+          ...(currentProfile?.photoURL
+            ? {
+                photoURL:
+                  currentProfile.photoURL
+              }
+            : {})
+        }
+      );
+
+
+      currentProfile = {
+
+        ...(currentProfile || {}),
+
+        name,
+
+        phone,
+
+        address
+
+      };
+
+
+      renderProfile();
+
+
+      await alertBox(
+        "Profile updated",
+        "Your profile information has been saved.",
+        "success"
+      );
+
+
+    }catch(error){
+
+      console.error(
+        "Profile save error:",
+        error
+      );
+
+
+      await alertBox(
+
+        navigator.onLine === false
+          ? "You're offline"
+          : "Unable to save",
+
+        navigator.onLine === false
+          ? "Please reconnect to the internet and try again."
+          : "We couldn't update your profile right now. Please try again.",
+
+        "warning"
+
+      );
+
+
+    }finally{
+
+      saveProfileBtn.disabled = false;
+
+    }
+
+  };
+
+
+/* =========================================================
+   CLOUDINARY PROFILE PHOTO UPLOAD
+========================================================= */
+
+photoInput.onchange =
+  async event => {
+
+    const file =
+      event.target.files?.[0];
+
+
+    if(
+      !file ||
+      !currentUser?.uid
+    ){
+
+      return;
+
+    }
+
+
+    const allowedTypes = [
+
+      "image/jpeg",
+
+      "image/png",
+
+      "image/webp"
+
+    ];
+
+
+    if(!allowedTypes.includes(file.type)){
+
+      event.target.value = "";
+
+      await alertBox(
+        "Invalid image",
+        "Please choose a JPG, PNG, or WEBP image.",
+        "warning"
+      );
+
+      return;
+
+    }
+
+
+    if(file.size > 5 * 1024 * 1024){
+
+      event.target.value = "";
+
+      await alertBox(
+        "Image is too large",
+        "Please choose an image smaller than 5 MB.",
+        "warning"
+      );
+
+      return;
+
+    }
+
+
+    const oldName =
+      displayName.textContent;
+
+
+    displayName.textContent =
+      "Uploading photo...";
+
+
+    try{
+
+      const formData =
+        new FormData();
+
+
+      formData.append(
+        "file",
+        file
+      );
+
+
+      formData.append(
+        "upload_preset",
+        uploadPreset
+      );
+
+
+      const response =
+        await fetch(
+          cloudinaryUrl,
+          {
+            method:"POST",
+            body:formData
+          }
+        );
+
+
+      if(!response.ok){
+
+        throw new Error(
+          `Cloudinary upload failed: ${response.status}`
+        );
+
+      }
+
+
+      const data =
+        await response.json();
+
+
+      const url =
+        text(
+          data?.secure_url,
+          ""
+        );
+
+
+      if(!url){
+
+        throw new Error(
+          "Cloudinary returned no secure URL"
+        );
+
+      }
+
+
+      await update(
+        ref(
+          db,
+          `users/${currentUser.uid}`
+        ),
+        {
+
+          photoURL:url,
+
+          updatedAt:Date.now()
+
+        }
+      );
+
+
+      await updateProfile(
+        currentUser,
+        {
+
+          photoURL:url,
+
+          displayName:
+            currentProfile?.name ||
+            currentUser.displayName ||
+            oldName
+
+        }
+      );
+
+
+      currentProfile = {
+
+        ...(currentProfile || {}),
+
+        photoURL:url
+
+      };
+
+
+      profilePhoto.src = url;
+
+
+      await alertBox(
+        "Photo updated",
+        "Your profile photo has been uploaded successfully.",
+        "success"
+      );
+
+
+    }catch(error){
+
+      console.error(
+        "Cloudinary profile photo upload error:",
+        error
+      );
+
+
+      await alertBox(
+        "Upload failed",
+
+        navigator.onLine === false
+          ? "Please reconnect to the internet and try again."
+          : "We couldn't update your profile photo right now. Please try again.",
+
+        "error"
+      );
+
+
+    }finally{
+
+      displayName.textContent =
+        text(
+          currentProfile?.name,
+          text(
+            currentUser.displayName,
+            "Kanye Series Customer"
+          )
+        );
+
+
+      event.target.value = "";
+
+    }
+
+  };
+
+
+/* =========================================================
+   FIREBASE CART COUNT
+   Profile summary only.
+   No top navigation cart functionality.
+========================================================= */
+
+function startCartListener(uid){
+
+  onValue(
+
+    ref(
+      db,
+      `carts/${uid}`
+    ),
+
+    snapshot => {
+
+      const data =
+        snapshot.val() || {};
+
+
+      const total =
+        Object.values(data)
+          .reduce(
+            (sum,item) => {
+
+              return sum +
+                Math.max(
+                  0,
+                  Number(
+                    item?.quantity ??
+                    item?.qty
+                  ) || 0
+                );
+
+            },
+            0
+          );
+
+
+      cartSummary.textContent =
+        total > 99
+          ? "99+"
+          : String(total);
+
+    },
+
+    error => {
+
+      console.error(
+        "Cart summary listener error:",
+        error
+      );
+
+      cartSummary.textContent = "0";
+
+    }
+
+  );
+
+}
+
+
+/* =========================================================
+   FIREBASE WISHLIST COUNT
+   Profile summary only.
+   No top navigation wishlist functionality.
+========================================================= */
+
+function startWishlistListener(uid){
+
+  onValue(
+
+    ref(
+      db,
+      `wishlists/${uid}`
+    ),
+
+    snapshot => {
+
+      const data =
+        snapshot.val() || {};
+
+
+      const total =
+        Object.values(data)
+          .filter(Boolean)
+          .length;
+
+
+      wishlistSummary.textContent =
+        total > 99
+          ? "99+"
+          : String(total);
+
+    },
+
+    error => {
+
+      console.error(
+        "Wishlist summary listener error:",
+        error
+      );
+
+      wishlistSummary.textContent = "0";
+
+    }
+
+  );
+
+}
+
+
+/* =========================================================
+   LOAD ORDERS
+========================================================= */
+
+function startOrdersListener(uid){
+
+  if(ordersListenerCleanup){
+    ordersListenerCleanup();
+    ordersListenerCleanup = null;
+  }
+
+  ordersListenerCleanup = onValue(
+    ref(db, `orders/${uid}`),
+
+    snapshot => {
+
+      const data =
+        snapshot.val() || {};
+
+
+      const total =
+        Object.keys(data).length;
+
+
+      ordersCount.textContent =
+        total > 99
+          ? "99+"
+          : String(total);
+
+    },
+
+    error => {
+
+      console.error(
+        "Orders summary listener error:",
+        error
+      );
+
+      ordersCount.textContent = "0";
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SIGN OUT
+========================================================= */
+
+signOutBtn.onclick =
+  async () => {
+
+    let confirmed = true;
+
+
+    if(window.Swal){
+
+      const result =
+        await Swal.fire({
+
+          title:"Sign out?",
+
+          text:
+            "You'll need to sign in again to manage your account.",
+
+          icon:"question",
+
+          showCancelButton:true,
+
+          confirmButtonText:"Sign Out",
+
+          cancelButtonText:"Stay",
+
+          confirmButtonColor:"#b91c1c"
+
+        });
+
+
+      confirmed =
+        result.isConfirmed;
+
+    }
+
+
+    if(!confirmed){
+      return;
+    }
+
+
+    try{
+
+      await signOut(auth);
+
+
+      if(window.Swal){
+
+        await Swal.fire({
+
+          title:"Signed out",
+
+          text:
+            "You have been signed out successfully.",
+
+          icon:"success",
+
+          confirmButtonColor:"#1e3a8a"
+
+        });
+
+      }
+
+
+      location.href =
+        "login.html";
+
+
+    }catch(error){
+
+      console.error(
+        "Sign out error:",
+        error
+      );
+
+
+      alertBox(
+        "Unable to sign out",
+        "Please try again.",
+        "error"
+      );
+
+    }
+
+  };
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+const searchPanel =
+  $("searchPanel");
+
+const searchInput =
+  $("searchInput");
+
+const clearSearchBtn =
+  $("clearSearchBtn");
+
+
+/*
+   The profile header intentionally has
+   no search/cart/wishlist buttons.
+
+   Search still works if the panel is
+   opened by another page/component.
+*/
+
+if(searchInput){
+
+  searchInput.oninput =
+    event => {
+
+      clearSearchBtn?.classList.toggle(
+        "hidden",
+        !event.target.value.trim()
+      );
+
+    };
+
+
+  searchInput.onkeydown =
+    event => {
+
+      if(event.key === "Enter"){
+
+        const value =
+          event.target.value.trim();
+
+
+        location.href =
+          value
+            ? `products.html?search=${encodeURIComponent(value)}`
+            : "products.html";
+
+      }
+
+    };
+
+}
+
+
+if(clearSearchBtn){
+
+  clearSearchBtn.onclick =
+    () => {
+
+      searchInput.value = "";
+
+      clearSearchBtn.classList.add(
+        "hidden"
+      );
+
+      searchInput.focus();
+
+    };
+
+}
+
+
+/* =========================================================
+   RETRY
+========================================================= */
+
+retryBtn.onclick =
+  async () => {
+
+    if(!currentUser?.uid){
+
+      only(loginState);
+
+      return;
+
+    }
+
+
+    only(authLoading);
+
+
+    try{
+
+      await loadProfile(
+        currentUser.uid
+      );
+
+      startOrdersListener(
+        currentUser.uid
+      );
+
+
+      startCartListener(
+        currentUser.uid
+      );
+
+
+      startWishlistListener(
+        currentUser.uid
+      );
+
+
+      only(profileContent);
+
+
+    }catch(error){
+
+      console.error(
+        "Profile retry error:",
+        error
+      );
+
+
+      errorMessage.textContent =
+        navigator.onLine === false
+
+          ? "You're currently offline. Please check your internet connection and try again."
+
+          : "Please try again.";
+
+
+      only(errorState);
+
+    }
+
+  };
+
+
+/* =========================================================
+   AOS
+========================================================= */
+
+if(window.AOS){
+
+  AOS.init({
+
+    duration:650,
+
+    easing:"ease-out-cubic",
+
+    once:true,
+
+    offset:60
+
+  });
+
+}
+
+
+/* =========================================================
+   YEAR
+========================================================= */
+
+$("copyrightYear").textContent =
+  new Date().getFullYear();
+
+</script>
+
+<script src="./js/pwa.js"></script>
+</body>
+</html>
+
