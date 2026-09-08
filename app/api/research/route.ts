@@ -73,7 +73,11 @@ export async function POST(request: Request) {
       const prompt = `Research question: ${parsed.data.question}\nResearch type: ${parsed.data.type}\n${parsed.data.dateRange ? `Date range: ${parsed.data.dateRange}\n` : ""}Use only the retrieved sources below. Produce a structured synthesis with Overview, Key findings, Evidence, Different perspectives or uncertainty, Conclusion, and Sources. Cite claims with [1], [2], etc. Every citation must match a source URL below. Do not invent facts, sources, dates, or URLs. Distinguish source-supported information from interpretation.\n\n${sourceContext(sources)}`;
       const response = await generateAIResponse({ message: prompt, language: profile?.preferredLanguage, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
       const images = await retrieveImagesForResponse(parsed.data.question, response.text, requestId).catch(() => []);
-      await finalizeCredits(uid, requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditConfig.featureCosts.research);
+      const finalized = await finalizeCredits(uid, requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditConfig.featureCosts.research);
+      if (!finalized) {
+        await refundReservedCredits(uid, requestId).catch(() => undefined);
+        throw new Error("Credit ledger finalization failed after research generation.");
+      }
       await updateResearchSession(uid, sessionId, { status: "completed", result: response.text, sources, images });
       return Response.json({ session: { ...session, status: "completed", result: response.text, sources, images }, creditsConsumed: creditConfig.featureCosts.research });
     } catch (researchError) {

@@ -3,6 +3,7 @@ import { generateAIResponse } from "../../../lib/ai";
 import { loadAIProfile, verifyFirebaseToken } from "../../../lib/ai/auth-server";
 import { creditConfig } from "../../../lib/credits/config";
 import { finalizeCredits, refundReservedCredits, reserveCredits } from "../../../lib/credits/service";
+import { requireTeacher } from "../../../lib/server/authz";
 import { deleteTeacherMaterial, isTeacherToolType, listTeacherMaterials, saveTeacherMaterial, updateTeacherMaterial } from "../../../lib/teacher/service";
 import type { TeacherToolType } from "../../../types/teacher";
 
@@ -27,36 +28,82 @@ function promptFor(input: z.infer<typeof requestSchema>, type: TeacherToolType) 
 }
 
 export async function GET(request: Request) {
-  try { return Response.json({ materials: await listTeacherMaterials(await verifyFirebaseToken(authToken(request))) }); }
-  catch (error) { if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to view Teacher Tools." }, { status: 401 }); console.error("Gold AI teacher materials list failed", { error: error instanceof Error ? error.message : "unknown error" }); return Response.json({ error: "Unable to load teacher materials right now." }, { status: 503 }); }
+  try {
+    const { uid } = await requireTeacher(request);
+    return Response.json({ materials: await listTeacherMaterials(uid) });
+  } catch (error) {
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to view Teacher Tools." }, { status: 401 });
+    if (error instanceof Error && "status" in error && typeof (error as { status: number }).status === "number") {
+      return Response.json({ error: (error as Error).message }, { status: (error as { status: number }).status });
+    }
+    console.error("Gold AI teacher materials list failed", { error: error instanceof Error ? error.message : "unknown error" });
+    return Response.json({ error: "Unable to load teacher materials right now." }, { status: 503 });
+  }
 }
 
 export async function DELETE(request: Request) {
-  try { const uid = await verifyFirebaseToken(authToken(request)); const id = new URL(request.url).searchParams.get("id"); if (!id) return Response.json({ error: "Material not found." }, { status: 400 }); await deleteTeacherMaterial(uid, id); return Response.json({ success: true }); }
-  catch (error) { if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to continue." }, { status: 401 }); console.error("Gold AI teacher material deletion failed", { error: error instanceof Error ? error.message : "unknown error" }); return Response.json({ error: "Unable to delete this material." }, { status: 503 }); }
+  try {
+    const { uid } = await requireTeacher(request);
+    const id = new URL(request.url).searchParams.get("id");
+    if (!id) return Response.json({ error: "Material not found." }, { status: 400 });
+    await deleteTeacherMaterial(uid, id);
+    return Response.json({ success: true });
+  } catch (error) {
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to continue." }, { status: 401 });
+    if (error instanceof Error && "status" in error && typeof (error as { status: number }).status === "number") {
+      return Response.json({ error: (error as Error).message }, { status: (error as { status: number }).status });
+    }
+    console.error("Gold AI teacher material deletion failed", { error: error instanceof Error ? error.message : "unknown error" });
+    return Response.json({ error: "Unable to delete this material." }, { status: 503 });
+  }
 }
 
 export async function PATCH(request: Request) {
-  try { const uid = await verifyFirebaseToken(authToken(request)); const id = new URL(request.url).searchParams.get("id"); const body = await request.json() as { content?: string }; if (!id || typeof body.content !== "string") return Response.json({ error: "Material content is required." }, { status: 400 }); const material = await updateTeacherMaterial(uid, id, body.content); return material ? Response.json({ material }) : Response.json({ error: "Material not found." }, { status: 404 }); }
-  catch (error) { if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to continue." }, { status: 401 }); console.error("Gold AI teacher material update failed", { error: error instanceof Error ? error.message : "unknown error" }); return Response.json({ error: "Unable to update this material." }, { status: 503 }); }
+  try {
+    const { uid } = await requireTeacher(request);
+    const id = new URL(request.url).searchParams.get("id");
+    const body = await request.json() as { content?: string };
+    if (!id || typeof body.content !== "string") return Response.json({ error: "Material content is required." }, { status: 400 });
+    const material = await updateTeacherMaterial(uid, id, body.content);
+    return material ? Response.json({ material }) : Response.json({ error: "Material not found." }, { status: 404 });
+  } catch (error) {
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to continue." }, { status: 401 });
+    if (error instanceof Error && "status" in error && typeof (error as { status: number }).status === "number") {
+      return Response.json({ error: (error as Error).message }, { status: (error as { status: number }).status });
+    }
+    console.error("Gold AI teacher material update failed", { error: error instanceof Error ? error.message : "unknown error" });
+    return Response.json({ error: "Unable to update this material." }, { status: 503 });
+  }
 }
 
 export async function POST(request: Request) {
-  let uid = ""; let requestId = "";
+  let uid = ""; let requestId = ""; let finalized = false;
   try {
-    const idToken = authToken(request); uid = await verifyFirebaseToken(idToken); const parsed = requestSchema.safeParse(await request.json());
+    const { uid: teacherUid } = await requireTeacher(request);
+    uid = teacherUid;
+    const idToken = authToken(request);
+    const parsed = requestSchema.safeParse(await request.json());
     if (!parsed.success) return Response.json({ error: parsed.error.issues[0]?.message || "Please check your teacher request." }, { status: 400 });
     if (!isTeacherToolType(parsed.data.type)) return Response.json({ error: "Choose a valid Teacher Tool." }, { status: 400 });
     requestId = parsed.data.requestId;
     const reservation = await reserveCredits(uid, requestId, creditConfig.featureCosts.teacherTools);
     if (reservation.status === "duplicate") return Response.json({ error: "This request has already been processed." }, { status: 409 });
     if (reservation.status === "insufficient") return Response.json({ error: "You need more credits for this Teacher Tool." }, { status: 402 });
-    try {
-      const profile = await loadAIProfile(uid, idToken);
-      const response = await generateAIResponse({ message: promptFor(parsed.data, parsed.data.type), language: profile?.preferredLanguage, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
-      await finalizeCredits(uid, requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditConfig.featureCosts.teacherTools);
-      const material = await saveTeacherMaterial(uid, { type: parsed.data.type, title: `${parsed.data.subject}: ${parsed.data.topic}`, subject: parsed.data.subject, topic: parsed.data.topic, classLevel: parsed.data.classLevel, content: response.text });
-      return Response.json({ material, creditsConsumed: creditConfig.featureCosts.teacherTools });
-    } catch (generationError) { await refundReservedCredits(uid, requestId); throw generationError; }
-  } catch (error) { if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to use Teacher Tools." }, { status: 401 }); console.error("Gold AI teacher request failed", { uid: uid || "anonymous", requestId: requestId || "unknown", error: error instanceof Error ? error.message : "unknown error" }); return Response.json({ error: "Gold AI could not prepare that material right now." }, { status: 503 }); }
+    const profile = await loadAIProfile(uid, idToken);
+    const response = await generateAIResponse({ message: promptFor(parsed.data, parsed.data.type), language: profile?.preferredLanguage, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined });
+    const material = await saveTeacherMaterial(uid, { type: parsed.data.type, title: `${parsed.data.subject}: ${parsed.data.topic}`, subject: parsed.data.subject, topic: parsed.data.topic, classLevel: parsed.data.classLevel, content: response.text });
+    finalized = await finalizeCredits(uid, requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditConfig.featureCosts.teacherTools);
+    if (!finalized) throw new Error("Teacher tool credit ledger could not be finalized.");
+    return Response.json({ material, creditsConsumed: creditConfig.featureCosts.teacherTools });
+  } catch (error) {
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to use Teacher Tools." }, { status: 401 });
+    if (error instanceof Error && "status" in error && typeof (error as { status: number }).status === "number") {
+      return Response.json({ error: (error as Error).message }, { status: (error as { status: number }).status });
+    }
+    if (!finalized && uid && requestId) {
+      await refundReservedCredits(uid, requestId).catch(() => undefined);
+    }
+    console.error("Gold AI teacher request failed", { uid: uid || "anonymous", requestId: requestId || "unknown", error: error instanceof Error ? error.message : "unknown error" });
+    return Response.json({ error: "Gold AI could not prepare that material right now." }, { status: 503 });
+  }
 }

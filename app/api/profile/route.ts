@@ -19,7 +19,9 @@ const profileSchema = z.object({
   researchType: z.string().trim().max(120).optional(),
   bio: z.string().trim().max(1000).optional(),
   onboardingCompleted: z.boolean().optional(),
-});
+}).strict();
+
+const protectedProfileFields = new Set(["uid", "email", "createdAt", "updatedAt", "role", "admin", "accountFlags", "credits", "monthlyFreeCredits", "monthlyFreeUsed", "purchasedCredits", "totalUsed", "paymentStatus", "payments", "creditTransactions"]);
 
 function tokenFrom(request: Request) {
   const authorization = request.headers.get("authorization");
@@ -27,8 +29,31 @@ function tokenFrom(request: Request) {
   return authorization.slice(7).trim();
 }
 
+function sanitizeProfileInput(input: unknown) {
+  const parsed = profileSchema.safeParse(input);
+  if (!parsed.success) throw new Error("INVALID_PROFILE");
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(parsed.data)) {
+    if (value === undefined) continue;
+    if (protectedProfileFields.has(key)) continue;
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (!trimmed) continue;
+      result[key] = trimmed;
+      continue;
+    }
+    if (Array.isArray(value)) {
+      result[key] = value.map((item) => String(item).trim()).filter(Boolean).slice(0, 30);
+      continue;
+    }
+    result[key] = value;
+  }
+  return result;
+}
+
 function friendlyError(error: unknown, fallback: string) {
   if (error instanceof Error && error.message === "UNAUTHORIZED") return Response.json({ error: "Please log in to update your profile." }, { status: 401 });
+  if (error instanceof Error && error.message === "INVALID_PROFILE") return Response.json({ error: "Please check your profile details." }, { status: 400 });
   console.error("Gold AI profile API failed", { error: error instanceof Error ? error.message : "unknown error" });
   return Response.json({ error: fallback }, { status: 503 });
 }
@@ -37,14 +62,16 @@ export async function POST(request: Request) {
   try {
     const idToken = tokenFrom(request);
     const uid = await verifyFirebaseToken(idToken);
-    const parsed = profileSchema.extend({ name: z.string().trim().min(2).max(80), email: z.string().email().max(320) }).safeParse(await request.json());
-    if (!parsed.success) return Response.json({ error: "Please check your profile details." }, { status: 400 });
-    const { database } = getFirebaseAdmin();
+    const { database, auth } = getFirebaseAdmin();
+    const firebaseUser = await auth.getUser(uid);
+    const canonicalEmail = (firebaseUser.email || "").trim().toLowerCase();
+    if (!canonicalEmail) return Response.json({ error: "We could not determine your account email." }, { status: 400 });
     const profileRef = database.ref(`users/${uid}`);
     const existing = await profileRef.once("value");
     if (existing.exists()) return Response.json({ profile: existing.val() });
+    const payload = sanitizeProfileInput(await request.json());
     const now = Date.now();
-    const profile = { ...parsed.data, uid, createdAt: now, updatedAt: now };
+    const profile = { ...payload, uid, email: canonicalEmail, createdAt: now, updatedAt: now };
     await profileRef.set(profile);
     return Response.json({ profile }, { status: 201 });
   } catch (error) {
@@ -55,16 +82,16 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const uid = await verifyFirebaseToken(tokenFrom(request));
-    const parsed = profileSchema.safeParse(await request.json());
-    if (!parsed.success) return Response.json({ error: "Please check your profile details." }, { status: 400 });
-    const { database } = getFirebaseAdmin();
+    const { database, auth } = getFirebaseAdmin();
+    const firebaseUser = await auth.getUser(uid);
+    const canonicalEmail = (firebaseUser.email || "").trim().toLowerCase();
+    const parsed = sanitizeProfileInput(await request.json());
     const profileRef = database.ref(`users/${uid}`);
     const existing = await profileRef.once("value");
     if (!existing.exists()) return Response.json({ error: "Your profile has not been created yet." }, { status: 404 });
-    const updates: Record<string, unknown> = Object.fromEntries(Object.entries(parsed.data).filter(([, value]) => value !== undefined));
-    updates.updatedAt = Date.now();
-    await profileRef.update(updates);
-    return Response.json({ profile: { ...existing.val(), ...updates } });
+    const safeProfile = { ...existing.val(), ...parsed, uid, email: canonicalEmail, updatedAt: Date.now() };
+    await profileRef.update(safeProfile);
+    return Response.json({ profile: safeProfile });
   } catch (error) {
     return friendlyError(error, "Unable to update your profile right now.");
   }

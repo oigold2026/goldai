@@ -49,8 +49,11 @@ export async function POST(request: Request) {
       const response = await generateAIResponse({ message: `${parsed.data.message}${historyContext}${retrievalContext}${documentContext}`, language: parsed.data.language, attachments, profile: profile ? { userGroup: profile.userGroup, country: profile.country, preferredLanguage: profile.preferredLanguage, educationLevel: profile.educationLevel, classOrYear: profile.classOrYear, programme: profile.programme } : undefined, studyContext });
       const responseImages = await retrieveImagesForResponse(researchQuery, response.text, parsed.data.requestId).catch((imageError) => { console.warn("Gold AI optional response image retrieval failed", { requestId: parsed.data.requestId, error: imageError instanceof Error ? imageError.message : "unknown error" }); return []; });
       console.info("[Gold AI Image Pipeline] response images attached", { requestId: parsed.data.requestId, count: responseImages.length });
-      try { await finalizeCredits(uid, parsed.data.requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditCost); }
-      catch (creditError) { console.error("Gold AI credit finalization failed", { requestId: parsed.data.requestId, error: creditError instanceof Error ? creditError.message : "unknown error" }); }
+      const finalized = await finalizeCredits(uid, parsed.data.requestId, { provider: response.provider, model: response.model, inputTokens: response.usage?.inputTokens, outputTokens: response.usage?.outputTokens, totalTokens: response.usage?.totalTokens }, creditCost);
+      if (!finalized) {
+        await refundReservedCredits(uid, parsed.data.requestId).catch(() => undefined);
+        return Response.json({ error: "We could not complete the credit ledger for this AI response. Please retry with a new request." }, { status: 503 });
+      }
       return Response.json({ ...response, sources: intelligence.sources, images: responseImages, creditsConsumed: creditCost, balance: reservation.account?.balance });
     } catch (providerError) {
       try { await refundReservedCredits(uid, parsed.data.requestId); }
