@@ -1,5 +1,0 @@
-export const languages = ["English", "Luganda", "Kiswahili", "Runyankole", "Rukiga", "Luo", "Acholi", "Ateso", "Runyoro", "Rutoro", "French", "Arabic", "Other"] as const;
-
-export const researchTypes = ["Academic", "Scientific", "Business", "Market", "Technology", "Social", "General", "Other"] as const;
-
-export const educationLevels = ["Early learning", "Primary", "Secondary", "Vocational", "Tertiary", "Other"] as const;
